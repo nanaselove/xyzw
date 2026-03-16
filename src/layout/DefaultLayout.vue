@@ -4,12 +4,12 @@
     <nav class="dashboard-nav">
       <div class="nav-container">
         <div class="nav-brand">
-          <img src="/icons/xiaoyugan.png" alt="XYZW" class="brand-logo" />
+          <img :alt="APP_NAME" src="/icons/xiaoyugan.png" class="brand-logo" />
           <div class="brand-toggle" @click="isMobileMenuOpen = true">
             <n-icon>
               <Menu />
             </n-icon>
-            <span class="brand-text">XYZW 控制台</span>
+            <span class="brand-text">{{ APP_NAME }}</span>
           </div>
         </div>
 
@@ -203,6 +203,7 @@ import { useRouter } from 'vue-router'
 import { useMessage } from 'naive-ui'
 import { ref } from 'vue'
 import { isNowInLegionWarTime } from '@/utils/clubBattleUtils'
+import { APP_NAME } from '@/constants/appMeta'
 
 const tokenStore = useTokenStore();
 const router = useRouter();

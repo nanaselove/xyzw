@@ -5,8 +5,8 @@
       <div class="container">
         <div class="nav-content">
           <div class="nav-brand">
-            <img src="/icons/xiaoyugan.png" alt="XYZW" class="brand-logo" />
-            <span class="brand-text">XYZW 游戏管理系统</span>
+            <img :alt="APP_NAME" src="/icons/xiaoyugan.png" class="brand-logo" />
+            <span class="brand-text">{{ APP_NAME }}</span>
           </div>
 
           <div class="mobile-menu-button">
@@ -235,8 +235,8 @@
       <div class="container">
         <div class="footer-content">
           <div class="footer-brand">
-            <img src="/icons/xiaoyugan.png" alt="XYZW" class="footer-logo" />
-            <span class="footer-text">XYZW 游戏管理系统</span>
+            <img :alt="APP_NAME" src="/icons/xiaoyugan.png" class="footer-logo" />
+            <span class="footer-text">{{ APP_NAME }}</span>
           </div>
           <div class="footer-links">
             <router-link to="/changelog" class="footer-link">
@@ -261,6 +261,7 @@ import { ref, onMounted, markRaw } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { PersonCircle, Cube, Ribbon, Settings, Menu } from "@vicons/ionicons5";
+import { APP_NAME } from "@/constants/appMeta";
 
 const router = useRouter();
 const authStore = useAuthStore();

@@ -5,8 +5,8 @@
       <div class="login-card glass">
         <div class="card-header">
           <div class="brand">
-            <img src="/icons/xiaoyugan.png" alt="XYZW" class="brand-logo" />
-            <h1 class="brand-title">XYZW 游戏管理系统</h1>
+            <img :alt="APP_NAME" src="/icons/xiaoyugan.png" class="brand-logo" />
+            <h1 class="brand-title">{{ APP_NAME }}</h1>
           </div>
           <p class="welcome-text">欢迎回来，请登录您的账户</p>
         </div>
@@ -155,6 +155,7 @@ import { useRouter } from "vue-router";
 import { useMessage } from "naive-ui";
 import { useAuthStore } from "@/stores/auth";
 import { PersonCircle, Cube, Ribbon, Settings } from "@vicons/ionicons5";
+import { APP_NAME } from "@/constants/appMeta";
 
 const router = useRouter();
 const message = useMessage();

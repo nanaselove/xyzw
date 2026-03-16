@@ -4,8 +4,8 @@
       <div class="register-card glass">
         <div class="card-header">
           <div class="brand">
-            <img src="/icons/xiaoyugan.png" alt="XYZW" class="brand-logo" />
-            <h1 class="brand-title">注册 XYZW 账户</h1>
+            <img :alt="APP_NAME" src="/icons/xiaoyugan.png" class="brand-logo" />
+            <h1 class="brand-title">{{ `注册 ${APP_NAME} 账户` }}</h1>
           </div>
           <p class="welcome-text">加入我们，开始您的游戏管理之旅</p>
         </div>
@@ -121,6 +121,7 @@ import { useRouter } from "vue-router";
 import { useMessage } from "naive-ui";
 import { useAuthStore } from "@/stores/auth";
 import { PersonCircle, Mail } from "@vicons/ionicons5";
+import { APP_NAME } from "@/constants/appMeta";
 
 const router = useRouter();
 const message = useMessage();

@@ -2,9 +2,9 @@ import { createRouter, createWebHistory } from 'vue-router'
 import * as autoRoutes from "vue-router/auto-routes";
 import { useTokenStore } from '@/stores/tokenStore'
 import { isNowInLegionWarTime } from "@/utils/clubBattleUtils"
+import { buildPageTitle } from '@/constants/appMeta'
 
 const generatedRoutes = autoRoutes.routes ?? [];
-const baseTitle = document.title || '✨11068 濑帝俱乐部专属✨'
 
 const my_routes = [
   {
@@ -159,8 +159,7 @@ router.beforeEach((to, from, next) => {
   const tokenStore = useTokenStore()
 
   // 设置页面标题
-  const pageTitle = typeof to.meta?.title === 'string' ? to.meta.title.trim() : ''
-  document.title = pageTitle ? `${pageTitle} - ${baseTitle}` : baseTitle
+  document.title = buildPageTitle(to.meta?.title)
   if(to.name==="LegionWar"&&!isNowInLegionWarTime()){
   // if(to.name==="LegionWar"&&isNowInLegionWarTime()){
     next('/admin/dashboard');
