@@ -4,6 +4,7 @@ import { useTokenStore } from '@/stores/tokenStore'
 import { isNowInLegionWarTime } from "@/utils/clubBattleUtils"
 
 const generatedRoutes = autoRoutes.routes ?? [];
+const baseTitle = document.title || '✨11068 濑帝俱乐部专属✨'
 
 const my_routes = [
   {
@@ -158,7 +159,8 @@ router.beforeEach((to, from, next) => {
   const tokenStore = useTokenStore()
 
   // 设置页面标题
-  document.title = to.meta.title ? `${to.meta.title} - XYZW 游戏管理系统` : 'XYZW 游戏管理系统'
+  const pageTitle = typeof to.meta?.title === 'string' ? to.meta.title.trim() : ''
+  document.title = pageTitle ? `${pageTitle} - ${baseTitle}` : baseTitle
   if(to.name==="LegionWar"&&!isNowInLegionWarTime()){
   // if(to.name==="LegionWar"&&isNowInLegionWarTime()){
     next('/admin/dashboard');
