@@ -1884,24 +1884,52 @@ onMounted(() => {
 
   .style-default .god-ranking-content {
     max-height: 360px;
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
   }
 
   .style-default .god-ranking-header,
   .style-default .god-ranking-item {
-    min-width: 560px;
+    display: grid;
+    grid-template-columns: 30px 30px minmax(72px, 1fr) repeat(5, minmax(30px, 34px));
+    align-items: center;
+    column-gap: 4px;
+    min-width: 0;
+  }
+
+  .style-default .god-ranking-header {
+    padding: 8px 6px;
+    font-size: 12px;
   }
 
   .style-default .god-ranking-item {
-    flex-direction: row;
-    align-items: center;
-    gap: var(--spacing-sm);
+    padding: 8px 6px;
   }
 
+  .style-default .header-avatar,
+  .style-default .player-avatar-cell {
+    width: 30px;
+  }
+
+  .style-default .header-player,
+  .style-default .player-name {
+    width: auto;
+    min-width: 0;
+    padding-left: 0;
+  }
+
+  .style-default .god-rank-number {
+    width: 28px;
+    height: 22px;
+  }
+
+  .style-default .header-stat,
   .style-default .player-stat {
-    min-width: 50px;
+    width: auto;
+    min-width: 0;
     text-align: center;
+    font-size: 12px;
   }
 }
 

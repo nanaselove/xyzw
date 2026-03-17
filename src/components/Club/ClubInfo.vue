@@ -120,7 +120,13 @@
           </div>
         </n-modal>
 
-        <n-tabs v-model:value="activeTab" type="line" animated>
+        <n-tabs
+          v-model:value="activeTab"
+          type="line"
+          animated
+          size="small"
+          class="club-info-tabs"
+        >
           <n-tab-pane name="overview" tab="概览" display-directive="show:lazy">
             <div class="overview">
               <n-grid x-gap="12" y-gap="12" cols="2" item-responsive>
@@ -1625,6 +1631,10 @@ const formatNumber = (num) => {
 
 <style scoped lang="scss">
 .club-info {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
   .toolbar {
     display: flex;
     justify-content: flex-end;
@@ -1689,6 +1699,46 @@ const formatNumber = (num) => {
 
   .empty-club .actions {
     margin-top: var(--spacing-sm);
+  }
+
+  :deep(.club-info-tabs .n-tabs-nav-scroll-wrapper) {
+    overflow: hidden;
+  }
+
+  :deep(.club-info-tabs .v-x-scroll) {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
+    scrollbar-width: none;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  :deep(.club-info-tabs .v-x-scroll::-webkit-scrollbar) {
+    display: none;
+  }
+
+  :deep(.club-info-tabs .n-tabs-nav-scroll-content) {
+    display: inline-flex;
+    flex-wrap: nowrap;
+    width: max-content;
+    min-width: max-content;
+  }
+
+  :deep(.club-info-tabs .n-tabs),
+  :deep(.club-info-tabs .n-tabs-pane-wrapper),
+  :deep(.club-info-tabs .n-tab-pane) {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  :deep(.club-info-tabs .n-tabs-tab-wrapper),
+  :deep(.club-info-tabs .n-tabs-tab) {
+    flex: 0 0 auto;
+    white-space: nowrap;
   }
 }
 
@@ -2135,6 +2185,47 @@ const formatNumber = (num) => {
 }
 
 @media (max-width: 768px) {
+  .club-info {
+    .toolbar {
+      justify-content: flex-start;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    :deep(.club-info-tabs .n-tabs-nav) {
+      padding: 0 4px;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+    }
+
+    :deep(.club-info-tabs .n-tabs-nav-scroll-wrapper) {
+      overflow: hidden;
+    }
+
+    :deep(.club-info-tabs .v-x-scroll) {
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+    }
+
+    :deep(.club-info-tabs .n-tabs-nav-scroll-content) {
+      width: max-content;
+      min-width: max-content;
+    }
+
+    :deep(.club-info-tabs .n-tabs-tab) {
+      padding-left: 8px;
+      padding-right: 8px;
+      font-size: 12px;
+      line-height: 1.2;
+    }
+
+    :deep(.club-info-tabs .n-tabs-tab__label) {
+      white-space: nowrap;
+    }
+  }
+
   .hero-detail-modal {
     :deep(.n-modal-content) {
       padding: 0 !important;

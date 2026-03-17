@@ -735,26 +735,61 @@ onUnmounted(() => {
 .sub-nav {
   padding: 8px;
   background: var(--n-color);
-  display: flex;
-  justify-content: center;
+  display: block;
   overflow-x: auto;
+  overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.sub-nav::-webkit-scrollbar {
+  display: none;
 }
 
 .sub-nav :deep(.n-tabs) {
-  width: 100%;
+  display: block;
+  width: max-content;
+  min-width: 100%;
+  flex: none;
 }
 
-.sub-nav :deep(.n-tabs-nav-scroll-wrapper) {
+.sub-nav :deep(.n-tabs-nav) {
+  width: max-content;
+  min-width: 100%;
+  background: var(--bg-primary);
+  border-radius: var(--border-radius-sm);
+}
+
+.sub-nav :deep(.n-tabs--segment-type .n-tabs-rail) {
+  display: inline-flex;
+  width: max-content;
+  min-width: max-content;
+  flex-wrap: nowrap;
+}
+
+.sub-nav :deep(.n-tabs--segment-type .n-tabs-tab-wrapper) {
+  flex: 0 0 auto;
+}
+
+.sub-nav :deep(.n-tabs--segment-type .n-tabs-tab) {
+  width: auto;
+}
+
+.sub-nav :deep(.v-x-scroll) {
   overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .sub-nav :deep(.n-tabs-nav-scroll-content) {
+  display: inline-flex;
   white-space: nowrap;
+  min-width: max-content;
 }
 
 .sub-nav :deep(.n-tabs-tab) {
   flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .warrank-full-container {
@@ -922,10 +957,6 @@ onUnmounted(() => {
   .game-status-container {
     grid-template-columns: 1fr;
     padding: var(--spacing-sm);
-  }
-
-  .sub-nav {
-    justify-content: flex-start;
   }
 
   .sub-nav :deep(.n-tabs-tab) {
