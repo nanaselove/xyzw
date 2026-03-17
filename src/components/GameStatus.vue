@@ -652,6 +652,35 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 .game-status-container {
+  --section-tab-surface: rgba(248, 250, 252, 0.9);
+  --section-tab-border: rgba(15, 23, 42, 0.18);
+  --section-tab-text: #0f172a;
+  --section-tab-hover-bg: rgba(15, 23, 42, 0.1);
+  --section-tab-hover-text: #020617;
+  --section-tab-active-bg:
+    linear-gradient(
+      135deg,
+      rgba(56, 189, 248, 0.24) 0%,
+      rgba(34, 211, 238, 0.24) 55%,
+      rgba(20, 184, 166, 0.24) 100%
+    );
+  --section-tab-active-text: #0b3b4d;
+  --section-tab-active-border: rgba(14, 116, 144, 0.4);
+  --section-tab-active-shadow: 0 8px 18px rgba(14, 116, 144, 0.16);
+  --section-tab-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+  --card-surface:
+    linear-gradient(
+      165deg,
+      rgba(255, 255, 255, 0.9) 0%,
+      rgba(248, 250, 252, 0.82) 100%
+    );
+  --card-border: rgba(148, 163, 184, 0.34);
+  --card-border-strong: rgba(14, 165, 233, 0.42);
+  --card-shadow: 0 18px 34px rgba(15, 23, 42, 0.12);
+  --card-hover-shadow: 0 20px 38px rgba(15, 23, 42, 0.18);
+  --card-chip-bg: rgba(255, 255, 255, 0.72);
+  --card-chip-border: rgba(148, 163, 184, 0.34);
+
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: var(--spacing-lg);
@@ -680,6 +709,70 @@ onUnmounted(() => {
     padding: var(--spacing-sm);
     gap: var(--spacing-md);
   }
+}
+
+:global(html.dark) .game-status-container,
+:global(body.dark) .game-status-container,
+:global(html[data-theme="dark"]) .game-status-container,
+:global(body[data-theme="dark"]) .game-status-container,
+:global([data-theme="dark"]) .game-status-container {
+  --section-tab-surface: rgba(7, 13, 30, 0.6);
+  --section-tab-border: rgba(148, 163, 184, 0.35);
+  --section-tab-text: rgba(241, 245, 249, 0.94);
+  --section-tab-hover-bg: rgba(148, 163, 184, 0.24);
+  --section-tab-hover-text: #ffffff;
+  --section-tab-active-bg:
+    linear-gradient(
+      135deg,
+      rgba(56, 189, 248, 0.28) 0%,
+      rgba(34, 211, 238, 0.24) 55%,
+      rgba(20, 184, 166, 0.24) 100%
+    );
+  --section-tab-active-text: #ecfeff;
+  --section-tab-active-border: rgba(103, 232, 249, 0.52);
+  --section-tab-active-shadow: 0 8px 22px rgba(6, 182, 212, 0.28);
+  --section-tab-shadow: 0 10px 26px rgba(2, 6, 23, 0.3);
+  --card-surface:
+    linear-gradient(
+      165deg,
+      rgba(15, 23, 42, 0.64) 0%,
+      rgba(30, 41, 59, 0.56) 100%
+    );
+  --card-border: rgba(148, 163, 184, 0.24);
+  --card-border-strong: rgba(103, 232, 249, 0.42);
+  --card-shadow: 0 20px 40px rgba(2, 6, 23, 0.3);
+  --card-hover-shadow: 0 22px 44px rgba(2, 6, 23, 0.42);
+  --card-chip-bg: rgba(15, 23, 42, 0.5);
+  --card-chip-border: rgba(148, 163, 184, 0.24);
+}
+
+.game-status-container :deep(.status-card),
+.game-status-container :deep(.team-status-card),
+.game-status-container :deep(.identity-card.embedded) {
+  background: var(--card-surface);
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  backdrop-filter: blur(10px);
+  box-shadow: var(--card-shadow);
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    border-color 0.22s ease,
+    background-color 0.22s ease;
+}
+
+.game-status-container :deep(.status-card:hover),
+.game-status-container :deep(.team-status-card:hover),
+.game-status-container :deep(.identity-card.embedded:hover) {
+  transform: translateY(-2px);
+  border-color: var(--card-border-strong);
+  box-shadow: var(--card-hover-shadow);
+}
+
+.game-status-container :deep(.identity-card.embedded .res-item) {
+  background: var(--card-chip-bg);
+  border: 1px solid var(--card-chip-border);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
 }
 
 .full-grid {
@@ -724,7 +817,12 @@ onUnmounted(() => {
 .section-tabs {
   margin: 0 var(--spacing-sm) var(--spacing-md) var(--spacing-sm);
   grid-column: 1 / -1;
-  border-bottom: 1px solid var(--border-light);
+  border: 1px solid var(--section-tab-border);
+  border-radius: 12px;
+  padding: 6px 10px 2px;
+  background: var(--section-tab-surface);
+  backdrop-filter: blur(8px);
+  box-shadow: var(--section-tab-shadow);
   overflow: auto;
 }
 
@@ -732,9 +830,67 @@ onUnmounted(() => {
   display: none;
 }
 
+.section-tabs :deep(.n-tabs-nav) {
+  background: transparent !important;
+}
+
+.section-tabs :deep(.n-tabs-wrapper),
+.section-tabs :deep(.n-tabs-nav-scroll-wrapper),
+.section-tabs :deep(.n-tabs-nav-scroll-content) {
+  background: transparent !important;
+}
+
+.section-tabs :deep(.n-tabs-tab) {
+  border: 1px solid transparent;
+  border-radius: 999px;
+  min-height: 34px;
+  padding-inline: 14px;
+  color: var(--section-tab-text) !important;
+  font-weight: var(--font-weight-semibold);
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.section-tabs :deep(.n-tabs-tab-wrapper) {
+  border-radius: 999px;
+  padding: 2px;
+}
+
+.section-tabs :deep(.n-tabs-tab:hover) {
+  color: var(--section-tab-hover-text) !important;
+  background: var(--section-tab-hover-bg);
+  border-color: var(--section-tab-border);
+  transform: translateY(-1px);
+}
+
+.section-tabs :deep(.n-tabs-tab.n-tabs-tab--active) {
+  color: var(--section-tab-active-text) !important;
+  background: var(--section-tab-active-bg);
+  border-color: var(--section-tab-active-border);
+  box-shadow: var(--section-tab-active-shadow);
+  transform: translateY(-1px);
+}
+
+.section-tabs :deep(.n-tabs-tab .n-tabs-tab__label) {
+  color: inherit !important;
+}
+
+.section-tabs :deep(.n-tabs-bar) {
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #38bdf8 0%, #22d3ee 55%, #14b8a6 100%) !important;
+}
+
 .sub-nav {
   padding: 8px;
-  background: var(--n-color);
+  background: var(--section-tab-surface);
+  border: 1px solid var(--section-tab-border);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
   display: block;
   overflow-x: auto;
   overflow-y: hidden;
@@ -756,7 +912,7 @@ onUnmounted(() => {
 .sub-nav :deep(.n-tabs-nav) {
   width: max-content;
   min-width: 100%;
-  background: var(--bg-primary);
+  background: transparent;
   border-radius: var(--border-radius-sm);
 }
 
@@ -769,10 +925,15 @@ onUnmounted(() => {
 
 .sub-nav :deep(.n-tabs--segment-type .n-tabs-tab-wrapper) {
   flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 2px;
 }
 
 .sub-nav :deep(.n-tabs--segment-type .n-tabs-tab) {
   width: auto;
+  border-radius: 999px;
+  min-height: 32px;
+  padding-inline: 14px;
 }
 
 .sub-nav :deep(.v-x-scroll) {
@@ -790,6 +951,59 @@ onUnmounted(() => {
 .sub-nav :deep(.n-tabs-tab) {
   flex: 0 0 auto;
   white-space: nowrap;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: var(--section-tab-text) !important;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.sub-nav :deep(.n-tabs-tab:hover) {
+  color: var(--section-tab-hover-text) !important;
+  background: var(--section-tab-hover-bg);
+  border-color: var(--section-tab-border);
+}
+
+.sub-nav :deep(.n-tabs-tab.n-tabs-tab--active) {
+  color: var(--section-tab-active-text) !important;
+  background: var(--section-tab-active-bg);
+  border-color: var(--section-tab-active-border);
+  box-shadow: var(--section-tab-active-shadow);
+}
+
+@media (min-width: 769px) {
+  .sub-nav {
+    overflow-x: hidden;
+  }
+
+  .sub-nav :deep(.n-tabs),
+  .sub-nav :deep(.n-tabs-nav),
+  .sub-nav :deep(.v-x-scroll),
+  .sub-nav :deep(.n-tabs-nav-scroll-wrapper),
+  .sub-nav :deep(.n-tabs-nav-scroll-content),
+  .sub-nav :deep(.n-tabs--segment-type .n-tabs-rail) {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .sub-nav :deep(.n-tabs-nav-scroll-content),
+  .sub-nav :deep(.n-tabs--segment-type .n-tabs-rail) {
+    display: flex !important;
+  }
+
+  .sub-nav :deep(.n-tabs--segment-type .n-tabs-tab-wrapper) {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+  }
+
+  .sub-nav :deep(.n-tabs--segment-type .n-tabs-tab) {
+    width: 100% !important;
+    justify-content: center;
+    white-space: nowrap;
+  }
 }
 
 .warrank-full-container {

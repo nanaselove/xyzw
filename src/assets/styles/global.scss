@@ -623,3 +623,34 @@ img {
     line-height: 1.2 !important;
   }
 }
+
+/* Global page shell: align all routes with Home page background style */
+.default-layout,
+.default-layout .main,
+.batch-daily-tasks,
+.changelog-page,
+.daily-tasks-page,
+.dashboard-page,
+.game-features-page,
+.game-roles-page,
+.legion-war-container,
+.login-page,
+.not-found-page,
+.profile-page,
+.register-page,
+.token-import-page {
+  background: transparent !important;
+}
+
+/* Common glass surface for route-level cards/containers */
+.changelog-container,
+.daily-tasks-page .page-header,
+.dashboard-main .main-container,
+.game-features-page .page-header,
+.game-roles-page .page-header,
+.profile-page .page-header,
+.token-import-page .page-header {
+  background: rgba(7, 13, 30, 0.28) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}

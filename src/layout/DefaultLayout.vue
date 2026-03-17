@@ -233,8 +233,9 @@ const handleUserAction = async (key) => {
 <style scoped lang="scss">
 // 导航栏
 .dashboard-nav {
-  background: var(--bg-primary);
-  border-bottom: 1px solid var(--border-light);
+  background: rgba(6, 10, 24, 0.28);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
   padding: 0 var(--spacing-lg);
   position: sticky;
   top: 0;
@@ -265,7 +266,8 @@ const handleUserAction = async (key) => {
 .brand-text {
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
+  color: #f8fafc;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
 }
 
 .brand-toggle {
@@ -292,18 +294,21 @@ const handleUserAction = async (key) => {
   gap: var(--spacing-xs);
   padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--border-radius-medium);
-  color: var(--text-secondary);
+  color: rgba(248, 250, 252, 0.88);
   text-decoration: none;
   transition: all var(--transition-fast);
 
   &:hover {
-    background: var(--bg-tertiary);
-    color: var(--text-primary);
+    background: rgba(148, 163, 184, 0.28);
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 16px rgba(2, 6, 23, 0.22);
   }
 
   &.active {
-    background: var(--primary-color-light);
-    color: var(--primary-color);
+    background: linear-gradient(135deg, #6ee7b7 0%, #34d399 50%, #22c55e 100%);
+    color: #052e16;
+    box-shadow: 0 8px 18px rgba(2, 6, 23, 0.22);
   }
 }
 
@@ -329,7 +334,8 @@ const handleUserAction = async (key) => {
   transition: background var(--transition-fast);
 
   &:hover {
-    background: var(--bg-tertiary);
+    background: rgba(148, 163, 184, 0.28);
+    box-shadow: 0 6px 14px rgba(2, 6, 23, 0.2);
   }
 }
 
@@ -339,7 +345,7 @@ const handleUserAction = async (key) => {
 
 .username {
   font-weight: var(--font-weight-medium);
-  color: var(--text-primary);
+  color: #f8fafc;
   max-width: 120px;
   white-space: nowrap;
   overflow: hidden;
@@ -406,6 +412,15 @@ const handleUserAction = async (key) => {
   flex-direction: column;
   gap: var(--spacing-sm);
   padding: var(--spacing-md);
+  background:
+    radial-gradient(circle at 20% 18%, rgba(255, 255, 255, 0.08), transparent 45%),
+    linear-gradient(
+      165deg,
+      rgba(2, 6, 23, 0.72) 0%,
+      rgba(15, 23, 42, 0.78) 56%,
+      rgba(3, 7, 18, 0.86) 100%
+    );
+  min-height: 100%;
 }
 
 .drawer-item {
@@ -414,8 +429,18 @@ const handleUserAction = async (key) => {
   gap: var(--spacing-sm);
   padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--border-radius-medium);
-  color: var(--text-secondary);
+  color: rgba(248, 250, 252, 0.88);
   text-decoration: none;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.drawer-item:hover {
+  background: rgba(148, 163, 184, 0.24);
+  color: #ffffff;
+  transform: translateY(-1px);
 }
 
 .drawer-item :deep(.n-icon) {
@@ -424,8 +449,8 @@ const handleUserAction = async (key) => {
 }
 
 .drawer-item.router-link-active {
-  background: var(--primary-color-light);
-  color: var(--primary-color);
+  background: linear-gradient(135deg, #6ee7b7 0%, #34d399 50%, #22c55e 100%);
+  color: #052e16;
 }
 
 /* 禁用样式：灰化、鼠标禁止、无hover效果 */

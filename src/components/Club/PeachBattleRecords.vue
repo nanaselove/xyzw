@@ -2296,8 +2296,12 @@ onMounted(() => {
   color: #444;
 }
 
-.style2-table tr:hover {
+.style2-table tbody tr:hover {
   background: #f8fbff;
+}
+
+.style2-table thead tr:hover {
+  background: #4285f4;
 }
 
 .medal-icon { font-size: 14px; }

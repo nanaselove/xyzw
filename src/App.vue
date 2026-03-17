@@ -56,7 +56,15 @@ onUnmounted(() => {
 <style>
 /* 主题变量 */
 :root {
-  --app-background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --app-background:
+    radial-gradient(circle at 20% 18%, rgba(255, 255, 255, 0.12), transparent 45%),
+    linear-gradient(
+      165deg,
+      rgba(2, 6, 23, 0.58) 0%,
+      rgba(15, 23, 42, 0.66) 56%,
+      rgba(3, 7, 18, 0.78) 100%
+    ),
+    url("https://t.alcy.cc/moez");
   --text-color: #333;
   --text-secondary: #666;
   --text-tertiary: #999;
@@ -66,7 +74,15 @@ onUnmounted(() => {
 
 /* 深色主题变量 */
 .dark {
-  --app-background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+  --app-background:
+    radial-gradient(circle at 20% 18%, rgba(148, 163, 184, 0.08), transparent 45%),
+    linear-gradient(
+      165deg,
+      rgba(2, 6, 23, 0.72) 0%,
+      rgba(15, 23, 42, 0.78) 56%,
+      rgba(3, 7, 18, 0.86) 100%
+    ),
+    url("https://t.alcy.cc/moez");
   --text-color: #ffffff !important;
   --text-secondary: #cbd5e0 !important;
   --text-tertiary: #a0aec0 !important;
@@ -205,11 +221,13 @@ body[data-theme="dark"] .n-popover-container {
 
 #app {
   min-height: 100vh;
-  background: var(--app-background);
+  background: transparent;
   color: var(--text-color);
   transition:
     background 0.3s ease,
     color 0.3s ease;
+  position: relative;
+  z-index: 0;
 }
 
 /* 全局样式重置 */
@@ -236,6 +254,45 @@ body {
     sans-serif;
   color: var(--text-color);
   transition: color 0.3s ease;
+  background: transparent !important;
+}
+
+body {
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background: var(--app-background);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(6, 10, 24, 0.38) 0%,
+      rgba(6, 10, 24, 0.24) 35%,
+      rgba(6, 10, 24, 0.36) 100%
+    );
+}
+
+@media (max-width: 768px) {
+  body::before {
+    background-attachment: scroll;
+    background-position: center top;
+  }
 }
 
 /* 滚动条样式 */

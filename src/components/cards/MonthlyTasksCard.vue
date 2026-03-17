@@ -27,16 +27,16 @@
       </div>
       <div class="action-row">
         <button
-          class="action-button secondary"
+          class="action-button secondary refresh-button"
           :disabled="monthLoading || fishToppingUp || arenaToppingUp"
           @click="fetchMonthlyActivity"
         >
           {{ monthLoading ? "刷新中..." : "刷新进度" }}
         </button>
 
-        <n-button-group>
+        <n-button-group class="split-action">
           <n-button
-            class="action-button"
+            class="action-button split-main"
             :disabled="monthLoading || fishToppingUp"
             @click="topUpMonthly('fish')"
           >
@@ -47,13 +47,18 @@
             trigger="click"
             @select="onFishMoreSelect"
           >
-            <n-button :disabled="monthLoading || fishToppingUp">▾</n-button>
+            <n-button
+              class="action-button split-toggle"
+              :disabled="monthLoading || fishToppingUp"
+            >
+              <span class="caret">▾</span>
+            </n-button>
           </n-dropdown>
         </n-button-group>
 
-        <n-button-group>
+        <n-button-group class="split-action">
           <n-button
-            class="action-button"
+            class="action-button split-main"
             :disabled="monthLoading || arenaToppingUp || !isArenaActivityOpen"
             @click="topUpMonthly('arena')"
           >
@@ -64,7 +69,12 @@
             trigger="click"
             @select="onArenaMoreSelect"
           >
-            <n-button :disabled="monthLoading || arenaToppingUp || !isArenaActivityOpen">▾</n-button>
+            <n-button
+              class="action-button split-toggle"
+              :disabled="monthLoading || arenaToppingUp || !isArenaActivityOpen"
+            >
+              <span class="caret">▾</span>
+            </n-button>
           </n-dropdown>
         </n-button-group>
       </div>
@@ -387,20 +397,26 @@ defineExpose({ fetchMonthlyActivity });
   margin-top: var(--spacing-sm);
 }
 .action-row {
-  display: flex;
-  gap: var(--spacing-sm);
-  .action-button {
-    flex: 1;
+  display: grid;
+  grid-template-columns: minmax(108px, 0.72fr) minmax(0, 1fr) minmax(0, 1fr);
+  align-items: stretch;
+  gap: 10px;
+  margin-top: var(--spacing-sm);
+
+  > * {
+    min-width: 0;
   }
 }
 
 .action-button {
   width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: var(--spacing-sm) 12px;
   border: none;
-  border-radius: var(--border-radius-medium);
+  border-radius: 12px;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
+  line-height: 1.2;
+  white-space: nowrap;
   cursor: pointer;
   transition: all var(--transition-fast);
   background: var(--primary-color);
@@ -419,6 +435,112 @@ defineExpose({ fetchMonthlyActivity });
     &:hover:not(:disabled) {
       background: var(--secondary-color-hover);
     }
+  }
+}
+
+.refresh-button {
+  justify-self: start;
+  max-width: 152px;
+  min-width: 0;
+}
+
+.split-action {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.split-action :deep(.n-button.action-button) {
+  border-radius: 0 !important;
+  border-color: transparent !important;
+  background: var(--primary-color) !important;
+  color: #fff !important;
+}
+
+.split-action :deep(.n-button.action-button:hover:not(.n-button--disabled)) {
+  background: var(--primary-color-hover) !important;
+}
+
+.split-action :deep(.n-button.action-button.n-button--disabled) {
+  background: var(--bg-tertiary) !important;
+  color: var(--text-tertiary) !important;
+}
+
+.split-action :deep(.split-main) {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-inline: 10px;
+}
+
+.split-action :deep(.split-toggle) {
+  flex: 0 0 42px;
+  width: 42px;
+  min-width: 42px;
+  padding-inline: 0;
+}
+
+.caret {
+  font-size: 12px;
+  line-height: 1;
+}
+
+@media (max-width: 480px) {
+  .action-row {
+    grid-template-columns: minmax(84px, 0.66fr) minmax(0, 1fr) minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  .refresh-button {
+    max-width: none;
+  }
+
+  .action-button {
+    padding: 8px 6px;
+    font-size: 12px;
+  }
+
+  .split-action {
+    border-radius: 10px;
+  }
+
+  .split-action :deep(.split-main) {
+    padding-inline: 6px;
+    font-size: 12px;
+  }
+
+  .split-action :deep(.split-toggle) {
+    flex: 0 0 30px;
+    width: 30px;
+    min-width: 30px;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 900px) {
+  .action-row {
+    grid-template-columns: minmax(96px, 0.7fr) minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .refresh-button {
+    max-width: 132px;
+  }
+
+  .action-button {
+    padding: 9px 8px;
+    font-size: 13px;
+  }
+
+  .split-action :deep(.split-main) {
+    padding-inline: 8px;
+    font-size: 13px;
+  }
+
+  .split-action :deep(.split-toggle) {
+    flex: 0 0 34px;
+    width: 34px;
+    min-width: 34px;
   }
 }
 
