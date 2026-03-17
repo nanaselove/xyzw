@@ -918,6 +918,7 @@ onMounted(() => {
 .battle-records-content {
   flex: 1;
   overflow-y: auto;
+  overflow-x: auto;
   padding: var(--spacing-md);
 }
 
@@ -931,6 +932,17 @@ onMounted(() => {
 
 /* 响应式设计 */
 @media (max-width: 768px) {
+  .records-container {
+    height: auto;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+  }
+
+  .battle-records-content {
+    overflow-x: auto;
+  }
+
   .header-section {
     flex-direction: column;
     align-items: flex-start;

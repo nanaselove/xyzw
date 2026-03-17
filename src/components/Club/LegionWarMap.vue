@@ -309,8 +309,6 @@ let hexHeight = Math.sqrt(3) * hexSize;
 const arr = Array.from({ length: 41 }, () =>
   Array.from({ length: 41 }, () => 0)
 );
-let leftMaxPoint = [0, 0];
-
 // 颜色映射
 const typeBg = (type) => {
   switch (type) {
@@ -346,9 +344,6 @@ const drawHexagon = (x, y, color, type) => {
     const px = x + hexSize * Math.cos(angle);
     const py = y + hexSize * Math.sin(angle);
     i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-    
-    if (px >= leftMaxPoint[0]) leftMaxPoint[0] = px;
-    if (py >= leftMaxPoint[1]) leftMaxPoint[1] = py;
   }
   ctx.closePath();
   
@@ -378,6 +373,40 @@ const drawText = (x, y, text, color = "#fff", fontSize = 10) => {
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText(text, x, y);
+};
+
+const getHexCenter = (col, row) => ({
+  x: col * (hexWidth * 0.75) + hexSize + gap * col,
+  y: row * hexHeight + (col % 2 === 1 ? hexHeight / 2 : 0) + gap * row,
+});
+
+const getContentOffset = (nodes, canvasWidth, canvasHeight) => {
+  if (!nodes.length) return { offsetX: 0, offsetY: 0 };
+
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+
+  nodes.forEach(({ col, row }) => {
+    const { x, y } = getHexCenter(col, row);
+    minX = Math.min(minX, x - hexSize);
+    maxX = Math.max(maxX, x + hexSize);
+    // 预留俱乐部名称标签在六边形上方的空间
+    minY = Math.min(minY, y - hexHeight / 2 - 36);
+    maxY = Math.max(maxY, y + hexHeight / 2);
+  });
+
+  const padding = 8;
+  const availableW = Math.max(canvasWidth - padding * 2, 0);
+  const availableH = Math.max(canvasHeight - padding * 2, 0);
+  const contentW = maxX - minX;
+  const contentH = maxY - minY;
+
+  const offsetX = padding + Math.max((availableW - contentW) / 2, 0) - minX;
+  const offsetY = padding + Math.max((availableH - contentH) / 2, 0) - minY;
+
+  return { offsetX, offsetY };
 };
 
 // 绘制地图内容
@@ -428,11 +457,6 @@ const drawCanvasContent = () => {
     }
   }
 
-  // 平移画布以居中显示有效区域
-  // 假设有效区域左上角偏移约为 (-2, -3) 个六边形
-  ctx.save();
-  ctx.translate(2 * (hexWidth * 0.75 + gap), -1 * (hexHeight + gap));
-
   // 使用静态数据作为基础，结合 validData 处理颜色和状态
   // 1. 准备数据
   // 注意：即使 validData 为 null，也应该填充 graph，以显示基础地图
@@ -465,15 +489,27 @@ const drawCanvasContent = () => {
         belongsLegionId: -1
     };
   });
+
+  const nodePositions = nodesToDraw
+    .map(node => {
+      const [colStr, rowStr] = node.id.split('_');
+      const col = parseInt(colStr);
+      const row = parseInt(rowStr);
+      if (isNaN(col) || isNaN(row)) return null;
+      return { node, col, row };
+    })
+    .filter(Boolean);
+
+  const { offsetX, offsetY } = getContentOffset(
+    nodePositions,
+    canvasWidth,
+    canvasHeight
+  );
   
-  nodesToDraw.forEach(node => {
-    const [colStr, rowStr] = node.id.split('_');
-    const col = parseInt(colStr);
-    const row = parseInt(rowStr);
-    
-    if (!isNaN(col) && !isNaN(row)) {
-      const x = col * (hexWidth * 0.75) + hexSize + gap * col;
-      const y = row * hexHeight + (col % 2 === 1 ? hexHeight / 2 : 0) + gap * row;
+  nodePositions.forEach(({ node, col, row }) => {
+      const center = getHexCenter(col, row);
+      const x = center.x + offsetX;
+      const y = center.y + offsetY;
 
       // 决定背景色：始终使用类型颜色，不依赖归属情况
       let bgColor = typeBg(node.type);
@@ -496,7 +532,6 @@ const drawCanvasContent = () => {
         const label = typeLabel(node.type);
         drawText(x, y, label, "#fff", 12);
       }
-    }
   });
 
   // 绘制俱乐部名称 (独立逻辑)
@@ -509,8 +544,9 @@ const drawCanvasContent = () => {
         const row = parseInt(rowStr);
         
         if (!isNaN(col) && !isNaN(row)) {
-           const x = col * (hexWidth * 0.75) + hexSize + gap * col;
-           const y = row * hexHeight + (col % 2 === 1 ? hexHeight / 2 : 0) + gap * row;
+           const center = getHexCenter(col, row);
+           const x = center.x + offsetX;
+           const y = center.y + offsetY;
            
            // 格式：【区服】名称，使用 legionInfo 中的 legionID
            const sidStr = `【${legion.serverId}】`;
@@ -552,6 +588,7 @@ const resizeAndRedraw = () => {
   if (!legionWarMapDom.value) return;
   const canvas = legionWarMapDom.value;
   const container = canvas.parentElement;
+  if (!container) return;
   
   // 移除之前添加的 style 尺寸设置
   canvas.style.width = '100%';
@@ -585,14 +622,16 @@ const resizeAndRedraw = () => {
   hexSize = Math.min(sizeW, sizeH);
   
   // 限制最大最小尺寸，避免极端情况
-  hexSize = Math.max(12, Math.min(hexSize, 30));
+  // 移动端宽度较小，不能强制最小 12，否则地图会横向裁切
+  hexSize = Math.max(3, Math.min(hexSize, 30));
   
   // 更新依赖变量
   hexWidth = 2 * hexSize;
   hexHeight = Math.sqrt(3) * hexSize;
 
   if (ctx) {
-      ctx.scale(dpr, dpr);
+      // 每次重绘前重置 transform，避免 scale/translate 累积
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       drawCanvasContent();
   }
 };
@@ -925,18 +964,54 @@ onUnmounted(() => {
 
 // 响应式调整
 @media (max-width: 768px) {
-  .header-section {
+  .legion-war-map-container {
+    padding: 4px;
+  }
+
+  .legion-war-map-container .legion-war-map-card .header-section {
     flex-direction: column;
     align-items: flex-start;
-    
-    .stats-section {
-      width: 100%;
-      justify-content: space-between;
-    }
   }
-  
-  .map-container-wrapper {
-    height: 400px !important;
+
+  .legion-war-map-container .legion-war-map-card .header-section .header-left {
+    width: 100%;
+  }
+
+  .legion-war-map-container .legion-war-map-card .header-section .header-left .header-title h2 {
+    font-size: 16px;
+  }
+
+  .legion-war-map-container .legion-war-map-card .header-section .stats-section {
+    width: 100%;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .legion-war-map-container .legion-war-map-card .header-section .stats-section .stat-item {
+    flex-wrap: wrap;
+  }
+
+  .legion-war-map-container .legion-war-map-card .main-content-layout {
+    height: auto;
+    min-height: 0;
+    flex-direction: column;
+    overflow-x: auto;
+    overflow-y: visible;
+  }
+
+  .legion-war-map-container .legion-war-map-card .main-content-layout .map-container-wrapper {
+    width: 100%;
+    height: 420px !important;
+    min-height: 320px;
+  }
+
+  .legion-war-map-container .legion-war-map-card .main-content-layout .side-info-panel {
+    width: 100%;
+    height: 320px;
+    border-left: none;
+    border-top: 1px solid #eee;
+    box-shadow: none;
   }
 }
 </style>

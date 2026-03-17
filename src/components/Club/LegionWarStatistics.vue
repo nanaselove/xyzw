@@ -105,6 +105,7 @@
           :pagination="{ pageSize: 20 }"
           size="small"
           :max-height="tableMaxHeight"
+          :scroll-x="1080"
           :row-class-name="rowClassName"
         >
           <template #empty>
@@ -143,6 +144,7 @@
           :pagination="{ pageSize: 30 }"
           size="small"
           :max-height="tableMaxHeight"
+          :scroll-x="920"
         >
           <template #empty>
             <div class="empty-state">
@@ -309,42 +311,50 @@ const legionColumns = [
   { 
     title: "击杀数", 
     key: "killCnt", 
+    width: 90,
     sorter: (a, b) => a.killCnt - b.killCnt 
   },
   { 
     title: "免费复活", 
     key: "reviveCount", 
+    width: 110,
     render: (row) => `${row.reviveCount}/150` 
   },
   { 
     title: "积分", 
     key: "score", 
+    width: 90,
     sorter: (a, b) => a.score - b.score 
   },
   { 
     title: "红数", 
     key: "redCount", 
+    width: 90,
     sorter: (a, b) => a.redCount - b.redCount 
   },
   { 
     title: "战力", 
     key: "power", 
+    width: 120,
     render: (row) => formatPower(row.power),
     sorter: (a, b) => a.power - b.power 
   },
   { 
     title: "人数", 
     key: "participantsCount", 
+    width: 100,
     render: (row) => `${row.participantsCount}/30` 
   },
   { 
     title: "花费总丹", 
     key: "danCount", 
+    width: 110,
     sorter: (a, b) => a.danCount - b.danCount 
   },
   { 
     title: "四圣", 
     key: "blessingInfo", 
+    width: 130,
     render: (row) => `${row.blessingCount}个共${row.blessingScore}分` 
   }
 ];
@@ -364,16 +374,19 @@ const individualColumns = [
   { 
     title: "击杀数", 
     key: "kill", 
+    width: 90,
     sorter: (a, b) => a.kill - b.kill 
   },
   { 
     title: "死亡次数", 
     key: "die", 
+    width: 90,
     sorter: (a, b) => a.die - b.die 
   },
   { 
     title: "已复活次数", 
     key: "revive", 
+    width: 110,
     render: (row) => `${row.revive}/5` 
   },
   { 
@@ -384,16 +397,19 @@ const individualColumns = [
   { 
     title: "刨地", 
     key: "digGround", 
+    width: 90,
     sorter: (a, b) => a.digGround - b.digGround 
   },
   { 
     title: "复活丹", 
     key: "dan", 
+    width: 90,
     sorter: (a, b) => a.dan - b.dan 
   },
   { 
     title: "K/D", 
     key: "kd", 
+    width: 90,
     sorter: (a, b) => parseFloat(a.kd) - parseFloat(b.kd) 
   }
 ];
@@ -564,9 +580,41 @@ onUnmounted(() => {
 
 // 响应式调整
 @media (max-width: 768px) {
-  .header-section {
+  .legion-war-statistics-container {
+    padding: 4px;
+  }
+
+  .legion-war-statistics-container .legion-war-statistics-card .header-section {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .legion-war-statistics-container .legion-war-statistics-card .header-section .header-left .header-title h2 {
+    font-size: 16px;
+  }
+
+  .legion-war-statistics-container .legion-war-statistics-card .function-section {
+    padding: 10px 12px;
+  }
+
+  .legion-war-statistics-container .legion-war-statistics-card .function-section .function-left {
+    gap: 8px;
+  }
+
+  .legion-war-statistics-container .legion-war-statistics-card .function-section .function-left .stat-item {
+    flex-wrap: wrap;
+  }
+
+  .legion-war-statistics-container .legion-war-statistics-card .table-content {
+    padding: 10px;
+    overflow-x: auto;
+  }
+
+  .legion-war-statistics-container
+    .legion-war-statistics-card
+    .table-content
+    :deep(.n-data-table-wrapper) {
+    overflow-x: auto;
   }
 }
 </style>

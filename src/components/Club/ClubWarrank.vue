@@ -2632,17 +2632,22 @@ onMounted(() => {
 // 主容器样式
 .club-warrank-container {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   height: 100%;
   padding: 0;
   box-sizing: border-box;
   background: var(--bg-primary);
   color: var(--text-primary);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: hidden;
 }
 
 // 卡片样式
 .club-warrank-card {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   height: 100%;
   background: var(--bg-primary);
   border-radius: 0;
@@ -2898,6 +2903,7 @@ onMounted(() => {
 .table-content {
   flex: 1;
   min-height: 0;
+  min-width: 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -2944,6 +2950,8 @@ onMounted(() => {
   .table-container {
     flex: 1;
     overflow: auto;
+    max-width: 100%;
+    min-width: 0;
     background: var(--bg-primary);
     height: 100%;
 
@@ -3615,6 +3623,7 @@ onMounted(() => {
 @media (max-width: 768px) {
   .club-warrank-container {
     padding: var(--spacing-xs);
+    overflow-x: hidden;
   }
 
   .header-section {
@@ -3627,6 +3636,12 @@ onMounted(() => {
 
   .alliance-tabs-section {
     padding: var(--spacing-xs) var(--spacing-xs);
+  }
+
+  .table-content,
+  .table-content .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   :deep(.n-date-picker) {

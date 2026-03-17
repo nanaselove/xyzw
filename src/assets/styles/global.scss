@@ -8,6 +8,8 @@
 html {
   height: 100%;
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -486,6 +488,12 @@ img {
 
 // 响应式
 @media (max-width: 768px) {
+  html,
+  body {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
   .container,
   .container-sm,
   .container-lg {

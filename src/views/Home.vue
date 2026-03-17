@@ -380,6 +380,11 @@ onMounted(() => {
   border-radius: var(--border-radius-medium);
   color: var(--text-secondary);
   text-decoration: none;
+
+  :deep(.n-icon) {
+    font-size: 18px;
+    flex: 0 0 auto;
+  }
 }
 
 .drawer-item.router-link-active {
@@ -415,6 +420,14 @@ onMounted(() => {
 
 .mobile-menu-button {
   display: none;
+
+  :deep(.n-button) {
+    color: #f8fafc;
+  }
+
+  :deep(.n-icon) {
+    font-size: 22px;
+  }
 }
 
 .nav-brand {
@@ -919,9 +932,18 @@ onMounted(() => {
     background-position: center top;
   }
 
+  .navbar {
+    padding: var(--spacing-sm) 0;
+  }
+
+  .main-content {
+    padding-top: 72px;
+  }
+
   .hero-content {
     grid-template-columns: 1fr;
     text-align: center;
+    gap: var(--spacing-lg);
   }
 
   .features-grid,
@@ -939,16 +961,52 @@ onMounted(() => {
     margin-left: auto;
   }
 
+  .brand-text {
+    font-size: var(--font-size-md);
+  }
+
   .nav-actions {
     display: none;
   }
 
   .hero-title {
-    font-size: 2.5rem;
+    font-size: clamp(1.9rem, 8vw, 2.35rem);
+  }
+
+  .hero-subtitle {
+    font-size: var(--font-size-md);
+  }
+
+  .hero-button {
+    height: 46px;
+    padding: 0 var(--spacing-lg);
+    font-size: var(--font-size-md);
+  }
+
+  .card-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .feature-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 14px;
+    margin-bottom: var(--spacing-md);
+
+    :deep(svg) {
+      width: 30px;
+      height: 30px;
+    }
+  }
+
+  .stat-number {
+    font-size: 2.25rem;
   }
 
   .hero-actions {
     justify-content: center;
+    flex-wrap: wrap;
   }
 
   .footer-content {
@@ -965,6 +1023,36 @@ onMounted(() => {
     justify-content: center;
     flex-wrap: wrap;
     gap: var(--spacing-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-section {
+    min-height: auto;
+    padding: var(--spacing-xl) 0;
+  }
+
+  .brand-logo {
+    width: 28px;
+    height: 28px;
+  }
+
+  .brand-text {
+    font-size: var(--font-size-sm);
+  }
+
+  .feature-card,
+  .feature-item,
+  .stat-item {
+    border-radius: 18px;
+  }
+
+  .drawer-item {
+    padding: var(--spacing-sm);
+
+    :deep(.n-icon) {
+      font-size: 17px;
+    }
   }
 }
 </style>

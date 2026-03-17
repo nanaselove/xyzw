@@ -1334,6 +1334,7 @@ onMounted(() => {
 .battle-records-content {
   flex: 1;
   overflow-y: auto;
+  overflow-x: auto;
   padding: var(--spacing-md);
   min-height: 200px;
 }
@@ -1826,6 +1827,17 @@ onMounted(() => {
 }
 
 @media (max-width: 768px) {
+  .records-container {
+    height: auto;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+  }
+
+  .battle-records-content {
+    overflow-x: auto;
+  }
+
   .inline-header {
     flex-direction: column;
     align-items: flex-start;
@@ -1840,22 +1852,56 @@ onMounted(() => {
   .stats-grid {
     grid-template-columns: 1fr;
   }
-  
-  .ranking-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--spacing-xs);
+
+  .style-default .battle-header h2 {
+    font-size: var(--font-size-lg);
+    line-height: 1.4;
+    padding: var(--spacing-sm);
   }
-  
-  .god-ranking-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--spacing-xs);
+
+  .style-default .club-info {
+    padding: 0;
+    gap: var(--spacing-sm);
   }
-  
-  .player-stat {
-    min-width: auto;
-    text-align: left;
+
+  .style-default .club-side {
+    align-items: center;
+    text-align: center;
+  }
+
+  .style-default .club-side.own,
+  .style-default .club-side.opponent {
+    align-items: center;
+    text-align: center;
+  }
+
+  /* 默认样式保持横向信息行，避免手机端被压成竖排错位 */
+  .style-default .ranking-item {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
+
+  .style-default .god-ranking-content {
+    max-height: 360px;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .style-default .god-ranking-header,
+  .style-default .god-ranking-item {
+    min-width: 560px;
+  }
+
+  .style-default .god-ranking-item {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
+
+  .style-default .player-stat {
+    min-width: 50px;
+    text-align: center;
   }
 }
 

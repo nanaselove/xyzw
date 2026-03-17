@@ -975,6 +975,7 @@ onMounted(() => {
 .battle-records-content {
   flex: 1;
   overflow-y: auto;
+  overflow-x: auto;
   padding: var(--spacing-md);
 }
 
@@ -1226,6 +1227,21 @@ onMounted(() => {
 
 // 响应式设计
 @media (max-width: 768px) {
+  .club-month-battle-records-container {
+    height: auto;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+  }
+
+  .club-month-battle-records-card {
+    height: auto;
+  }
+
+  .battle-records-content {
+    overflow-x: auto;
+  }
+
   .stats-grid {
     grid-template-columns: 1fr;
   }

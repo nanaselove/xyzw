@@ -307,6 +307,11 @@ const handleUserAction = async (key) => {
   }
 }
 
+.nav-item :deep(.n-icon) {
+  font-size: 18px;
+  flex: 0 0 auto;
+}
+
 .nav-user {
   margin-left: auto;
   display: flex;
@@ -328,12 +333,24 @@ const handleUserAction = async (key) => {
   }
 }
 
+.user-info :deep(.n-icon) {
+  font-size: 14px;
+}
+
 .username {
   font-weight: var(--font-weight-medium);
   color: var(--text-primary);
+  max-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 @media (max-width: 768px) {
+  .dashboard-nav {
+    padding: 0 var(--spacing-sm);
+  }
+
   .nav-item span {
     display: none;
   }
@@ -357,6 +374,30 @@ const handleUserAction = async (key) => {
 
   .brand-toggle {
     display: inline-flex;
+    font-size: var(--font-size-md);
+    max-width: 48vw;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .nav-user {
+    margin-left: var(--spacing-sm);
+    gap: var(--spacing-xs);
+  }
+
+  .username {
+    display: none;
+  }
+
+  .user-info {
+    padding: var(--spacing-xs);
+  }
+
+  .nav-item :deep(.n-icon),
+  .drawer-item :deep(.n-icon),
+  .brand-toggle :deep(.n-icon) {
+    font-size: 19px;
   }
 }
 
@@ -375,6 +416,11 @@ const handleUserAction = async (key) => {
   border-radius: var(--border-radius-medium);
   color: var(--text-secondary);
   text-decoration: none;
+}
+
+.drawer-item :deep(.n-icon) {
+  font-size: 18px;
+  flex: 0 0 auto;
 }
 
 .drawer-item.router-link-active {

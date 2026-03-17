@@ -72,7 +72,14 @@
     <!-- Data Table -->
     <div v-else-if="opponentMembers.length > 0" class="members-table">
       <div class="table-title">敌方信息</div>
-      <n-data-table :columns="columns" :data="opponentMembers" :bordered="false" size="small" striped flex-height />
+      <n-data-table
+        :columns="columns"
+        :data="opponentMembers"
+        :bordered="false"
+        size="small"
+        striped
+        :scroll-x="980"
+      />
     </div>
 
     <!-- Empty State -->
@@ -1461,12 +1468,16 @@ onMounted(() => {
   background: #fff;
   border-radius: 8px;
   padding: 16px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   min-height: 400px;
-  height: 100%;
+  height: auto;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: visible;
 }
 
 .toolbar {
@@ -1486,6 +1497,12 @@ onMounted(() => {
       font-size: 14px;
       color: #666;
     }
+  }
+
+  .right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 }
 
@@ -1509,7 +1526,7 @@ onMounted(() => {
 
 .club-vs-container {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: 20px;
   margin-bottom: 10px;
@@ -1521,6 +1538,7 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   gap: 8px;
+  min-width: 0;
 }
 
 .club-info.own {
@@ -1546,12 +1564,15 @@ onMounted(() => {
 
 .club-details {
   text-align: center;
+  width: 100%;
+  min-width: 0;
 }
 
 .club-name {
   font-size: 18px;
   font-weight: bold;
   color: #333;
+  word-break: break-word;
 }
 
 .club-stats {
@@ -1592,10 +1613,18 @@ onMounted(() => {
 .members-table {
   margin-top: 20px;
   flex: 1;
-  overflow: hidden;
+  width: 100%;
+  min-width: 0;
+  overflow: auto;
   /* Use NDataTable's scroll or auto here */
   display: flex;
   flex-direction: column;
+}
+
+.members-table :deep(.n-data-table-wrapper) {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .table-title {
@@ -1608,7 +1637,7 @@ onMounted(() => {
 }
 
 :deep(.n-data-table) {
-  height: 100%;
+  height: auto;
 }
 
 :deep(.n-data-table .n-data-table-th) {
@@ -2206,5 +2235,72 @@ onMounted(() => {
   text-align: center;
   color: var(--text-secondary, #666);
   font-size: var(--font-size-sm, 14px);
+}
+
+@media (max-width: 768px) {
+  .peach-info-card {
+    padding: 12px;
+    overflow-x: hidden;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 0;
+  }
+
+  .toolbar .left,
+  .toolbar .right {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .main-title {
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+
+  .header-section {
+    padding: 12px;
+  }
+
+  .club-vs-container {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .club-info.own,
+  .club-info.opponent {
+    justify-self: center;
+  }
+
+  .vs-badge {
+    font-size: 24px;
+  }
+
+  .club-name {
+    font-size: 16px;
+  }
+
+  .club-stats {
+    font-size: 13px;
+    word-break: break-word;
+  }
+
+  .club-stats.announcement {
+    max-width: 100%;
+  }
+
+  .members-table {
+    overflow-x: auto;
+  }
+
+  .members-table :deep(.n-data-table-wrapper) {
+    overflow-x: auto;
+  }
 }
 </style>

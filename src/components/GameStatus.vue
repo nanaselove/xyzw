@@ -165,7 +165,7 @@
 
     <!-- 盐场分组（包含盐场、周战绩、月战绩） -->
     <div class="salt-field-group" v-if="activeSection === 'saltFieldGroup'">
-      <div class="sub-nav" style="padding: 8px; background: var(--n-color); display: flex; justify-content: center;">
+      <div class="sub-nav">
         <n-tabs type="segment" animated v-model:value="saltFieldSubTab" size="small">
            <n-tab-pane name="warrank" tab="盐场" />
            <n-tab-pane name="weekBattle" tab="本周盐场战绩" />
@@ -197,7 +197,7 @@
 
     <!-- 蟠桃园分组 -->
     <div class="peach-group" v-if="activeSection === 'peachGroup'">
-      <div class="sub-nav" style="padding: 8px; background: var(--n-color); display: flex; justify-content: center;">
+      <div class="sub-nav">
         <n-tabs type="segment" animated v-model:value="peachSubTab" size="small">
            <n-tab-pane name="peach" tab="蟠桃园信息" />
            <n-tab-pane name="peachBattle" tab="蟠桃园战绩" />
@@ -215,7 +215,7 @@
 
     <!-- 排行榜分组 -->
     <div class="rank-group" v-if="activeSection === 'rankGroup'">
-      <div class="sub-nav" style="padding: 8px; background: var(--n-color); display: flex; justify-content: center;">
+      <div class="sub-nav">
         <n-tabs type="segment" animated v-model:value="rankSubTab" size="small">
            <n-tab-pane name="serverrank" tab="区服榜" />
            <n-tab-pane name="toprank" tab="巅峰榜" />
@@ -732,17 +732,54 @@ onUnmounted(() => {
   display: none;
 }
 
+.sub-nav {
+  padding: 8px;
+  background: var(--n-color);
+  display: flex;
+  justify-content: center;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sub-nav :deep(.n-tabs) {
+  width: 100%;
+}
+
+.sub-nav :deep(.n-tabs-nav-scroll-wrapper) {
+  overflow-x: auto;
+}
+
+.sub-nav :deep(.n-tabs-nav-scroll-content) {
+  white-space: nowrap;
+}
+
+.sub-nav :deep(.n-tabs-tab) {
+  flex: 0 0 auto;
+}
+
 .warrank-full-container {
   grid-column: 1 / -1;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   height: calc(100vh - 200px);
   min-height: 600px;
-  overflow: hidden;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
 
   @media (max-width: 768px) {
-    height: calc(100vh - 180px);
-    min-height: 500px;
+    height: auto;
+    min-height: 0;
+    max-width: 100%;
+    min-width: 0;
+    overflow: auto;
   }
+}
+
+.warrank-full-container > * {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .salt-field-group,
@@ -750,6 +787,8 @@ onUnmounted(() => {
 .rank-group {
   grid-column: 1 / -1;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   display: flex;
   flex-direction: column;
 }
@@ -883,6 +922,15 @@ onUnmounted(() => {
   .game-status-container {
     grid-template-columns: 1fr;
     padding: var(--spacing-sm);
+  }
+
+  .sub-nav {
+    justify-content: flex-start;
+  }
+
+  .sub-nav :deep(.n-tabs-tab) {
+    min-width: 96px;
+    justify-content: center;
   }
 
   .status-card {
