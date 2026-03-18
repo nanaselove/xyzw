@@ -16,15 +16,9 @@
       </div>
     </template>
     <template #action>
-      <a-button
-        type="primary"
-        secondary
-        size="small"
-        block
-        @click="handleBottleHelper"
-      >
+      <button class="action-button primary" @click="handleBottleHelper">
         {{ state.isRunning ? "重启服务" : "启动服务" }}
-      </a-button>
+      </button>
     </template>
   </MyCard>
 </template>
@@ -102,5 +96,108 @@ const handleBottleHelper = () => {
 </script>
 
 <style scoped lang="scss">
-/* 样式遵循全局变量；time-display 样式由 MyCard 统一提供 */
+.bottle-helper :deep(.status-card) {
+  display: flex;
+  flex-direction: column;
+  min-height: 240px;
+  padding: 18px;
+  gap: 12px;
+}
+
+.bottle-helper :deep(.card-header) {
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.bottle-helper :deep(.status-title) {
+  min-width: 0;
+  flex: 1;
+}
+
+.bottle-helper :deep(.status-badge) {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(248, 250, 252, 0.88);
+}
+
+.bottle-helper :deep(.status-badge.active) {
+  background: rgba(52, 211, 153, 0.18);
+  border-color: rgba(110, 231, 183, 0.48);
+  color: #6ee7b7;
+}
+
+.bottle-helper :deep(.card-content) {
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(7, 13, 32, 0.32);
+  padding: 14px;
+  margin-bottom: 2px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.bottle-helper :deep(.time-display) {
+  width: 100%;
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  font-family: "SF Mono", "Monaco", "Inconsolata", "Roboto Mono", monospace;
+  color: rgba(248, 250, 252, 0.96);
+}
+
+.bottle-helper :deep(.card-action) {
+  margin-top: auto;
+  padding-top: 2px;
+}
+
+.bottle-helper :deep(.card-action > button) {
+  width: 100%;
+  height: 48px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: #f8fbff;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.bottle-helper :deep(.card-action > button:hover) {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+  box-shadow: 0 10px 18px rgba(37, 99, 235, 0.28);
+}
+
+@media (max-width: 768px) {
+  .bottle-helper :deep(.status-card) {
+    padding: 14px;
+  }
+
+  .bottle-helper :deep(.card-header) {
+    margin-bottom: 10px;
+    gap: 10px;
+  }
+
+  .bottle-helper :deep(.card-content) {
+    padding: 12px;
+  }
+
+  .bottle-helper :deep(.time-display) {
+    font-size: 30px;
+  }
+
+  .bottle-helper :deep(.card-action > button) {
+    height: 46px;
+    font-size: 17px;
+  }
+}
 </style>

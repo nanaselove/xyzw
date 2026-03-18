@@ -264,10 +264,15 @@ const handleUserAction = async (key) => {
 }
 
 .brand-text {
+  display: inline-block;
+  min-width: 0;
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
   color: #f8fafc;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .brand-toggle {
@@ -374,23 +379,36 @@ const handleUserAction = async (key) => {
     height: 56px;
   }
 
+  .nav-brand {
+    margin-right: 0;
+    flex: 1;
+    min-width: 0;
+  }
+
   .brand-logo {
     display: none;
   }
 
   .brand-toggle {
     display: inline-flex;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
     font-size: var(--font-size-md);
-    max-width: 48vw;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    max-width: 64vw;
+    gap: 6px;
+  }
+
+  .brand-toggle .brand-text {
+    flex: 1;
+    min-width: 0;
   }
 
   .nav-user {
     margin-left: auto;
     justify-content: flex-end;
     gap: var(--spacing-xs);
+    flex-shrink: 0;
   }
 
   .username {

@@ -172,5 +172,136 @@ const claimHangUpReward = async () => {
 </script>
 
 <style scoped lang="scss">
-/* 按钮改用 Naive UI；time-display 样式由 MyCard 统一提供 */
+.hang-up :deep(.status-card) {
+  display: flex;
+  flex-direction: column;
+  min-height: 240px;
+  padding: 18px;
+  gap: 12px;
+}
+
+.hang-up :deep(.card-header) {
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.hang-up :deep(.status-title) {
+  min-width: 0;
+  flex: 1;
+}
+
+.hang-up :deep(.status-badge) {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(248, 250, 252, 0.88);
+}
+
+.hang-up :deep(.status-badge.active) {
+  background: rgba(52, 211, 153, 0.18);
+  border-color: rgba(110, 231, 183, 0.48);
+  color: #6ee7b7;
+}
+
+.hang-up :deep(.card-content) {
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(7, 13, 32, 0.32);
+  padding: 14px;
+  margin-bottom: 2px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.hang-up :deep(.time-display) {
+  width: 100%;
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  font-family: "SF Mono", "Monaco", "Inconsolata", "Roboto Mono", monospace;
+  color: rgba(248, 250, 252, 0.96);
+}
+
+.hang-up :deep(.card-action) {
+  margin-top: auto;
+  padding-top: 2px;
+  gap: 10px;
+}
+
+.hang-up :deep(.card-action > .action-button) {
+  height: 46px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 17px;
+  font-weight: 700;
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.hang-up :deep(.card-action > .action-button.secondary) {
+  background: rgba(52, 211, 153, 0.18);
+  border-color: rgba(52, 211, 153, 0.28);
+  color: #d1fae5;
+}
+
+.hang-up :deep(.card-action > .action-button.primary) {
+  background: linear-gradient(135deg, #34d399 0%, #22c55e 100%);
+  color: #04210f;
+}
+
+.hang-up :deep(.card-action > .action-button:hover:not(:disabled)) {
+  transform: translateY(-1px);
+  filter: brightness(1.04);
+}
+
+.hang-up :deep(.card-action > .action-button.primary:hover:not(:disabled)) {
+  box-shadow: 0 10px 18px rgba(34, 197, 94, 0.25);
+}
+
+.hang-up :deep(.card-action > .action-button:disabled) {
+  background: rgba(148, 163, 184, 0.26);
+  border-color: rgba(148, 163, 184, 0.2);
+  color: rgba(226, 232, 240, 0.65);
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.hang-up .loading-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+@media (max-width: 768px) {
+  .hang-up :deep(.status-card) {
+    padding: 14px;
+  }
+
+  .hang-up :deep(.card-header) {
+    margin-bottom: 10px;
+    gap: 10px;
+  }
+
+  .hang-up :deep(.card-content) {
+    padding: 12px;
+  }
+
+  .hang-up :deep(.time-display) {
+    font-size: 30px;
+  }
+
+  .hang-up :deep(.card-action > .action-button) {
+    height: 44px;
+    font-size: 16px;
+  }
+}
 </style>

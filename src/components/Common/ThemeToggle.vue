@@ -1,5 +1,11 @@
 <template>
-  <n-button circle size="medium" class="theme-toggle" @click="toggleTheme">
+  <n-button
+    circle
+    size="medium"
+    class="theme-toggle locked"
+    title="主题已固定"
+    @click.prevent="noop"
+  >
     <template #icon>
       <n-icon v-if="isDark">
         <Sunny />
@@ -15,7 +21,8 @@
 import { Moon, Sunny } from "@vicons/ionicons5";
 import { useTheme } from "@/composables/useTheme";
 
-const { isDark, toggleTheme } = useTheme();
+const { isDark } = useTheme();
+const noop = () => {};
 </script>
 
 <style scoped lang="scss">
@@ -38,6 +45,10 @@ const { isDark, toggleTheme } = useTheme();
     color: #dcfce7;
     box-shadow: 0 8px 18px rgba(2, 6, 23, 0.32);
   }
+}
+
+.theme-toggle.locked {
+  cursor: default;
 }
 
 :global([data-theme="light"]) .theme-toggle {

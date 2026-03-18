@@ -18,35 +18,13 @@ app.use(router);
 app.use(naive);
 // app.use(i18n)
 
-// 全局主题应用：从 localStorage 读取并设置 data-theme 属性
+// 全局主题应用：临时固定为深色主题（禁用光暗切换）
 const applyTheme = () => {
-  const saved = localStorage.getItem("theme") || "auto";
-  if (saved === "dark") {
-    document.documentElement.setAttribute("data-theme", "dark");
-  } else if (saved === "light") {
-    document.documentElement.removeAttribute("data-theme");
-  } else {
-    const prefersDark =
-      window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches;
-    if (prefersDark)
-      document.documentElement.setAttribute("data-theme", "dark");
-    else document.documentElement.removeAttribute("data-theme");
-
-    // 跟随系统变更
-    if (window.matchMedia) {
-      window
-        .matchMedia("(prefers-color-scheme: dark)")
-        .addEventListener("change", (e) => {
-          const t = localStorage.getItem("theme") || "auto";
-          if (t === "auto") {
-            if (e.matches)
-              document.documentElement.setAttribute("data-theme", "dark");
-            else document.documentElement.removeAttribute("data-theme");
-          }
-        });
-    }
-  }
+  localStorage.setItem("theme", "dark");
+  document.documentElement.classList.add("dark");
+  document.documentElement.setAttribute("data-theme", "dark");
+  document.body.classList.add("dark");
+  document.body.setAttribute("data-theme", "dark");
 };
 
 applyTheme();

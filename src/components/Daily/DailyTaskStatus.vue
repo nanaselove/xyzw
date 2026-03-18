@@ -50,7 +50,7 @@
           :height="8"
           :border-radius="4"
           :color="progressColor"
-          rail-color="#f3f4f6"
+          rail-color="rgba(255, 255, 255, 0.16)"
         />
       </div>
 
@@ -638,20 +638,41 @@ onBeforeUnmount(() => {
 <style scoped lang="scss">
 // 使用GameStatus中的统一卡片样式
 .daily-task {
-  border-left: 4px solid #f0a020; // 每日任务专用颜色
   display: flex;
   flex-direction: column;
-  min-height: 240px; // 继续缩小整体高度
-  padding: var(--spacing-lg);
-  gap: var(--spacing-md);
+  min-height: 240px;
+  padding: 18px;
+  gap: 12px;
 
   .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(248, 250, 252, 0.88);
+    cursor: pointer;
+    transition:
+      border-color 0.2s ease,
+      background-color 0.2s ease,
+      color 0.2s ease,
+      transform 0.2s ease;
+
+    &:hover {
+      border-color: rgba(143, 227, 255, 0.52);
+      background: rgba(255, 255, 255, 0.14);
+      transform: translateY(-1px);
+    }
+
     &.completed {
-      background: rgba(16, 185, 129, 0.1);
-      color: var(--success-color);
+      background: rgba(52, 211, 153, 0.18);
+      border-color: rgba(110, 231, 183, 0.48);
+      color: #6ee7b7;
 
       .status-dot {
-        background: var(--success-color);
+        background: currentColor;
       }
     }
   }
@@ -659,93 +680,112 @@ onBeforeUnmount(() => {
 
 .card-header {
   display: flex;
-  align-items: flex-start;
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-lg);
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 .daily-task .card-content {
+  padding: 14px 14px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(7, 13, 32, 0.32);
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center; // 使进度和提示在可用空间内居中
+  justify-content: center;
 }
 
 .progress-container {
-  margin-bottom: var(--spacing-md);
+  margin-bottom: 10px;
 }
 
 .info-container {
-  color: var(--text-secondary);
-  font-size: var(--font-size-sm);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 14px;
   text-align: center;
 }
 
 // 使用GameStatus中的统一按钮样式
 .card-actions {
   margin-top: auto;
-  padding-top: var(--spacing-sm);
+  padding-top: 2px;
 }
 
 .status-icon {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   object-fit: contain;
   flex-shrink: 0;
+}
+
+.status-info {
+  min-width: 0;
 }
 
 .header-right {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: 8px;
   margin-left: auto;
 }
 
 .settings-gear {
-  width: 28px;
-  height: 28px;
-  padding: var(--spacing-xs);
-  border: none;
-  border-radius: var(--border-radius-medium);
-  background: rgba(107, 114, 128, 0.1);
-  color: var(--text-secondary);
+  width: 36px;
+  height: 36px;
+  padding: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(248, 250, 252, 0.85);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
 
   svg {
-    width: 18px;
-    height: 18px;
+    width: 19px;
+    height: 19px;
   }
 
   &:hover {
-    background: var(--primary-color);
-    color: white;
+    background: rgba(124, 108, 255, 0.2);
+    border-color: rgba(124, 108, 255, 0.56);
+    color: #ffffff;
     transform: rotate(90deg);
   }
 }
 
 .action-button {
   width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: none;
-  border-radius: var(--border-radius-medium);
-  background: var(--primary-color);
-  color: white;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
+  height: 48px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  background: linear-gradient(135deg, #6b8dff 0%, #7c6cff 100%);
+  color: #f8fbff;
+  font-size: 18px;
+  font-weight: 700;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition:
+    filter 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 
   &:hover:not(:disabled) {
-    background: var(--primary-color-hover);
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+    box-shadow: 0 10px 18px rgba(89, 102, 242, 0.28);
   }
 
   &:disabled {
-    background: #e5e7eb;
-    color: #9ca3af;
+    background: rgba(148, 163, 184, 0.26);
+    border-color: rgba(148, 163, 184, 0.2);
+    color: rgba(226, 232, 240, 0.65);
     cursor: not-allowed;
   }
 }
@@ -930,18 +970,27 @@ onBeforeUnmount(() => {
 // 响应式设计
 @media (max-width: 768px) {
   .daily-task {
-    padding: var(--spacing-md);
+    padding: 14px;
     min-height: auto;
   }
 
   .card-header {
-    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
   }
 
   .header-right {
-    width: 100%;
-    justify-content: space-between;
-    margin-top: var(--spacing-sm);
+    gap: 6px;
+    margin-left: auto;
+  }
+
+  .daily-task .card-content {
+    padding: 12px;
+  }
+
+  .action-button {
+    height: 46px;
+    font-size: 17px;
   }
 }
 </style>

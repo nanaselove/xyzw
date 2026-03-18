@@ -1,37 +1,28 @@
 <template>
   <div v-if="embedded" class="identity-embedded">
-    <div class="identity-card embedded">
-      <div class="card-header">
-        <img
-          src="/icons/Ob7pyorzmHiJcbab2c25af264d0758b527bc1b61cc3b.png"
-          alt="身份牌"
-          class="icon"
-        />
-        <div class="info">
-          <h3>身份牌</h3>
-          <p>角色与资源概览</p>
-        </div>
-      </div>
-
-      <div v-if="hasRole" class="role-profile-header" :class="rankInfo?.class">
-        <div class="role-profile-content">
-          <div class="avatar-container">
-            <img
-              :src="roleAvatar"
-              :alt="roleInfo.name || '角色'"
-              class="role-avatar"
-              @error="handleAvatarError"
-            />
+    <div class="identity-card embedded profile-card">
+      <template v-if="hasRole">
+        <div class="profile-top">
+          <div class="avatar-shell">
+            <div class="avatar-container">
+              <img
+                :src="roleAvatar"
+                :alt="roleInfo.name || '角色'"
+                class="role-avatar"
+                @error="handleAvatarError"
+              />
+            </div>
           </div>
-          <div class="role-info-section">
-            <div class="role-name">
-              {{ roleInfo.name || "未知角色" }}
+
+          <div class="profile-main">
+            <div class="profile-name-line">
+              <h3 class="profile-name">{{ roleInfo.name || "未知角色" }}</h3>
               <n-tag
                 v-if="roleInfo.legacy > 0"
+                class="rank-pill"
                 :style="{
                   color: '#fff',
                   backgroundColor: legacycolor[roleInfo.legacy]?.value,
-                  marginLeft: '8px',
                 }"
                 size="small"
                 :bordered="false"
@@ -39,30 +30,49 @@
                 {{ legacycolor[roleInfo.legacy]?.name || "未知" }}
               </n-tag>
             </div>
-            <div class="role-stats">
-              <span class="level-text">Lv.{{ roleInfo.level || 1 }}</span>
-              <span class="power-value"
-                >战力 {{ formatPower(roleInfo.power) }}</span
-              >
+
+            <div class="profile-metrics">
+              <span class="level-text">Lv{{ roleInfo.level || 1 }}</span>
+              <span class="separator-dot">·</span>
+              <span class="power-value">战力 {{ formatPower(roleInfo.power) }}</span>
             </div>
-            <div class="activity-week" v-if="getCurrentActivityWeek">
+
+            <div class="activity-badge" v-if="getCurrentActivityWeek">
               本周活动：{{ getCurrentActivityWeek }}
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="resources" :class="{ collapsed: !isExpanded }" v-if="hasRole">
-        <div v-for="res in resList" :key="res.label" class="res-item">
-          <span class="label">{{ res.label }}</span>
-          <span class="value">{{ res.value }}</span>
+        <div class="core-resources">
+          <div
+            v-for="res in keyResList"
+            :key="res.id"
+            class="res-item stat-card"
+            :class="`tone-${res.tone}`"
+          >
+            <span class="label">{{ res.label }}</span>
+            <span class="value">{{ res.value }}</span>
+          </div>
         </div>
-      </div>
-      <div v-if="hasRole && showExpand" class="resources-toggle">
-        <n-button text @click="isExpanded = !isExpanded">
-          {{ isExpanded ? "收起" : "展开全部" }}
-        </n-button>
-      </div>
+
+        <div class="resources" :class="{ collapsed: !isExpanded }">
+          <div
+            v-for="res in detailResList"
+            :key="res.label"
+            class="res-item detail-item"
+          >
+            <span class="label">{{ res.label }}</span>
+            <span class="value">{{ res.value }}</span>
+          </div>
+        </div>
+
+        <div v-if="showExpand" class="resources-toggle">
+          <n-button text @click="isExpanded = !isExpanded">
+            {{ isExpanded ? "收起详情" : "展开全部资源" }}
+          </n-button>
+        </div>
+      </template>
+
       <div v-else class="loading">正在获取角色信息...</div>
     </div>
   </div>
@@ -373,16 +383,56 @@ const display = (n: number | null | undefined) =>
   n == null ? "-" : formatNumber(Number(n));
 const getRawValue = (n: number | null | undefined) =>
   n == null ? 0 : Number(n);
+
+const keyResList = computed(() => [
+  {
+    id: "gold",
+    label: "金币",
+    value: formatNumber(gold.value),
+    tone: "gold",
+  },
+  {
+    id: "diamond",
+    label: "金砖",
+    value: formatNumber(diamond.value),
+    tone: "diamond",
+  },
+  {
+    id: "normalRod",
+    label: "普通鱼竿",
+    value: display(normalRod.value as any),
+    tone: "rod",
+  },
+  {
+    id: "goldRod",
+    label: "金鱼竿",
+    value: display(goldRod.value as any),
+    tone: "vip",
+  },
+]);
+
 const resList = computed(() => {
   const allResources = [
-    { label: "金币", value: formatNumber(gold.value), raw: gold.value },
-    { label: "金砖", value: formatNumber(diamond.value), raw: diamond.value },
     {
+      id: "gold",
+      label: "金币",
+      value: formatNumber(gold.value),
+      raw: gold.value,
+    },
+    {
+      id: "diamond",
+      label: "金砖",
+      value: formatNumber(diamond.value),
+      raw: diamond.value,
+    },
+    {
+      id: "normalRod",
       label: "普通鱼竿",
       value: display(normalRod.value as any),
       raw: getRawValue(normalRod.value as any),
     },
     {
+      id: "goldRod",
       label: "金鱼竿",
       value: display(goldRod.value as any),
       raw: getRawValue(goldRod.value as any),
@@ -617,7 +667,14 @@ const resList = computed(() => {
   return [...nonZero, ...zero];
 });
 
-const showExpand = computed(() => resList.value.length > 6);
+const detailResList = computed(() =>
+  resList.value.filter(
+    (res: any) =>
+      !["gold", "diamond", "normalRod", "goldRod"].includes((res as any).id),
+  ),
+);
+
+const showExpand = computed(() => detailResList.value.length > 8);
 
 const initializeAvatar = () => {
   if (roleInfo.value && (roleInfo.value as any).headImg) {
@@ -675,14 +732,239 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
   grid-column: 1 / -1;
 }
 
-.identity-card.embedded {
+.identity-card.embedded.profile-card {
   width: 100%;
   position: relative;
-  background: linear-gradient(180deg, var(--bg-primary), var(--bg-secondary));
-  border-radius: var(--border-radius-xl);
-  padding: var(--spacing-lg);
-  box-shadow: none;
-  border: 1px solid var(--border-light);
+  border-radius: 28px;
+  padding: 20px;
+  overflow: hidden;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.14),
+    rgba(255, 255, 255, 0.06)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 18px 36px rgba(13, 18, 39, 0.22);
+}
+
+.identity-card.embedded.profile-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 88% -8%, rgba(111, 231, 255, 0.2), transparent 42%),
+    radial-gradient(circle at 0% 100%, rgba(124, 108, 255, 0.16), transparent 38%);
+}
+
+.profile-top {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.avatar-shell {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  padding: 2px;
+  background: linear-gradient(135deg, #7c6cff, #6fe7ff);
+  box-shadow: 0 0 16px rgba(124, 108, 255, 0.55);
+}
+
+.avatar-container {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: rgba(16, 21, 42, 0.55);
+}
+
+.role-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.68);
+}
+
+.profile-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.profile-name-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.profile-name {
+  margin: 0;
+  font-size: clamp(1.4rem, 2.8vw, 1.9rem);
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  background: linear-gradient(135deg, #ffffff, #b8f0ff 55%, #9cb5ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.rank-pill {
+  border-radius: 999px;
+  box-shadow: 0 0 12px rgba(124, 108, 255, 0.35);
+}
+
+.profile-metrics {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.84);
+}
+
+.level-text {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.separator-dot {
+  opacity: 0.7;
+}
+
+.power-value {
+  font-size: 18px;
+  font-weight: 800;
+  color: #d5f6ff;
+  text-shadow: 0 0 12px rgba(143, 227, 255, 0.42);
+}
+
+.activity-badge {
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #eef6ff;
+  background: rgba(124, 108, 255, 0.2);
+  border: 1px solid rgba(141, 129, 255, 0.42);
+  box-shadow: 0 0 14px rgba(124, 108, 255, 0.25);
+}
+
+.core-resources {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.res-item {
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.stat-card {
+  padding: 12px 14px;
+  min-height: 82px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.12),
+    rgba(255, 255, 255, 0.06)
+  );
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    border-color 0.22s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(143, 227, 255, 0.45);
+  box-shadow: 0 10px 20px rgba(12, 16, 36, 0.24);
+}
+
+.stat-card .label {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.stat-card .value {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.stat-card.tone-gold .value {
+  color: #ffe58f;
+}
+
+.stat-card.tone-diamond .value {
+  color: #9fe7c3;
+}
+
+.stat-card.tone-rod .value {
+  color: #8fd7ff;
+}
+
+.stat-card.tone-vip .value {
+  color: #c4bcff;
+}
+
+.resources {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  gap: 8px;
+  --res-item-height: 44px;
+}
+
+.resources.collapsed {
+  max-height: calc((var(--res-item-height) + 8px) * 2 + 8px);
+  overflow: hidden;
+}
+
+.detail-item {
+  padding: 8px 10px;
+  min-height: var(--res-item-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.detail-item .label {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+}
+
+.detail-item .value {
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.resources-toggle {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.resources-toggle :deep(.n-button) {
+  color: rgba(199, 236, 255, 0.94);
+  font-weight: 700;
 }
 
 .identity-overlay {
@@ -795,18 +1077,8 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
   z-index: 3;
 }
 
-.avatar-container {
-  width: 56px;
-  height: 56px;
-  flex-shrink: 0;
-}
-
-.role-avatar {
-  width: 56px;
-  height: 56px;
-  border-radius: 12px;
-  object-fit: cover;
-  border: 2px solid rgba(255, 255, 255, 0.6);
+.role-info-section {
+  min-width: 0;
 }
 
 .role-name {
@@ -828,56 +1100,6 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
   font-size: var(--font-size-sm);
   margin-top: 4px;
   font-weight: var(--font-weight-medium);
-}
-
-
-
-@media (max-width: 768px) {
-  .card-header {
-    flex-wrap: wrap;
-    gap: var(--spacing-sm);
-  }
-
-  .role-profile-content {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: var(--spacing-sm);
-  }
-
-  .role-info-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .role-stats {
-    justify-content: center;
-  }
-
-
-
-  .resources {
-    grid-template-columns: repeat(2, 1fr); // 手机端强制两列
-    gap: 6px;
-  }
-
-  .res-item {
-    padding: 6px 8px;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-    gap: 2px;
-
-    .label {
-      font-size: 11px;
-    }
-
-    .value {
-      font-size: 13px;
-    }
-  }
 }
 
 .glow-border {
@@ -908,83 +1130,119 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
   }
 }
 
-.rank-beginner .role-profile-header {
+.role-profile-header.rank-beginner {
   background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
 }
 
-.rank-known .role-profile-header {
+.role-profile-header.rank-known {
   background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
 }
 
-.rank-veteran .role-profile-header {
+.role-profile-header.rank-veteran {
   background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
 }
 
-.rank-master .role-profile-header {
+.role-profile-header.rank-master {
   background: linear-gradient(135deg, #e9d5ff 0%, #ddd6fe 100%);
 }
 
-.rank-hero .role-profile-header {
+.role-profile-header.rank-hero {
   background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
 }
 
-.rank-overlord .role-profile-header {
+.role-profile-header.rank-overlord {
   background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
 }
 
-.rank-supreme .role-profile-header {
+.role-profile-header.rank-supreme {
   background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
 }
 
-.rank-emperor .role-profile-header {
-  background: linear-gradient(135deg, #fee2e2 0%, #dc2626 20%);
-}
+@media (max-width: 768px) {
+  .identity-card.embedded.profile-card {
+    border-radius: 22px;
+    padding: 14px;
+  }
 
-.rank-legend .role-profile-header {
-  background: linear-gradient(135deg, #ede9fe 0%, #7c3aed 30%);
-}
+  .profile-top {
+    align-items: flex-start;
+    gap: 12px;
+  }
 
-.rank-infinite .role-profile-header {
-  background: linear-gradient(135deg, #fef3c7 0%, #fbbf24 30%, #f59e0b 100%);
-}
+  .avatar-shell {
+    width: 66px;
+    height: 66px;
+  }
 
-.resources {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 8px;
-  margin-top: 10px;
-  --res-item-height: 44px;
-}
+  .avatar-container {
+    width: 62px;
+    height: 62px;
+  }
 
-.resources.collapsed {
-  max-height: calc((var(--res-item-height) + 8px) * 2 + 8px);
-  overflow: hidden;
-}
+  .profile-name {
+    font-size: 1.42rem;
+  }
 
-.res-item {
-  background: var(--bg-primary);
-  border: 1px solid var(--border-light);
-  border-radius: 10px;
-  padding: 8px 10px;
-  min-height: var(--res-item-height);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
+  .profile-metrics {
+    font-size: 14px;
+  }
 
-.resources-toggle {
-  margin-top: var(--spacing-sm);
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-}
+  .power-value {
+    font-size: 16px;
+  }
 
-.res-item .label {
-  color: var(--text-secondary);
-  font-size: 12px;
-}
+  .core-resources {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 
-.res-item .value {
-  font-weight: var(--font-weight-semibold);
+  .stat-card {
+    min-height: 76px;
+  }
+
+  .stat-card .value {
+    font-size: 20px;
+  }
+
+  .resources {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .detail-item {
+    min-height: 40px;
+    padding: 6px 8px;
+  }
+
+  .detail-item .label {
+    font-size: 11px;
+  }
+
+  .detail-item .value {
+    font-size: 12px;
+  }
+
+  .card-header {
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+  }
+
+  .role-profile-content {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--spacing-sm);
+  }
+
+  .role-info-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .role-stats {
+    justify-content: center;
+  }
 }
 </style>
+

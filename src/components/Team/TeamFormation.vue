@@ -1,15 +1,18 @@
-<template>
+﻿<template>
   <div class="status-card team-formation-card">
     <div class="card-header">
-      <img
-        src="/icons/Ob7pyorzmHiJcbab2c25af264d0758b527bc1b61cc3b.png"
-        alt="阵容"
-        class="icon"
-      />
-      <div class="info">
-        <h3>阵容</h3>
-        <p>当前使用的战斗阵容</p>
+      <div class="header-info">
+        <img
+          src="/icons/Ob7pyorzmHiJcbab2c25af264d0758b527bc1b61cc3b.png"
+          alt="阵容"
+          class="icon"
+        />
+        <div class="info">
+          <h3>阵容</h3>
+          <p>当前使用的战斗阵容</p>
+        </div>
       </div>
+
       <div class="team-selector">
         <button
           v-for="teamId in availableTeams"
@@ -48,60 +51,58 @@
         <span class="label">当前阵容</span>
         <span class="team-number">
           <template v-if="!loading">阵容 {{ currentTeam }}</template>
-          <template v-else>加载中…</template>
+          <template v-else>加载中...</template>
         </span>
       </div>
 
       <div class="heroes-container">
         <div v-if="!loading" class="heroes-formation">
-          <!-- 前排 2个 -->
           <div class="formation-row front-row">
             <div
-              v-for="hero in currentTeamHeroes.slice(0, 2)"
-              :key="hero.id || hero.name"
-              class="hero-item"
+              v-for="(hero, index) in frontRowSlots"
+              :key="hero?.id ? `front-${hero.id}-${index}` : `front-slot-${index}`"
+              class="hero-slot"
+              :class="{ filled: !!hero }"
             >
-              <div class="hero-circle">
+              <div class="hero-circle" :class="{ active: !!hero }">
                 <img
-                  v-if="hero.avatar"
+                  v-if="hero?.avatar"
                   :src="hero.avatar"
                   :alt="hero.name"
                   class="hero-avatar"
                 />
                 <div v-else class="hero-placeholder">
-                  {{ hero.name?.substring(0, 2) || "?" }}
+                  {{ hero?.name?.substring(0, 2) || index + 1 }}
                 </div>
               </div>
-              <span class="hero-name">{{ hero.name || "未知" }}</span>
+              <span class="hero-name">{{ hero?.name || "空位" }}</span>
             </div>
           </div>
-          <!-- 后排 3个 -->
+
           <div class="formation-row back-row">
             <div
-              v-for="hero in currentTeamHeroes.slice(2)"
-              :key="hero.id || hero.name"
-              class="hero-item"
+              v-for="(hero, index) in backRowSlots"
+              :key="hero?.id ? `back-${hero.id}-${index}` : `back-slot-${index}`"
+              class="hero-slot"
+              :class="{ filled: !!hero }"
             >
-              <div class="hero-circle">
+              <div class="hero-circle" :class="{ active: !!hero }">
                 <img
-                  v-if="hero.avatar"
+                  v-if="hero?.avatar"
                   :src="hero.avatar"
                   :alt="hero.name"
                   class="hero-avatar"
                 />
                 <div v-else class="hero-placeholder">
-                  {{ hero.name?.substring(0, 2) || "?" }}
+                  {{ hero?.name?.substring(0, 2) || index + 3 }}
                 </div>
               </div>
-              <span class="hero-name">{{ hero.name || "未知" }}</span>
+              <span class="hero-name">{{ hero?.name || "空位" }}</span>
             </div>
           </div>
         </div>
 
-        <div v-if="!loading && !currentTeamHeroes.length" class="empty-team">
-          <p>暂无队伍信息</p>
-        </div>
-        <div v-if="loading" class="empty-team">
+        <div v-else class="empty-team">
           <p>正在加载队伍信息…</p>
         </div>
       </div>
@@ -185,7 +186,6 @@ const presetTeam = computed(() => normalizePresetTeam(presetTeamRaw.value));
 
 const currentTeamHeroes = computed(() => {
   const team = (presetTeam.value.teams as any)[currentTeam.value]?.teamInfo;
-  console.log("🚀 ~ team:", team);
   if (!team) return [] as any[];
   const heroes: any[] = [];
   for (const [pos, hero] of Object.entries(team)) {
@@ -206,9 +206,16 @@ const currentTeamHeroes = computed(() => {
     });
   }
   heroes.sort((a, b) => a.position - b.position);
-  console.log("🚀 ~ heroes:", heroes);
   return heroes;
 });
+
+const formationSlots = computed(() => {
+  const heroes = currentTeamHeroes.value.slice(0, 5);
+  return Array.from({ length: 5 }, (_, index) => heroes[index] || null);
+});
+
+const frontRowSlots = computed(() => formationSlots.value.slice(0, 2));
+const backRowSlots = computed(() => formationSlots.value.slice(2, 5));
 
 const executeGameCommand = async (
   tokenId: string | number,
@@ -359,60 +366,88 @@ watch(
 
 <style scoped lang="scss">
 .team-formation-card {
-  min-height: 220px;
+  min-height: 260px;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.12),
+    rgba(255, 255, 255, 0.05)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 22px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 .card-header {
   display: flex;
-  align-items: flex-start;
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-md);
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.header-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
 }
 
 .icon {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   object-fit: contain;
   flex-shrink: 0;
 }
 
 .info h3 {
-  margin: 0 0 2px 0;
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-semibold);
+  margin: 0;
+  font-size: 1.08rem;
+  font-weight: 800;
 }
 
 .info p {
   margin: 0;
-  color: var(--text-secondary);
-  font-size: var(--font-size-sm);
+  color: var(--text-secondary, rgba(255, 255, 255, 0.72));
+  font-size: 12px;
 }
 
 .team-selector {
   display: flex;
-  gap: var(--spacing-xs);
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .team-button {
-  width: 32px;
-  height: 32px;
-  border: none;
-  border-radius: 50%;
-  background: var(--bg-tertiary);
-  color: var(--text-secondary);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
+  min-width: 42px;
+  height: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 14px;
+  font-weight: 700;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
 }
 
 .team-button:hover {
-  background: var(--bg-secondary);
+  transform: translateY(-1px);
+  border-color: rgba(143, 227, 255, 0.55);
+  box-shadow: 0 8px 14px rgba(11, 17, 36, 0.2);
 }
 
 .team-button.active {
-  background: var(--primary-color);
-  color: white;
+  color: #f8fcff;
+  border-color: rgba(124, 108, 255, 0.62);
+  background: linear-gradient(135deg, #6b8dff 0%, #7c6cff 100%);
+  box-shadow: 0 8px 16px rgba(124, 108, 255, 0.36);
 }
 
 .team-button:disabled {
@@ -424,29 +459,31 @@ watch(
   display: flex;
   align-items: center;
   gap: 6px;
-  height: 32px;
+  height: 34px;
   padding: 0 12px;
-  border: 1px solid var(--border-color, #e5e7eb);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
-  background: var(--bg-primary, #ffffff);
-  color: var(--text-secondary, #6b7280);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.8);
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 700;
   cursor: pointer;
-  transition: all var(--transition-fast, 0.15s ease);
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background-color 0.2s ease;
 }
 
 .refresh-button:hover {
-  background: var(--bg-secondary, #f9fafb);
-  border-color: var(--border-hover, #d1d5db);
-  color: var(--text-primary, #374151);
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(143, 227, 255, 0.55);
+  color: rgba(255, 255, 255, 0.98);
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .refresh-button:active {
   transform: translateY(0);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .refresh-button:disabled {
@@ -459,7 +496,7 @@ watch(
 .refresh-icon {
   width: 14px;
   height: 14px;
-  transition: transform var(--transition-fast, 0.15s ease);
+  transition: transform 0.2s ease;
 }
 
 .refresh-button:not(:disabled):hover .refresh-icon {
@@ -484,63 +521,64 @@ watch(
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--spacing-sm);
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
 }
 
 .card-content .label {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .card-content .team-number {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-primary);
+  font-size: 1.08rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 .heroes-container {
-  background: var(--bg-tertiary);
-  border-radius: var(--border-radius-medium);
-  padding: var(--spacing-sm);
-  min-height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(7, 13, 32, 0.3);
+  padding: 12px;
+  min-height: 180px;
 }
 
 .heroes-formation {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: 12px;
   align-items: center;
-  width: 100%;
 }
 
 .formation-row {
   display: flex;
-  gap: var(--spacing-lg);
-  justify-content: center;
-  width: 100%;
-}
-
-.hero-item {
-  display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 4px;
-  min-width: 64px;
+  justify-content: center;
+  gap: 12px;
 }
 
 .hero-circle {
-  width: 40px;
-  height: 40px;
+  width: 62px;
+  height: 62px;
   border-radius: 50%;
-  background: var(--bg-primary);
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(255, 255, 255, 0.22);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 6px 14px rgba(8, 10, 22, 0.28);
+}
+
+.hero-circle.active {
+  border-color: rgba(124, 108, 255, 0.65);
+  box-shadow:
+    0 0 0 3px rgba(124, 108, 255, 0.18),
+    0 0 14px rgba(124, 108, 255, 0.48);
 }
 
 .hero-avatar {
@@ -550,65 +588,108 @@ watch(
 }
 
 .hero-placeholder {
-  font-size: 12px;
-  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .hero-name {
+  margin-top: 6px;
   font-size: 12px;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.8);
   text-align: center;
-  min-width: 90px;
-  max-width: 140px;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hero-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.front-row .hero-slot,
+.back-row .hero-slot {
+  width: 86px;
+}
+
+.hero-slot.filled .hero-name {
+  color: rgba(255, 255, 255, 0.94);
 }
 
 .empty-team {
-  color: var(--text-secondary);
-  font-size: var(--font-size-sm);
+  min-height: 144px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 14px;
 }
 
 @media (max-width: 768px) {
   .card-header {
     flex-direction: column;
-    gap: var(--spacing-sm);
-    text-align: center;
-    align-items: center;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .header-info {
+    justify-content: center;
   }
 
   .team-selector {
     justify-content: center;
-    flex-wrap: wrap;
-    gap: var(--spacing-xs);
+  }
+
+  .team-button {
+    min-width: 40px;
+    height: 32px;
   }
 
   .heroes-container {
-    padding: var(--spacing-sm);
+    padding: 10px;
+    min-height: 168px;
   }
 
   .heroes-formation {
-    gap: var(--spacing-sm);
+    gap: 10px;
   }
 
   .formation-row {
-    gap: var(--spacing-sm);
+    gap: 10px;
   }
 
-  .hero-item {
-    min-width: 45px;
+  .front-row .hero-slot,
+  .back-row .hero-slot {
+    width: 76px;
   }
 
   .hero-circle {
-    width: 40px;
-    height: 40px;
+    width: 54px;
+    height: 54px;
+  }
+
+  .hero-name {
+    max-width: 74px;
+  }
+}
+
+@media (max-width: 420px) {
+  .hero-circle {
+    width: 48px;
+    height: 48px;
   }
 
   .hero-name {
     font-size: 10px;
-    min-width: 0;
-    max-width: 60px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    max-width: 64px;
+  }
+
+  .front-row .hero-slot,
+  .back-row .hero-slot {
+    width: 68px;
   }
 }
 </style>
+

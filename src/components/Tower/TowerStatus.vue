@@ -39,7 +39,7 @@
       </button>
 
       <!-- 停止批量爬塔按钮，仅批量时显示 -->
-      <button class="stop-button" @click="stopClimbing">停止爬塔</button>
+      <button v-if="isClimbing" class="stop-button" @click="stopClimbing">停止爬塔</button>
       <!-- 调试用的重置按钮，只在开发环境显示 -->
       <button v-if="false" class="reset-button" @click="resetClimbingState">
         重置状态
@@ -283,139 +283,159 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.stop-button {
-  width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  border: 1px solid #e5e7eb;
-  border-radius: var(--border-radius-medium);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  background: #fff;
-  color: #e11d48;
-
-  &:hover {
-    background: #e11d48;
-    color: white;
-    border-color: #e11d48;
-  }
-}
-
-// 使用GameStatus中的统一卡片样式
 .tower-status {
-  border-left: 4px solid #6366f1; // 咸将塔专用颜色
   display: flex;
   flex-direction: column;
-  min-height: 240px; // 继续缩小整体高度
-  padding: var(--spacing-lg);
+  min-height: 240px;
+  padding: 18px;
+  gap: 12px;
 }
 
 .status-icon {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   object-fit: contain;
   flex-shrink: 0;
 }
 
 .card-header {
   display: flex;
-  align-items: flex-start;
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-lg);
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.status-info {
+  min-width: 0;
+  flex: 1;
 }
 
 .energy-display {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  background: var(--bg-tertiary);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--border-radius-medium);
-  margin-left: auto; // 使小鱼干展示靠右
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  margin-left: auto;
 }
 
 .energy-icon {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   object-fit: contain;
 }
 
 .energy-count {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 700;
+  color: rgba(248, 250, 252, 0.92);
 }
 
 .card-content {
-  background: var(--bg-tertiary);
-  border-radius: var(--border-radius-medium);
-  padding: var(--spacing-lg);
-  margin-bottom: var(--spacing-md);
-  flex: 1; // 占据可用空间，使上下分布更均衡
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(7, 13, 32, 0.32);
+  padding: 14px;
+  margin-bottom: 2px;
+  flex: 1;
   display: flex;
-  align-items: center; // 内容在中部更居中
+  align-items: center;
 }
 
 .tower-floor {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  width: 100%;
+  gap: 12px;
 
   .label {
-    font-size: var(--font-size-sm);
-    color: var(--text-secondary);
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.74);
   }
 
   .floor-number {
-    font-size: var(--font-size-lg);
-    font-weight: var(--font-weight-bold);
-    color: var(--text-primary);
+    font-size: 36px;
+    font-weight: 800;
+    color: rgba(248, 250, 252, 0.96);
     font-family: "SF Mono", "Monaco", "Inconsolata", "Roboto Mono", monospace;
+    letter-spacing: 0.02em;
   }
 }
 
 .card-actions {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: 10px;
   margin-top: auto;
-  padding-top: var(--spacing-sm);
+  padding-top: 2px;
 }
 
 .climb-button {
   width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  border: none;
-  border-radius: var(--border-radius-medium);
+  height: 48px;
+  font-size: 18px;
+  font-weight: 700;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition:
+    filter 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
 
   &.active {
-    background: #6366f1;
-    color: white;
+    background: linear-gradient(135deg, #6b8dff 0%, #7c6cff 100%);
+    color: #f8fbff;
 
     &:hover {
-      background: #5855eb;
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+      box-shadow: 0 10px 18px rgba(89, 102, 242, 0.28);
     }
   }
 
   &.disabled {
-    background: var(--bg-secondary);
-    color: var(--text-tertiary);
+    background: rgba(148, 163, 184, 0.26);
+    border-color: rgba(148, 163, 184, 0.2);
+    color: rgba(226, 232, 240, 0.65);
     cursor: not-allowed;
+  }
+}
+
+.stop-button {
+  width: 100%;
+  height: 44px;
+  font-size: 16px;
+  font-weight: 700;
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  border-radius: 12px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(248, 250, 252, 0.9);
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(143, 227, 255, 0.55);
+    color: #ffffff;
   }
 }
 
 .reset-button {
   width: 100%;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
+  height: 36px;
+  font-size: 18px;
+  font-weight: 600;
   border: 1px solid var(--warning-color);
-  border-radius: var(--border-radius-small);
+  border-radius: 10px;
   background: transparent;
   color: var(--warning-color);
   cursor: pointer;
@@ -443,14 +463,31 @@ onMounted(() => {
 
 // 响应式设计
 @media (max-width: 768px) {
-  .card-header {
-    flex-direction: column;
-    gap: var(--spacing-sm);
-    text-align: center;
+  .tower-status {
+    padding: 14px;
   }
 
-  .energy-display {
-    align-self: center;
+  .card-header {
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .card-content {
+    padding: 12px;
+  }
+
+  .tower-floor .floor-number {
+    font-size: 32px;
+  }
+
+  .climb-button {
+    height: 46px;
+    font-size: 17px;
+  }
+
+  .stop-button {
+    height: 42px;
+    font-size: 16px;
   }
 }
 </style>

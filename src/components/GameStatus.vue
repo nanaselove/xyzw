@@ -652,29 +652,37 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 .game-status-container {
-  --section-tab-surface: var(--bg-primary);
-  --section-tab-border: var(--border-light);
-  --section-tab-text: var(--text-primary);
-  --section-tab-hover-bg: rgba(56, 189, 248, 0.12);
-  --section-tab-hover-text: var(--text-primary);
-  --section-tab-active-bg:
-    linear-gradient(
-      135deg,
-      rgba(56, 189, 248, 0.2) 0%,
-      rgba(34, 211, 238, 0.2) 55%,
-      rgba(20, 184, 166, 0.2) 100%
-    );
-  --section-tab-active-text: var(--text-primary);
-  --section-tab-active-border: rgba(14, 165, 233, 0.45);
-  --section-tab-active-shadow: 0 8px 18px rgba(14, 116, 144, 0.2);
-  --section-tab-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
-  --card-surface: linear-gradient(165deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
-  --card-border: var(--border-light);
+  // 固定游戏状态区的视觉变量，避免切换全局明暗主题时出现白底白字
+  --text-primary: #f8fbff;
+  --text-secondary: rgba(226, 232, 240, 0.84);
+  --text-tertiary: rgba(148, 163, 184, 0.9);
+  --bg-primary: rgba(15, 23, 42, 0.56);
+  --bg-secondary: rgba(30, 41, 59, 0.44);
+  --bg-tertiary: rgba(100, 116, 139, 0.32);
+  --border-light: rgba(255, 255, 255, 0.18);
+  --border-medium: rgba(255, 255, 255, 0.28);
+  --border-dark: rgba(255, 255, 255, 0.36);
+  --section-tab-surface: rgba(255, 255, 255, 0.08);
+  --section-tab-border: rgba(255, 255, 255, 0.2);
+  --section-tab-text: rgba(255, 255, 255, 0.88);
+  --section-tab-hover-bg: rgba(255, 255, 255, 0.14);
+  --section-tab-hover-text: #f8fbff;
+  --section-tab-active-bg: linear-gradient(135deg, #6b8dff 0%, #7c6cff 100%);
+  --section-tab-active-text: #ffffff;
+  --section-tab-active-border: rgba(124, 108, 255, 0.72);
+  --section-tab-active-shadow: 0 10px 18px rgba(67, 69, 173, 0.38);
+  --section-tab-shadow: 0 10px 26px rgba(10, 13, 31, 0.22);
+  --card-surface: linear-gradient(
+    165deg,
+    rgba(15, 23, 42, 0.78) 0%,
+    rgba(30, 41, 59, 0.64) 100%
+  );
+  --card-border: rgba(255, 255, 255, 0.16);
   --card-border-strong: rgba(14, 165, 233, 0.42);
   --card-shadow: 0 18px 34px rgba(15, 23, 42, 0.12);
   --card-hover-shadow: 0 20px 38px rgba(15, 23, 42, 0.18);
-  --card-chip-bg: var(--bg-secondary);
-  --card-chip-border: var(--border-light);
+  --card-chip-bg: rgba(51, 65, 85, 0.38);
+  --card-chip-border: rgba(255, 255, 255, 0.16);
 
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -707,8 +715,7 @@ onUnmounted(() => {
 }
 
 .game-status-container :deep(.status-card),
-.game-status-container :deep(.team-status-card),
-.game-status-container :deep(.identity-card.embedded) {
+.game-status-container :deep(.team-status-card) {
   background: var(--card-surface);
   border: 1px solid var(--card-border);
   border-radius: 18px;
@@ -722,14 +729,23 @@ onUnmounted(() => {
 }
 
 .game-status-container :deep(.status-card:hover),
-.game-status-container :deep(.team-status-card:hover),
-.game-status-container :deep(.identity-card.embedded:hover) {
+.game-status-container :deep(.team-status-card:hover) {
   transform: translateY(-2px);
   border-color: var(--card-border-strong);
   box-shadow: var(--card-hover-shadow);
 }
 
-.game-status-container :deep(.identity-card.embedded .res-item) {
+.game-status-container :deep(.identity-card.embedded) {
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
+.game-status-container :deep(.identity-card.embedded:hover) {
+  transform: translateY(-2px);
+}
+
+.game-status-container :deep(.identity-card.embedded .res-item.detail-item) {
   background: var(--card-chip-bg);
   border: 1px solid var(--card-chip-border);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
@@ -775,15 +791,22 @@ onUnmounted(() => {
 }
 
 .section-tabs {
-  margin: 0 var(--spacing-sm) var(--spacing-md) var(--spacing-sm);
+  margin: 0 var(--spacing-sm) var(--spacing-md);
   grid-column: 1 / -1;
   border: 1px solid var(--section-tab-border);
-  border-radius: 12px;
-  padding: 6px 10px 2px;
+  border-radius: 999px;
+  padding: 4px 6px;
   background: var(--section-tab-surface);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(14px);
   box-shadow: var(--section-tab-shadow);
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.section-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .section-tabs :deep(.n-tabs-pane-wrapper) {
@@ -792,6 +815,8 @@ onUnmounted(() => {
 
 .section-tabs :deep(.n-tabs-nav) {
   background: transparent !important;
+  width: max-content;
+  min-width: 100%;
 }
 
 .section-tabs :deep(.n-tabs-wrapper),
@@ -800,13 +825,19 @@ onUnmounted(() => {
   background: transparent !important;
 }
 
+.section-tabs :deep(.n-tabs-nav-scroll-content) {
+  display: inline-flex;
+  white-space: nowrap;
+  min-width: max-content;
+}
+
 .section-tabs :deep(.n-tabs-tab) {
-  border: 1px solid transparent;
+  border: 1px solid rgba(255, 255, 255, 0);
   border-radius: 999px;
-  min-height: 34px;
-  padding-inline: 14px;
+  min-height: 38px;
+  padding-inline: 16px;
   color: var(--section-tab-text) !important;
-  font-weight: var(--font-weight-semibold);
+  font-weight: 700;
   transition:
     color 0.2s ease,
     background-color 0.2s ease,
@@ -817,7 +848,8 @@ onUnmounted(() => {
 
 .section-tabs :deep(.n-tabs-tab-wrapper) {
   border-radius: 999px;
-  padding: 2px;
+  padding: 0;
+  flex: 0 0 auto;
 }
 
 .section-tabs :deep(.n-tabs-tab:hover) {
@@ -832,7 +864,7 @@ onUnmounted(() => {
   background: var(--section-tab-active-bg);
   border-color: var(--section-tab-active-border);
   box-shadow: var(--section-tab-active-shadow);
-  transform: translateY(-1px);
+  transform: translateY(0);
 }
 
 .section-tabs :deep(.n-tabs-tab .n-tabs-tab__label) {
@@ -840,9 +872,7 @@ onUnmounted(() => {
 }
 
 .section-tabs :deep(.n-tabs-bar) {
-  height: 3px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, #38bdf8 0%, #22d3ee 55%, #14b8a6 100%) !important;
+  display: none;
 }
 
 .sub-nav {
