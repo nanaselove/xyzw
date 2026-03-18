@@ -388,7 +388,8 @@ const handleUserAction = async (key) => {
   }
 
   .nav-user {
-    margin-left: var(--spacing-sm);
+    margin-left: auto;
+    justify-content: flex-end;
     gap: var(--spacing-xs);
   }
 

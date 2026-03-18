@@ -652,34 +652,29 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 .game-status-container {
-  --section-tab-surface: rgba(248, 250, 252, 0.9);
-  --section-tab-border: rgba(15, 23, 42, 0.18);
-  --section-tab-text: #0f172a;
-  --section-tab-hover-bg: rgba(15, 23, 42, 0.1);
-  --section-tab-hover-text: #020617;
+  --section-tab-surface: var(--bg-primary);
+  --section-tab-border: var(--border-light);
+  --section-tab-text: var(--text-primary);
+  --section-tab-hover-bg: rgba(56, 189, 248, 0.12);
+  --section-tab-hover-text: var(--text-primary);
   --section-tab-active-bg:
     linear-gradient(
       135deg,
-      rgba(56, 189, 248, 0.24) 0%,
-      rgba(34, 211, 238, 0.24) 55%,
-      rgba(20, 184, 166, 0.24) 100%
+      rgba(56, 189, 248, 0.2) 0%,
+      rgba(34, 211, 238, 0.2) 55%,
+      rgba(20, 184, 166, 0.2) 100%
     );
-  --section-tab-active-text: #0b3b4d;
-  --section-tab-active-border: rgba(14, 116, 144, 0.4);
-  --section-tab-active-shadow: 0 8px 18px rgba(14, 116, 144, 0.16);
+  --section-tab-active-text: var(--text-primary);
+  --section-tab-active-border: rgba(14, 165, 233, 0.45);
+  --section-tab-active-shadow: 0 8px 18px rgba(14, 116, 144, 0.2);
   --section-tab-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
-  --card-surface:
-    linear-gradient(
-      165deg,
-      rgba(255, 255, 255, 0.9) 0%,
-      rgba(248, 250, 252, 0.82) 100%
-    );
-  --card-border: rgba(148, 163, 184, 0.34);
+  --card-surface: linear-gradient(165deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+  --card-border: var(--border-light);
   --card-border-strong: rgba(14, 165, 233, 0.42);
   --card-shadow: 0 18px 34px rgba(15, 23, 42, 0.12);
   --card-hover-shadow: 0 20px 38px rgba(15, 23, 42, 0.18);
-  --card-chip-bg: rgba(255, 255, 255, 0.72);
-  --card-chip-border: rgba(148, 163, 184, 0.34);
+  --card-chip-bg: var(--bg-secondary);
+  --card-chip-border: var(--border-light);
 
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -709,41 +704,6 @@ onUnmounted(() => {
     padding: var(--spacing-sm);
     gap: var(--spacing-md);
   }
-}
-
-:global(html.dark) .game-status-container,
-:global(body.dark) .game-status-container,
-:global(html[data-theme="dark"]) .game-status-container,
-:global(body[data-theme="dark"]) .game-status-container,
-:global([data-theme="dark"]) .game-status-container {
-  --section-tab-surface: rgba(7, 13, 30, 0.6);
-  --section-tab-border: rgba(148, 163, 184, 0.35);
-  --section-tab-text: rgba(241, 245, 249, 0.94);
-  --section-tab-hover-bg: rgba(148, 163, 184, 0.24);
-  --section-tab-hover-text: #ffffff;
-  --section-tab-active-bg:
-    linear-gradient(
-      135deg,
-      rgba(56, 189, 248, 0.28) 0%,
-      rgba(34, 211, 238, 0.24) 55%,
-      rgba(20, 184, 166, 0.24) 100%
-    );
-  --section-tab-active-text: #ecfeff;
-  --section-tab-active-border: rgba(103, 232, 249, 0.52);
-  --section-tab-active-shadow: 0 8px 22px rgba(6, 182, 212, 0.28);
-  --section-tab-shadow: 0 10px 26px rgba(2, 6, 23, 0.3);
-  --card-surface:
-    linear-gradient(
-      165deg,
-      rgba(15, 23, 42, 0.64) 0%,
-      rgba(30, 41, 59, 0.56) 100%
-    );
-  --card-border: rgba(148, 163, 184, 0.24);
-  --card-border-strong: rgba(103, 232, 249, 0.42);
-  --card-shadow: 0 20px 40px rgba(2, 6, 23, 0.3);
-  --card-hover-shadow: 0 22px 44px rgba(2, 6, 23, 0.42);
-  --card-chip-bg: rgba(15, 23, 42, 0.5);
-  --card-chip-border: rgba(148, 163, 184, 0.24);
 }
 
 .game-status-container :deep(.status-card),

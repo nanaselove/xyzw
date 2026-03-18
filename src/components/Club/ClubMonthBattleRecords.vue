@@ -1552,12 +1552,15 @@ onMounted(() => {
   padding: 0;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
   margin-top: 20px;
 }
 
 .style2-table {
-  width: 100%;
+  width: max(100%, 760px);
+  min-width: 760px;
   border-collapse: collapse;
 }
 
@@ -1572,6 +1575,7 @@ onMounted(() => {
   font-size: 13px;
   font-weight: 600;
   border: none;
+  white-space: nowrap;
 }
 
 /* Specific alignment for table headers */
@@ -1584,7 +1588,23 @@ onMounted(() => {
   text-align: center;
   font-size: 13px;
   color: #444;
+  white-space: nowrap;
 }
+
+.style2-table th:nth-child(1),
+.style2-table td:nth-child(1) { min-width: 56px; }
+.style2-table th:nth-child(2),
+.style2-table td:nth-child(2) { min-width: 160px; }
+.style2-table th:nth-child(3),
+.style2-table td:nth-child(3),
+.style2-table th:nth-child(4),
+.style2-table td:nth-child(4),
+.style2-table th:nth-child(5),
+.style2-table td:nth-child(5) { min-width: 120px; }
+.style2-table th:nth-child(6),
+.style2-table td:nth-child(6) { min-width: 72px; }
+.style2-table th:nth-child(7),
+.style2-table td:nth-child(7) { min-width: 74px; }
 
 .style2-table tbody tr:hover {
   background: #f8fbff;
@@ -1603,10 +1623,17 @@ onMounted(() => {
   gap: 8px;
   justify-content: flex-start;
   padding-left: 10px;
+  min-width: 0;
 }
 .avatar-xs { width: 28px; height: 28px; border-radius: 50%; }
 .avatar-placeholder-xs { width: 28px; height: 28px; border-radius: 50%; background: #e6f7ff; color: #1890ff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; }
-.player-name-s2 { font-weight: 500; }
+.player-name-s2 {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 112px;
+}
 
 .bar-cell {
   display: flex;
@@ -1645,5 +1672,35 @@ onMounted(() => {
     .style2-rankings-grid { grid-template-columns: 1fr; }
     .stat-card-row { flex-wrap: wrap; }
     .stat-card-mini { min-width: 120px; }
+
+    .style2-table-wrapper {
+      border-radius: 10px;
+    }
+
+    .style2-table {
+      width: max(100%, 720px);
+      min-width: 720px;
+    }
+
+    .style2-table th,
+    .style2-table td {
+      font-size: 12px;
+      padding: 10px 6px;
+    }
+
+    .player-cell {
+      padding-left: 4px;
+      gap: 6px;
+    }
+
+    .avatar-xs,
+    .avatar-placeholder-xs {
+      width: 24px;
+      height: 24px;
+    }
+
+    .player-name-s2 {
+      max-width: 96px;
+    }
 }
 </style>

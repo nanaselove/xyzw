@@ -1641,8 +1641,17 @@ onMounted(() => {
 }
 
 :deep(.n-data-table .n-data-table-th) {
-  background-color: #fafafa;
+  background-color: #f3f4f6;
   font-weight: bold;
+  color: #1f2937 !important;
+}
+
+:deep(.n-data-table .n-data-table-th .n-data-table-th__title) {
+  color: #1f2937 !important;
+}
+
+:deep(.n-data-table .n-data-table-th .n-data-table-th__title-wrapper) {
+  color: #1f2937 !important;
 }
 
 :deep(.member-avatar-cell) {

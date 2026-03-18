@@ -1353,6 +1353,16 @@ onMounted(() => {
   gap: var(--spacing-md);
 }
 
+.records-wrapper,
+.style-default,
+.style-1-wrapper,
+.style-2-wrapper {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
 /* 头部对战信息 */
 .battle-header {
   background: var(--bg-secondary);
@@ -1830,23 +1840,73 @@ onMounted(() => {
   .records-container {
     height: auto;
     max-width: 100%;
-    overflow-x: auto;
+    overflow-x: hidden;
     overflow-y: visible;
   }
 
   .battle-records-content {
-    overflow-x: auto;
+    overflow-x: hidden;
+    padding: var(--spacing-sm);
   }
 
-  .inline-header {
+  .header-section {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     gap: var(--spacing-sm);
+    padding: var(--spacing-md);
   }
-  
-  .header-actions {
+
+  .header-section .header-left {
     width: 100%;
-    justify-content: space-between;
+  }
+
+  .function-section {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  .function-section .function-left,
+  .function-section .function-right {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .function-section .function-left .export-options {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .function-section .function-left .export-options::-webkit-scrollbar {
+    display: none;
+  }
+
+  .function-section .function-left .export-options :deep(.n-radio-group) {
+    display: inline-flex;
+    flex-wrap: nowrap;
+    min-width: max-content;
+  }
+
+  .function-section .function-right {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+
+  .function-section .function-right :deep(.n-date-picker),
+  .function-section .function-right :deep(.ant-picker) {
+    width: 100% !important;
+    min-width: 0;
+    flex: 1 1 100%;
+  }
+
+  .function-section .function-right .action-btn {
+    flex: 1 1 calc(50% - 4px);
+    min-width: 0;
   }
   
   .stats-grid {
@@ -1887,6 +1947,11 @@ onMounted(() => {
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
+  }
+
+  .style-1-wrapper,
+  .style-2-wrapper {
+    padding: 12px;
   }
 
   .style-default .god-ranking-header,
