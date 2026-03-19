@@ -2245,6 +2245,64 @@ onMounted(() => {
   border-bottom: 1px solid #ddd;
 }
 
+/* Improve contrast for light export styles (style1/style2) */
+.style-1-wrapper .battle-header,
+.style-2-wrapper .battle-header {
+  background: #ffffff;
+  border: 1px solid #d7dee9;
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
+}
+
+.style-1-wrapper .battle-header h2,
+.style-2-wrapper .battle-header h2 {
+  background: linear-gradient(135deg, #6b7280, #4b5563);
+  color: #f8fafc;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.style-1-wrapper .club-name,
+.style-2-wrapper .club-name {
+  color: #1f2937;
+}
+
+.style-1-wrapper .club-id,
+.style-2-wrapper .club-id,
+.style-1-wrapper .club-power,
+.style-2-wrapper .club-power,
+.style-1-wrapper .vs,
+.style-2-wrapper .vs {
+  color: #4b5563 !important;
+}
+
+/* Force readable text in style2 light cards */
+.style-2-wrapper {
+  color: #1f2937;
+}
+
+.style-2-wrapper .summary-card,
+.style-2-wrapper .style2-header,
+.style-2-wrapper .style2-table-wrapper,
+.style-2-wrapper .stat-card-mini {
+  border-color: #d1d5db;
+}
+
+.style-2-wrapper .top3-item,
+.style-2-wrapper .top3-name,
+.style-2-wrapper .top3-value,
+.style-2-wrapper .summary-item,
+.style-2-wrapper .date-text,
+.style-2-wrapper .stat-label-mini,
+.style-2-wrapper .player-name-s2,
+.style-2-wrapper .rank-num-plain,
+.style-2-wrapper .style2-table td {
+  color: #374151 !important;
+}
+
+.style-2-wrapper .top3-value {
+  color: #111827 !important;
+  font-weight: 700;
+}
+
 .style2-header {
   display: flex;
   justify-content: center;

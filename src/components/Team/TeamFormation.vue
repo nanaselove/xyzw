@@ -21,7 +21,7 @@
           :class="['team-button', { active: currentTeam === teamId }]"
           @click="selectTeam(teamId)"
         >
-          {{ teamId }}
+          {{ toSkillSlot(teamId) }}
         </button>
         <button
           class="refresh-button"
@@ -41,7 +41,7 @@
             <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
             <path d="M3 21v-5h5" />
           </svg>
-          <span class="refresh-text">刷新</span>
+          <span class="refresh-text">刷新阵容</span>
         </button>
       </div>
     </div>
@@ -123,6 +123,16 @@ const loading = ref(false);
 const switching = ref(false);
 const currentTeam = ref(1);
 const availableTeams = ref<number[]>([1, 2, 3, 4]);
+const SLOT_SYMBOLS: Record<number, string> = {
+  1: "①",
+  2: "②",
+  3: "③",
+  4: "④",
+  5: "⑤",
+  6: "⑥",
+};
+
+const toSkillSlot = (teamId: number) => SLOT_SYMBOLS[teamId] || String(teamId);
 
 
 
@@ -369,10 +379,13 @@ watch(
   min-height: 260px;
   background: linear-gradient(
     145deg,
-    rgba(255, 255, 255, 0.12),
+    rgba(124, 108, 255, 0.14),
     rgba(255, 255, 255, 0.05)
   );
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(124, 108, 255, 0.4);
+  box-shadow:
+    0 0 20px rgba(124, 108, 255, 0.22),
+    0 12px 26px rgba(15, 23, 42, 0.24);
   border-radius: 22px;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
@@ -421,13 +434,13 @@ watch(
 }
 
 .team-button {
-  min-width: 42px;
-  height: 34px;
+  min-width: 48px;
+  height: 38px;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
+  border-radius: 12px;
   background: rgba(255, 255, 255, 0.08);
   color: rgba(255, 255, 255, 0.84);
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 700;
   cursor: pointer;
   transition:
@@ -445,9 +458,11 @@ watch(
 
 .team-button.active {
   color: #f8fcff;
-  border-color: rgba(124, 108, 255, 0.62);
+  border-color: rgba(124, 108, 255, 0.78);
   background: linear-gradient(135deg, #6b8dff 0%, #7c6cff 100%);
-  box-shadow: 0 8px 16px rgba(124, 108, 255, 0.36);
+  box-shadow:
+    0 0 14px rgba(124, 108, 255, 0.68),
+    0 10px 18px rgba(124, 108, 255, 0.36);
 }
 
 .team-button:disabled {
@@ -578,7 +593,7 @@ watch(
   border-color: rgba(124, 108, 255, 0.65);
   box-shadow:
     0 0 0 3px rgba(124, 108, 255, 0.18),
-    0 0 14px rgba(124, 108, 255, 0.48);
+    0 0 16px rgba(124, 108, 255, 0.62);
 }
 
 .hero-avatar {
@@ -643,8 +658,9 @@ watch(
   }
 
   .team-button {
-    min-width: 40px;
-    height: 32px;
+    min-width: 44px;
+    height: 36px;
+    font-size: 16px;
   }
 
   .heroes-container {

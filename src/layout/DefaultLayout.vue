@@ -395,7 +395,7 @@ const handleUserAction = async (key) => {
     width: 100%;
     min-width: 0;
     font-size: var(--font-size-md);
-    max-width: 64vw;
+    max-width: 74vw;
     gap: 6px;
   }
 

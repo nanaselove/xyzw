@@ -42,20 +42,19 @@
 
     <!-- 卡片内容区域（自适应填充高度，居中展示） -->
     <div class="card-content">
-      <!-- 进度条 -->
       <div class="progress-container">
-        <n-progress
-          type="line"
-          :percentage="dailyPoint"
-          :height="8"
-          :border-radius="4"
-          :color="progressColor"
-          rail-color="rgba(255, 255, 255, 0.16)"
-        />
+        <div class="progress-track">
+          <div class="progress-fill" :style="{ width: `${dailyPoint}%` }">
+            <span class="progress-shimmer" />
+          </div>
+        </div>
+        <div class="progress-meta">
+          <span>完成进度</span>
+          <strong>{{ dailyPoint }}%</strong>
+        </div>
       </div>
 
-      <!-- 提示信息 -->
-      <div class="info-container">右上角小齿轮有惊喜</div>
+      <div class="info-container">更多任务设置在右上角</div>
     </div>
 
     <!-- 一键执行按钮 -->
@@ -362,7 +361,6 @@ const roleDailyPoint = computed(() => {
 
 const dailyPoint = computed(() => Math.min(roleDailyPoint.value, 100));
 const isFull = computed(() => dailyPoint.value >= 100);
-const progressColor = computed(() => (isFull.value ? "#10b981" : "#3b82f6"));
 
 // WebSocket连接状态
 const isConnected = computed(() => {
@@ -700,6 +698,54 @@ onBeforeUnmount(() => {
   margin-bottom: 10px;
 }
 
+.progress-track {
+  position: relative;
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.progress-fill {
+  position: relative;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #4ade80, #22c55e);
+  transition: width 0.35s ease;
+}
+
+.progress-shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    120deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.45) 45%,
+    rgba(255, 255, 255, 0) 80%
+  );
+  transform: translateX(-100%);
+  animation: progressShimmer 1.6s linear infinite;
+}
+
+.progress-meta {
+  margin-top: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.progress-meta span {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.progress-meta strong {
+  font-size: 15px;
+  color: #9fe7c3;
+  text-shadow: 0 0 10px rgba(159, 231, 195, 0.4);
+}
+
 .info-container {
   color: rgba(255, 255, 255, 0.72);
   font-size: 14px;
@@ -766,10 +812,11 @@ onBeforeUnmount(() => {
   height: 48px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
-  background: linear-gradient(135deg, #6b8dff 0%, #7c6cff 100%);
+  background: linear-gradient(135deg, #7c6cff 0%, #6366f1 55%, #4f46e5 100%);
   color: #f8fbff;
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: 0.5px;
   cursor: pointer;
   transition:
     filter 0.2s ease,
@@ -779,7 +826,9 @@ onBeforeUnmount(() => {
   &:hover:not(:disabled) {
     transform: translateY(-1px);
     filter: brightness(1.05);
-    box-shadow: 0 10px 18px rgba(89, 102, 242, 0.28);
+    box-shadow:
+      0 0 18px rgba(124, 108, 255, 0.5),
+      0 10px 18px rgba(89, 102, 242, 0.28);
   }
 
   &:disabled {
@@ -991,6 +1040,15 @@ onBeforeUnmount(() => {
   .action-button {
     height: 46px;
     font-size: 17px;
+  }
+}
+
+@keyframes progressShimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
   }
 }
 </style>

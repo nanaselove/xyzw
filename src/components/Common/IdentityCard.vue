@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div v-if="embedded" class="identity-embedded">
     <div class="identity-card embedded profile-card">
       <template v-if="hasRole">
@@ -38,7 +38,7 @@
             </div>
 
             <div class="activity-badge" v-if="getCurrentActivityWeek">
-              本周活动：{{ getCurrentActivityWeek }}
+              🔥 {{ getCurrentActivityWeek }}
             </div>
           </div>
         </div>
@@ -50,18 +50,29 @@
             class="res-item stat-card"
             :class="`tone-${res.tone}`"
           >
-            <span class="label">{{ res.label }}</span>
+            <div class="label-line">
+              <span class="resource-icon" :class="`tone-${res.iconTone}`">
+                <img :src="res.iconSrc" :alt="res.label" @error="onResourceIconError" />
+              </span>
+              <span class="label">{{ res.label }}</span>
+            </div>
             <span class="value">{{ res.value }}</span>
           </div>
         </div>
 
         <div class="resources" :class="{ collapsed: !isExpanded }">
-          <div
-            v-for="res in detailResList"
-            :key="res.label"
-            class="res-item detail-item"
-          >
-            <span class="label">{{ res.label }}</span>
+          <div v-for="res in detailResList" :key="res.label" class="res-item detail-item">
+            <div class="detail-main">
+              <span class="resource-icon detail" :class="`tone-${res.iconTone}`">
+                <img
+                  :src="res.iconSrc"
+                  :alt="res.label"
+                  :class="res.iconMask"
+                  @error="onResourceIconError"
+                />
+              </span>
+              <span class="label">{{ res.label }}</span>
+            </div>
             <span class="value">{{ res.value }}</span>
           </div>
         </div>
@@ -76,13 +87,10 @@
       <div v-else class="loading">正在获取角色信息...</div>
     </div>
   </div>
+
   <transition v-else name="drop">
     <div v-show="visible" class="identity-overlay" @click.self="emit('close')">
-      <div class="identity-card">
-        <div class="strap">
-          <div class="strap-tape"></div>
-          <div class="strap-buckle"></div>
-        </div>
+      <div class="identity-card floating-card">
         <div class="card-header">
           <img
             src="/icons/Ob7pyorzmHiJcbab2c25af264d0758b527bc1b61cc3b.png"
@@ -95,49 +103,32 @@
           </div>
           <button class="close-btn" @click="emit('close')">✕</button>
         </div>
-        <div
-          v-if="hasRole"
-          class="role-profile-header"
-          :class="rankInfo?.class"
-        >
+
+        <div v-if="hasRole" class="role-profile-header">
           <div class="role-profile-content">
-            <div class="avatar-container">
-              <img
-                :src="roleAvatar"
-                :alt="roleInfo.name || '角色'"
-                class="role-avatar"
-                @error="handleAvatarError"
-              />
+            <div class="avatar-shell small">
+              <div class="avatar-container small">
+                <img
+                  :src="roleAvatar"
+                  :alt="roleInfo.name || '角色'"
+                  class="role-avatar"
+                  @error="handleAvatarError"
+                />
+              </div>
             </div>
             <div class="role-info-section">
-              <div class="role-name">
-                {{ roleInfo.name || "未知角色" }}
-                <n-tag
-                  v-if="roleInfo.legacy > 0"
-                  :style="{
-                    color: '#fff',
-                    backgroundColor: legacycolor[roleInfo.legacy]?.value,
-                    marginLeft: '8px',
-                  }"
-                  size="small"
-                  :bordered="false"
-                >
-                  {{ legacycolor[roleInfo.legacy]?.name || "未知" }}
-                </n-tag>
-              </div>
+              <div class="role-name">{{ roleInfo.name || "未知角色" }}</div>
               <div class="role-stats">
-                <span class="level-text">Lv.{{ roleInfo.level || 1 }}</span>
-                <span class="power-value"
-                  >战力 {{ formatPower(roleInfo.power) }}</span
-                >
+                <span>Lv{{ roleInfo.level || 1 }}</span>
+                <span>战力 {{ formatPower(roleInfo.power) }}</span>
               </div>
               <div class="activity-week" v-if="getCurrentActivityWeek">
-                本周活动：{{ getCurrentActivityWeek }}
+                🔥 {{ getCurrentActivityWeek }}
               </div>
             </div>
           </div>
-          <div class="glow-border" />
         </div>
+
         <div v-else class="loading">正在获取角色信息...</div>
       </div>
     </div>
@@ -145,16 +136,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useTokenStore } from "@/stores/tokenStore";
 import { legacycolor as rawLegacyColor } from "@/utils/HeroList";
 
 const legacycolor = rawLegacyColor as any;
-
 const tokenStore = useTokenStore();
+const getImgPath = (path: string) =>
+  import.meta.env.BASE_URL + path.replace(/^\//, "");
 
 const props = defineProps<{ visible?: boolean; embedded?: boolean }>();
 const emit = defineEmits(["close"]);
+
 const isExpanded = ref(false);
 
 const wsStatus = computed(() => {
@@ -163,21 +156,19 @@ const wsStatus = computed(() => {
 });
 
 const roleInfo = computed(() => {
-  const gameData = tokenStore.gameData as any;
-  const role = gameData?.roleInfo?.role;
-  if (!role) return {};
+  const role = (tokenStore.gameData as any)?.roleInfo?.role;
+  if (!role) return {} as any;
   return {
     roleId: role.roleId,
     name: role.name,
     headImg: role.headImg,
     level: role.level,
     power: role.power || role.fighting || 0,
-    gold: role.gold ?? 0,
     legacy: role.legacy?.color ?? 0,
+    gold: role.gold ?? 0,
     diamond: role.diamond ?? 0,
     fishing: role.fishing || role.fish || null,
-    items:
-      role.items || role.itemList || role.bag?.items || role.inventory || null,
+    items: role.items || role.itemList || role.bag?.items || role.inventory || null,
   };
 });
 
@@ -189,32 +180,10 @@ const defaultAvatars = [
   "/icons/1736425783912140.png",
   "/icons/173746572831736.png",
   "/icons/174023274867420.png",
-].map((path) => import.meta.env.BASE_URL + path.replace(/^\//, ""));
+].map((path) => getImgPath(path));
+
 const roleAvatar = ref("");
 const selectedDefaultAvatar = ref("");
-
-const legacyConfig: Record<number, { icon: string; class: string }> = {
-  0: { icon: "🌱", class: "rank-beginner" },
-  1: { icon: "🌱", class: "rank-beginner" },
-  2: { icon: "⚔️", class: "rank-known" },
-  3: { icon: "🗡️", class: "rank-veteran" },
-  4: { icon: "🏹", class: "rank-master" },
-  5: { icon: "⚡", class: "rank-hero" },
-  6: { icon: "👑", class: "rank-overlord" },
-  7: { icon: "🔱", class: "rank-supreme" },
-};  
-
-const rankInfo = computed(() => {
-  const legacyId = Number(roleInfo.value.legacy || 0);
-  const config = legacyConfig[legacyId] || legacyConfig[0];
-  const legacyData = legacycolor[legacyId] || { name: "初出茅庐" };
-
-  return {
-    title: legacyData.name,
-    icon: config.icon,
-    class: config.class,
-  };
-});
 
 const formatPower = (power: number) => {
   if (!power) return "0";
@@ -234,133 +203,38 @@ const formatNumber = (num: number) => {
   return n.toLocaleString();
 };
 
-const gold = computed(() => (roleInfo.value as any).gold ?? 0);
-const diamond = computed(() => (roleInfo.value as any).diamond ?? 0);
-
-// ——— 从 items 中解析数量（优先）———
 const getItemCount = (items: any, id: number): number | null => {
   if (!items) return null;
-  // 数组结构：[{id/ itemId, num/count/quantity}, ...]
+
   if (Array.isArray(items)) {
-    const found = items.find(
-      (it) => Number((it as any).id ?? (it as any).itemId) === id,
-    );
+    const found = items.find((it) => Number((it as any).id ?? (it as any).itemId) === id);
     if (!found) return 0;
-    return Number(
-      (found as any).num ??
-        (found as any).count ??
-        (found as any).quantity ??
-        0,
-    );
+    return Number((found as any).num ?? (found as any).count ?? (found as any).quantity ?? 0);
   }
-  // 对象结构：{ '1011': 3 } 或 { '1011': { num:3 } }
+
   const node = (items as any)[String(id)] ?? (items as any)[id];
   if (node == null) {
-    // 兼容值对象中含有 itemId/quantity 的结构：{ '2001': { itemId: 2001, quantity: 6821 } } 或 { 'X': { itemId: 2001 } }
     const match = Object.values(items as any).find(
       (v: any) => Number(v?.itemId ?? v?.id) === id,
     );
-    if (match)
-      return Number(
-        (match as any).num ??
-          (match as any).count ??
-          (match as any).quantity ??
-          0,
-      );
-    return 0;
+    if (!match) return 0;
+    return Number((match as any).num ?? (match as any).count ?? (match as any).quantity ?? 0);
   }
+
   if (typeof node === "number") return Number(node);
-  if (typeof node === "object")
-    return Number(
-      (node as any).num ?? (node as any).count ?? (node as any).quantity ?? 0,
-    );
+  if (typeof node === "object") {
+    return Number((node as any).num ?? (node as any).count ?? (node as any).quantity ?? 0);
+  }
   return Number(node) || 0;
 };
 
-const items = computed(() => {
-  return (roleInfo.value as any).items;
-});
+const items = computed(() => (roleInfo.value as any).items);
+const gold = computed(() => Number((roleInfo.value as any).gold ?? 0));
+const diamond = computed(() => Number((roleInfo.value as any).diamond ?? 0));
 
-// 参考表：1011 普通鱼竿，1012 金鱼竿；补充：1013 珍珠、1001 招募令、1006 精铁、1023 彩玉、1003 进阶石、1017复活丹、1022 白玉
 const normalRodFromItems = computed(() => getItemCount(items.value, 1011));
 const goldRodFromItems = computed(() => getItemCount(items.value, 1012));
-const pearlFromItems = computed(() => getItemCount(items.value, 1013));
-const recruitFromItems = computed(() => getItemCount(items.value, 1001));
-const ironFromItems = computed(() => getItemCount(items.value, 1006));
-const jadeFromItems = computed(() => getItemCount(items.value, 1023));
-const whiteJadeFromItems = computed(() => getItemCount(items.value, 1022));
-const advanceStoneFromItems = computed(() => getItemCount(items.value, 1003));
-const DanFromItems = computed(() => getItemCount(items.value, 1017));
-//10002蓝玉 10003红玉 10101四圣碎片
-const blueJadeFromItems = computed(() => getItemCount(items.value, 10002));
-const redJadeFromItems = computed(() => getItemCount(items.value, 10003));
-const fourSaintFragmentFromItems = computed(() =>
-  getItemCount(items.value, 10101),
-);
 
-// 新增资源
-const goldBagFromItems = computed(() => getItemCount(items.value, 3001)); // 金币袋子
-const diamondBagFromItems = computed(() => getItemCount(items.value, 3002)); // 金砖袋子
-const purpleFragmentFromItems = computed(() => getItemCount(items.value, 3005)); // 紫色随机碎片
-const orangeFragmentFromItems = computed(() => getItemCount(items.value, 3006)); // 橙色随机碎片
-const redFragmentFromItems = computed(() => getItemCount(items.value, 3007)); // 红色随机碎片
-const ironBagFromItems = computed(() => getItemCount(items.value, 3008)); // 精铁袋子
-const advanceBagFromItems = computed(() => getItemCount(items.value, 3009)); // 进阶袋子
-const nightmareBagFromItems = computed(() => getItemCount(items.value, 3010)); // 梦魇袋子
-const whiteJadeBagFromItems = computed(() => getItemCount(items.value, 3011)); // 白玉袋子
-const wrenchBagFromItems = computed(() => getItemCount(items.value, 3012)); // 扳手袋子
-const treasureBowlFromItems = computed(() => getItemCount(items.value, 3020)); // 聚宝盆
-const luxuryTreasureBowlFromItems = computed(() =>
-  getItemCount(items.value, 3021),
-); // 豪华聚宝盆
-const redUniversalFragmentFromItems = computed(() =>
-  getItemCount(items.value, 3201),
-); // 红色万能碎片
-const orangeUniversalFragmentFromItems = computed(() =>
-  getItemCount(items.value, 3302),
-); // 橙色万能碎片
-const indigoFromItems = computed(() => getItemCount(items.value, 1019)); // 盐靛
-const crystalFromItems = computed(() => getItemCount(items.value, 1016)); // 晶石
-const skinCoinFromItems = computed(() => getItemCount(items.value, 1020)); // 皮肤币
-const sweepCarpetFromItems = computed(() => getItemCount(items.value, 1021)); // 扫荡魔毯
-const shellFromItems = computed(() => getItemCount(items.value, 1033)); // 贝壳
-const goldIndigoFromItems = computed(() => getItemCount(items.value, 1035)); // 金盐靛
-const arenaTicketFromItems = computed(() => getItemCount(items.value, 1007)); // 竞技场门票
-const woodChestFromItems = computed(() => getItemCount(items.value, 2001)); // 木制宝箱
-const bronzeChestFromItems = computed(() => getItemCount(items.value, 2002)); // 青铜宝箱
-const goldChestFromItems = computed(() => getItemCount(items.value, 2003)); // 黄金宝箱
-const platinumChestFromItems = computed(() => getItemCount(items.value, 2004)); // 铂金宝箱
-const diamondChestFromItems = computed(() => getItemCount(items.value, 2005)); // 钻石宝箱
-const refreshCouponFromItems = computed(() => getItemCount(items.value, 35002)); // 刷新券
-const partsFromItems = computed(() => getItemCount(items.value, 35009)); // 零件
-const woodTorchFromItems = computed(() => getItemCount(items.value, 1008)); // 木柴火把
-const bronzeTorchFromItems = computed(() => getItemCount(items.value, 1009)); // 青铜火把
-const godTorchFromItems = computed(() => getItemCount(items.value, 1010)); // 咸神火把
-const legionCoinFromItems = computed(() => getItemCount(items.value, 1014)); // 军团币
-const wrenchFromItems = computed(() => getItemCount(items.value, 1026)); // 扳手
-const cheerCoinFromItems = computed(() => getItemCount(items.value, 2101)); // 助威币
-
-const getCurrentActivityWeek = computed(() => {
-  const now = new Date();
-  const start = new Date('2025-12-12T12:00:00'); // 起始时间：黑市周开始
-  const weekDuration = 7 * 24 * 60 * 60 * 1000; // 一周毫秒数
-  const cycleDuration = 3 * weekDuration; // 三周期毫秒数
-  
-  const elapsed = now - start;
-  if (elapsed < 0) return null; // 活动开始前
-  
-  const cyclePosition = elapsed % cycleDuration;
-  
-  if (cyclePosition < weekDuration) {
-    return '黑市周';
-  } else if (cyclePosition < 2 * weekDuration) {
-    return '招募周';
-  } else {
-    return '宝箱周';
-  }
-});
-
-// 兼容旧字段（fishing.*）作为回退
 const normalRod = computed(() => {
   const fromItems = normalRodFromItems.value;
   if (fromItems !== null && fromItems !== undefined) return fromItems;
@@ -370,6 +244,7 @@ const normalRod = computed(() => {
     null
   );
 });
+
 const goldRod = computed(() => {
   const fromItems = goldRodFromItems.value;
   if (fromItems !== null && fromItems !== undefined) return fromItems;
@@ -379,321 +254,287 @@ const goldRod = computed(() => {
     null
   );
 });
-const display = (n: number | null | undefined) =>
-  n == null ? "-" : formatNumber(Number(n));
-const getRawValue = (n: number | null | undefined) =>
-  n == null ? 0 : Number(n);
+
+const display = (n: number | null | undefined) => (n == null ? "-" : formatNumber(Number(n)));
+const getRawValue = (n: number | null | undefined) => (n == null ? 0 : Number(n));
+
+type ResourceIconMeta = {
+  iconSrc: string;
+  iconTone: string;
+};
+
+const DEFAULT_RESOURCE_ICON = getImgPath("/icons/ta.png");
+
+const exactResourceIconMap: Record<number, string> = {
+  1001: getImgPath("/icons/zml.png"),
+  1003: getImgPath("/icons/resource-jinjie-stone.png"),
+  1006: getImgPath("/icons/resource-jingtie.png"),
+  10100: getImgPath("/icons/resource-four-saint-pearl.png"),
+  10101: getImgPath("/icons/resource-four-saint-fragment.png"),
+  1020: getImgPath("/icons/resource-skin-coin.png"),
+  1021: getImgPath("/icons/resource-sweep-carpet.png"),
+  1022: getImgPath("/icons/resource-white-jade.png"),
+  1023: getImgPath("/icons/resource-color-jade.png"),
+  10002: getImgPath("/icons/resource-four-saint-blue-jade.png"),
+  10003: getImgPath("/icons/resource-four-saint-red-jade.png"),
+  1033: getImgPath("/icons/resource-lingbei.png"),
+  1034: getImgPath("/icons/resource-lingzhu.png"),
+  1016: getImgPath("/icons/resource-dream-crystal.png"),
+  1019: getImgPath("/icons/resource-salt-ingot.png"),
+  1035: getImgPath("/icons/resource-gold-salt-ingot.png"),
+  1007: getImgPath("/icons/resource-arena-ticket.png"),
+  1008: getImgPath("/icons/resource-wood-torch.png"),
+  1009: getImgPath("/icons/resource-bronze-torch.png"),
+  1010: getImgPath("/icons/resource-divine-torch.png"),
+  1014: getImgPath("/icons/resource-legion-coin.png"),
+  1026: getImgPath("/icons/resource-wrench.png"),
+  2101: getImgPath("/icons/resource-cheer-coin.png"),
+  1013: getImgPath("/icons/resource-pearl.png"),
+  1017: getImgPath("/icons/resource-revive-dan.png"),
+  1011: getImgPath("/fish/ptyg.png"),
+  1012: getImgPath("/fish/hjyg.png"),
+  2001: getImgPath("/box/mzbx.png"),
+  2002: getImgPath("/box/qtbx.png"),
+  2003: getImgPath("/box/hjbx.png"),
+  2004: getImgPath("/box/bjbx.png"),
+  2005: getImgPath("/box/zsbx.png"),
+  3001: getImgPath("/icons/resource-gold-coin-bag.png"),
+  3002: getImgPath("/icons/resource-gold-brick-bag.png"),
+  3005: getImgPath("/icons/resource-purple-random-fragment.png"),
+  3006: getImgPath("/icons/resource-orange-random-fragment.png"),
+  3007: getImgPath("/icons/resource-red-random-fragment.png"),
+  3008: getImgPath("/icons/resource-jingtie-bag.png"),
+  3009: getImgPath("/icons/resource-jinjie-stone-bag.png"),
+  3010: getImgPath("/icons/resource-dream-bag.png"),
+  3011: getImgPath("/icons/resource-white-jade-bag.png"),
+  3012: getImgPath("/icons/resource-wrench-bag.png"),
+  3201: getImgPath("/icons/resource-red-universal-fragment.png"),
+  3302: getImgPath("/icons/resource-orange-universal-fragment.png"),
+  35002: getImgPath("/icons/resource-refresh-ticket.png"),
+  35009: getImgPath("/icons/resource-part.png"),
+};
+
+const resourceToneMap: Record<number, string> = {
+  1001: "ticket",
+  1003: "gem",
+  1006: "tool",
+  1007: "ticket",
+  1008: "tool",
+  1009: "tool",
+  1010: "tool",
+  1011: "fish",
+  1012: "fish",
+  1013: "pearl",
+  1014: "badge",
+  1016: "gem",
+  1017: "potion",
+  1019: "gem",
+  1020: "ticket",
+  1021: "ticket",
+  1022: "gem",
+  1023: "gem",
+  1026: "tool",
+  1033: "shell",
+  1034: "gem",
+  1035: "gem",
+  10002: "gem",
+  10003: "gem",
+  10100: "gem",
+  10101: "fragment",
+  2001: "box",
+  2002: "box",
+  2003: "box",
+  2004: "box",
+  2005: "box",
+  2101: "badge",
+  3001: "bag",
+  3002: "bag",
+  3005: "fragment",
+  3006: "fragment",
+  3007: "fragment",
+  3008: "bag",
+  3009: "bag",
+  3010: "bag",
+  3011: "bag",
+  3012: "bag",
+  3020: "bag",
+  3021: "bag",
+  3201: "fragment",
+  3302: "fragment",
+  35002: "ticket",
+  35009: "tool",
+};
+
+const coreResourceIconMap: Record<string, ResourceIconMeta> = {
+  gold: { iconSrc: getImgPath("/icons/resource-gold-coin.png"), iconTone: "gold" },
+  diamond: { iconSrc: getImgPath("/icons/resource-gold-brick.png"), iconTone: "diamond" },
+  normalRod: { iconSrc: getImgPath("/fish/ptyg.png"), iconTone: "fish" },
+  goldRod: { iconSrc: getImgPath("/fish/hjyg.png"), iconTone: "fish" },
+};
+
+const getResourceIconMeta = (resourceId?: number | null): ResourceIconMeta => {
+  if (!resourceId) {
+    return { iconSrc: DEFAULT_RESOURCE_ICON, iconTone: "default" };
+  }
+  return {
+    iconSrc: exactResourceIconMap[resourceId] || DEFAULT_RESOURCE_ICON,
+    iconTone: resourceToneMap[resourceId] || "default",
+  };
+};
+
+const onResourceIconError = (event: Event) => {
+  const target = event.target as HTMLImageElement | null;
+  if (!target) return;
+  if (target.src !== DEFAULT_RESOURCE_ICON) {
+    target.src = DEFAULT_RESOURCE_ICON;
+  }
+};
+
+const iconMaskClassMap: Record<number, string> = {
+  10003: "icon-mask-circle",
+  10100: "icon-mask-circle",
+  10101: "icon-mask-frag",
+  3002: "icon-mask-bag",
+  3005: "icon-mask-bag",
+  3006: "icon-mask-bag",
+  3007: "icon-mask-bag",
+  3008: "icon-mask-bag",
+  3009: "icon-mask-bag",
+  3010: "icon-mask-bag",
+  3011: "icon-mask-bag",
+  3012: "icon-mask-bag",
+  3201: "icon-mask-bag",
+  3302: "icon-mask-bag",
+  35002: "icon-mask-ticket",
+  35009: "icon-mask-part",
+};
+
+const detailDefs = [
+  { label: "珍珠", id: 1013 },
+  { label: "复活丹", id: 1017 },
+  { label: "招募令", id: 1001 },
+  { label: "精铁", id: 1006 },
+  { label: "彩玉", id: 1023 },
+  { label: "进阶石", id: 1003 },
+  { label: "白玉", id: 1022 },
+  { label: "四圣蓝玉", id: 10002 },
+  { label: "四圣红玉", id: 10003 },
+  { label: "四圣宝珠", id: 10100 },
+  { label: "四圣宝珠碎片", id: 10101 },
+  { label: "金币袋子", id: 3001 },
+  { label: "金砖福袋", id: 3002 },
+  { label: "紫色随机碎片", id: 3005 },
+  { label: "橙色随机碎片", id: 3006 },
+  { label: "红色随机碎片", id: 3007 },
+  { label: "精铁袋子", id: 3008 },
+  { label: "进阶袋子", id: 3009 },
+  { label: "梦魇袋子", id: 3010 },
+  { label: "白玉袋子", id: 3011 },
+  { label: "扳手袋子", id: 3012 },
+  { label: "红色万能碎片", id: 3201 },
+  { label: "橙色万能碎片", id: 3302 },
+  { label: "盐锭", id: 1019 },
+  { label: "晶石", id: 1016 },
+  { label: "皮肤币", id: 1020 },
+  { label: "扫荡魔毯", id: 1021 },
+  { label: "灵贝", id: 1033 },
+  { label: "灵珠", id: 1034 },
+  { label: "金盐锭", id: 1035 },
+  { label: "竞技场门票", id: 1007 },
+  { label: "木制宝箱", id: 2001 },
+  { label: "青铜宝箱", id: 2002 },
+  { label: "黄金宝箱", id: 2003 },
+  { label: "铂金宝箱", id: 2004 },
+  { label: "钻石宝箱", id: 2005 },
+  { label: "刷新券", id: 35002 },
+  { label: "零件", id: 35009 },
+  { label: "木柴火把", id: 1008 },
+  { label: "青铜火把", id: 1009 },
+  { label: "咸神火把", id: 1010 },
+  { label: "军团币", id: 1014 },
+  { label: "扳手", id: 1026 },
+  { label: "助威币", id: 2101 },
+];
 
 const keyResList = computed(() => [
   {
     id: "gold",
     label: "金币",
     value: formatNumber(gold.value),
+    iconSrc: coreResourceIconMap.gold.iconSrc,
+    iconTone: coreResourceIconMap.gold.iconTone,
     tone: "gold",
   },
   {
     id: "diamond",
     label: "金砖",
     value: formatNumber(diamond.value),
+    iconSrc: coreResourceIconMap.diamond.iconSrc,
+    iconTone: coreResourceIconMap.diamond.iconTone,
     tone: "diamond",
   },
   {
     id: "normalRod",
     label: "普通鱼竿",
     value: display(normalRod.value as any),
+    iconSrc: coreResourceIconMap.normalRod.iconSrc,
+    iconTone: coreResourceIconMap.normalRod.iconTone,
     tone: "rod",
   },
   {
     id: "goldRod",
-    label: "金鱼竿",
+    label: "黄金鱼竿",
     value: display(goldRod.value as any),
+    iconSrc: coreResourceIconMap.goldRod.iconSrc,
+    iconTone: coreResourceIconMap.goldRod.iconTone,
     tone: "vip",
   },
 ]);
 
-const resList = computed(() => {
-  const allResources = [
-    {
-      id: "gold",
-      label: "金币",
-      value: formatNumber(gold.value),
-      raw: gold.value,
-    },
-    {
-      id: "diamond",
-      label: "金砖",
-      value: formatNumber(diamond.value),
-      raw: diamond.value,
-    },
-    {
-      id: "normalRod",
-      label: "普通鱼竿",
-      value: display(normalRod.value as any),
-      raw: getRawValue(normalRod.value as any),
-    },
-    {
-      id: "goldRod",
-      label: "金鱼竿",
-      value: display(goldRod.value as any),
-      raw: getRawValue(goldRod.value as any),
-    },
-    {
-      label: "珍珠",
-      value: display(pearlFromItems.value as any),
-      raw: getRawValue(pearlFromItems.value as any),
-    },
-    {
-      label: "复活丹",
-      value: display(DanFromItems.value as any),
-      raw: getRawValue(DanFromItems.value as any),
-    },
-    {
-      label: "招募令",
-      value: display(recruitFromItems.value as any),
-      raw: getRawValue(recruitFromItems.value as any),
-    },
-    {
-      label: "精铁",
-      value: display(ironFromItems.value as any),
-      raw: getRawValue(ironFromItems.value as any),
-    },
-    {
-      label: "彩玉",
-      value: display(jadeFromItems.value as any),
-      raw: getRawValue(jadeFromItems.value as any),
-    },
-    {
-      label: "进阶石",
-      value: display(advanceStoneFromItems.value as any),
-      raw: getRawValue(advanceStoneFromItems.value as any),
-    },
-    {
-      label: "蓝玉",
-      value: display(blueJadeFromItems.value as any),
-      raw: getRawValue(blueJadeFromItems.value as any),
-    },
-    {
-      label: "红玉",
-      value: display(redJadeFromItems.value as any),
-      raw: getRawValue(redJadeFromItems.value as any),
-    },
-    {
-      label: "四圣宝珠碎片",
-      value: display(fourSaintFragmentFromItems.value as any),
-      raw: getRawValue(fourSaintFragmentFromItems.value as any),
-    },
-    {
-      label: "金币袋子",
-      value: display(goldBagFromItems.value as any),
-      raw: getRawValue(goldBagFromItems.value as any),
-    },
-    {
-      label: "金砖袋子",
-      value: display(diamondBagFromItems.value as any),
-      raw: getRawValue(diamondBagFromItems.value as any),
-    },
-    {
-      label: "紫色随机碎片",
-      value: display(purpleFragmentFromItems.value as any),
-      raw: getRawValue(purpleFragmentFromItems.value as any),
-    },
-    {
-      label: "橙色随机碎片",
-      value: display(orangeFragmentFromItems.value as any),
-      raw: getRawValue(orangeFragmentFromItems.value as any),
-    },
-    {
-      label: "红色随机碎片",
-      value: display(redFragmentFromItems.value as any),
-      raw: getRawValue(redFragmentFromItems.value as any),
-    },
-    {
-      label: "精铁袋子",
-      value: display(ironBagFromItems.value as any),
-      raw: getRawValue(ironBagFromItems.value as any),
-    },
-    {
-      label: "进阶袋子",
-      value: display(advanceBagFromItems.value as any),
-      raw: getRawValue(advanceBagFromItems.value as any),
-    },
-    {
-      label: "梦魇袋子",
-      value: display(nightmareBagFromItems.value as any),
-      raw: getRawValue(nightmareBagFromItems.value as any),
-    },
-    {
-      label: "白玉袋子",
-      value: display(whiteJadeBagFromItems.value as any),
-      raw: getRawValue(whiteJadeBagFromItems.value as any),
-    },
-    {
-      label: "扳手袋子",
-      value: display(wrenchBagFromItems.value as any),
-      raw: getRawValue(wrenchBagFromItems.value as any),
-    },
-    {
-      label: "聚宝盆",
-      value: display(treasureBowlFromItems.value as any),
-      raw: getRawValue(treasureBowlFromItems.value as any),
-    },
-    {
-      label: "豪华聚宝盆",
-      value: display(luxuryTreasureBowlFromItems.value as any),
-      raw: getRawValue(luxuryTreasureBowlFromItems.value as any),
-    },
-    {
-      label: "红色万能碎片",
-      value: display(redUniversalFragmentFromItems.value as any),
-      raw: getRawValue(redUniversalFragmentFromItems.value as any),
-    },
-    {
-      label: "橙色万能碎片",
-      value: display(orangeUniversalFragmentFromItems.value as any),
-      raw: getRawValue(orangeUniversalFragmentFromItems.value as any),
-    },
-    {
-      label: "盐靛",
-      value: display(indigoFromItems.value as any),
-      raw: getRawValue(indigoFromItems.value as any),
-    },
-    {
-      label: "晶石",
-      value: display(crystalFromItems.value as any),
-      raw: getRawValue(crystalFromItems.value as any),
-    },
-    {
-      label: "皮肤币",
-      value: display(skinCoinFromItems.value as any),
-      raw: getRawValue(skinCoinFromItems.value as any),
-    },
-    {
-      label: "扫荡魔毯",
-      value: display(sweepCarpetFromItems.value as any),
-      raw: getRawValue(sweepCarpetFromItems.value as any),
-    },
-    {
-      label: "白玉",
-      value: display(whiteJadeFromItems.value as any),
-      raw: getRawValue(whiteJadeFromItems.value as any),
-    },
-    {
-      label: "贝壳",
-      value: display(shellFromItems.value as any),
-      raw: getRawValue(shellFromItems.value as any),
-    },
-    {
-      label: "金盐靛",
-      value: display(goldIndigoFromItems.value as any),
-      raw: getRawValue(goldIndigoFromItems.value as any),
-    },
-    {
-      label: "竞技场门票",
-      value: display(arenaTicketFromItems.value as any),
-      raw: getRawValue(arenaTicketFromItems.value as any),
-    },
-    {
-      label: "木制宝箱",
-      value: display(woodChestFromItems.value as any),
-      raw: getRawValue(woodChestFromItems.value as any),
-    },
-    {
-      label: "青铜宝箱",
-      value: display(bronzeChestFromItems.value as any),
-      raw: getRawValue(bronzeChestFromItems.value as any),
-    },
-    {
-      label: "黄金宝箱",
-      value: display(goldChestFromItems.value as any),
-      raw: getRawValue(goldChestFromItems.value as any),
-    },
-    {
-      label: "铂金宝箱",
-      value: display(platinumChestFromItems.value as any),
-      raw: getRawValue(platinumChestFromItems.value as any),
-    },
-    {
-      label: "钻石宝箱",
-      value: display(diamondChestFromItems.value as any),
-      raw: getRawValue(diamondChestFromItems.value as any),
-    },
-    {
-      label: "刷新券",
-      value: display(refreshCouponFromItems.value as any),
-      raw: getRawValue(refreshCouponFromItems.value as any),
-    },
-    {
-      label: "零件",
-      value: display(partsFromItems.value as any),
-      raw: getRawValue(partsFromItems.value as any),
-    },
-    {
-      label: "木柴火把",
-      value: display(woodTorchFromItems.value as any),
-      raw: getRawValue(woodTorchFromItems.value as any),
-    },
-    {
-      label: "青铜火把",
-      value: display(bronzeTorchFromItems.value as any),
-      raw: getRawValue(bronzeTorchFromItems.value as any),
-    },
-    {
-      label: "咸神火把",
-      value: display(godTorchFromItems.value as any),
-      raw: getRawValue(godTorchFromItems.value as any),
-    },
-    {
-      label: "军团币",
-      value: display(legionCoinFromItems.value as any),
-      raw: getRawValue(legionCoinFromItems.value as any),
-    },
-    {
-      label: "扳手",
-      value: display(wrenchFromItems.value as any),
-      raw: getRawValue(wrenchFromItems.value as any),
-    },
-    {
-      label: "助威币",
-      value: display(cheerCoinFromItems.value as any),
-      raw: getRawValue(cheerCoinFromItems.value as any),
-    },
-  ];
-
-  // 分组：非零资源和零资源
-  const nonZero = allResources.filter((res) => res.raw > 0);
-  const zero = allResources.filter((res) => res.raw === 0);
-
-  // 非零资源在前，零资源在后
-  return [...nonZero, ...zero];
+const detailResList = computed(() => {
+  return detailDefs.map((def) => {
+    const raw = getItemCount(items.value, def.id);
+    const iconMeta = getResourceIconMeta(def.id);
+    return {
+      id: def.id,
+      label: def.label,
+      value: display(raw as any),
+      iconSrc: iconMeta.iconSrc,
+      iconTone: iconMeta.iconTone,
+      iconMask: iconMaskClassMap[def.id] || "",
+      raw: getRawValue(raw as any),
+    };
+  });
 });
 
-const detailResList = computed(() =>
-  resList.value.filter(
-    (res: any) =>
-      !["gold", "diamond", "normalRod", "goldRod"].includes((res as any).id),
-  ),
-);
-
 const showExpand = computed(() => detailResList.value.length > 8);
+
+const getCurrentActivityWeek = computed(() => {
+  const now = new Date();
+  const start = new Date("2025-12-12T12:00:00");
+  const weekDuration = 7 * 24 * 60 * 60 * 1000;
+  const cycleDuration = 3 * weekDuration;
+  const elapsed = now - start;
+  if (elapsed < 0) return null;
+  const cyclePosition = elapsed % cycleDuration;
+  if (cyclePosition < weekDuration) return "黑市周";
+  if (cyclePosition < 2 * weekDuration) return "招募周";
+  return "宝箱周";
+});
 
 const initializeAvatar = () => {
   if (roleInfo.value && (roleInfo.value as any).headImg) {
     roleAvatar.value = (roleInfo.value as any).headImg;
-  } else {
-    if (!selectedDefaultAvatar.value) {
-      const key =
-        (roleInfo.value as any).roleId ||
-        (roleInfo.value as any).name ||
-        "default";
-      const hash = Array.from(String(key)).reduce(
-        (acc, ch) => acc + ch.charCodeAt(0),
-        0,
-      );
-      selectedDefaultAvatar.value =
-        defaultAvatars[hash % defaultAvatars.length]!;
-    }
-    roleAvatar.value = selectedDefaultAvatar.value;
+    return;
   }
+
+  if (!selectedDefaultAvatar.value) {
+    const key = (roleInfo.value as any).roleId || (roleInfo.value as any).name || "default";
+    const hash = Array.from(String(key)).reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+    selectedDefaultAvatar.value = defaultAvatars[hash % defaultAvatars.length] || defaultAvatars[0]!;
+  }
+
+  roleAvatar.value = selectedDefaultAvatar.value;
 };
 
 const handleAvatarError = () => {
@@ -708,15 +549,18 @@ onMounted(async () => {
   initializeAvatar();
   if (tokenStore.selectedToken && wsStatus.value === "connected") {
     try {
-      await tokenStore.sendMessage(
-        tokenStore.selectedToken.id,
-        "role_getroleinfo",
-      );
-    } catch {}
+      await tokenStore.sendMessage(tokenStore.selectedToken.id, "role_getroleinfo");
+    } catch {
+      // silent
+    }
   }
 });
 
-watch(() => roleInfo.value, initializeAvatar, { deep: true });
+watch(
+  () => roleInfo.value,
+  () => initializeAvatar(),
+  { deep: true },
+);
 </script>
 
 <style scoped lang="scss">
@@ -777,12 +621,22 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
   box-shadow: 0 0 16px rgba(124, 108, 255, 0.55);
 }
 
+.avatar-shell.small {
+  width: 66px;
+  height: 66px;
+}
+
 .avatar-container {
   width: 72px;
   height: 72px;
   border-radius: 50%;
   overflow: hidden;
   background: rgba(16, 21, 42, 0.55);
+}
+
+.avatar-container.small {
+  width: 62px;
+  height: 62px;
 }
 
 .role-avatar {
@@ -849,14 +703,18 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
   margin-top: 8px;
   display: inline-flex;
   align-items: center;
-  padding: 5px 10px;
+  padding: 6px 12px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
-  color: #eef6ff;
-  background: rgba(124, 108, 255, 0.2);
-  border: 1px solid rgba(141, 129, 255, 0.42);
-  box-shadow: 0 0 14px rgba(124, 108, 255, 0.25);
+  color: #f7fbff;
+  background: linear-gradient(
+    135deg,
+    rgba(124, 108, 255, 0.28),
+    rgba(79, 70, 229, 0.2)
+  );
+  border: 1px solid rgba(156, 146, 255, 0.48);
+  box-shadow: 0 0 16px rgba(124, 108, 255, 0.32);
 }
 
 .core-resources {
@@ -882,9 +740,12 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
   gap: 4px;
   background: linear-gradient(
     135deg,
-    rgba(255, 255, 255, 0.12),
-    rgba(255, 255, 255, 0.06)
+    rgba(255, 255, 255, 0.14),
+    rgba(255, 255, 255, 0.04)
   );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 10px 18px rgba(10, 15, 35, 0.16);
   transition:
     transform 0.22s ease,
     box-shadow 0.22s ease,
@@ -902,6 +763,104 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
   color: rgba(255, 255, 255, 0.76);
 }
 
+.label-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.resource-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent !important;
+  border: none;
+  box-shadow: none;
+  line-height: 0;
+}
+
+.resource-icon img {
+  width: 27px;
+  height: 27px;
+  object-fit: contain;
+}
+
+.resource-icon img.icon-mask-circle {
+  clip-path: circle(39% at 50% 50%);
+}
+
+.resource-icon img.icon-mask-frag {
+  clip-path: inset(9% round 16%);
+}
+
+.resource-icon img.icon-mask-bag {
+  clip-path: inset(13% round 22%);
+}
+
+.resource-icon img.icon-mask-ticket {
+  clip-path: polygon(14% 11%, 70% 8%, 90% 28%, 88% 78%, 60% 92%, 13% 86%, 6% 43%);
+}
+
+.resource-icon img.icon-mask-part {
+  clip-path: polygon(17% 12%, 73% 12%, 91% 31%, 83% 88%, 21% 87%, 6% 54%, 8% 29%);
+}
+
+.resource-icon.detail {
+  background: transparent !important;
+}
+
+.resource-icon.tone-gold {
+  background: transparent !important;
+}
+
+.resource-icon.tone-diamond {
+  background: transparent !important;
+}
+
+.resource-icon.tone-fish {
+  background: transparent !important;
+}
+
+.resource-icon.tone-ticket {
+  background: transparent !important;
+}
+
+.resource-icon.tone-gem {
+  background: transparent !important;
+}
+
+.resource-icon.tone-potion {
+  background: transparent !important;
+}
+
+.resource-icon.tone-shell {
+  background: transparent !important;
+}
+
+.resource-icon.tone-fragment {
+  background: transparent !important;
+}
+
+.resource-icon.tone-box {
+  background: transparent !important;
+}
+
+.resource-icon.tone-bag {
+  background: transparent !important;
+}
+
+.resource-icon.tone-tool {
+  background: transparent !important;
+}
+
+.resource-icon.tone-badge {
+  background: transparent !important;
+}
+
+.resource-icon.tone-default {
+  background: transparent !important;
+}
+
 .stat-card .value {
   font-size: 22px;
   font-weight: 800;
@@ -910,18 +869,22 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
 
 .stat-card.tone-gold .value {
   color: #ffe58f;
+  text-shadow: 0 0 10px rgba(255, 229, 143, 0.4);
 }
 
 .stat-card.tone-diamond .value {
   color: #9fe7c3;
+  text-shadow: 0 0 10px rgba(159, 231, 195, 0.4);
 }
 
 .stat-card.tone-rod .value {
   color: #8fd7ff;
+  text-shadow: 0 0 10px rgba(143, 215, 255, 0.38);
 }
 
 .stat-card.tone-vip .value {
   color: #c4bcff;
+  text-shadow: 0 0 10px rgba(196, 188, 255, 0.36);
 }
 
 .resources {
@@ -942,12 +905,23 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
   background: rgba(255, 255, 255, 0.07);
+}
+
+.detail-main {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .detail-item .label {
   color: rgba(255, 255, 255, 0.72);
   font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .detail-item .value {
@@ -971,191 +945,102 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
   position: fixed;
   inset: 0;
   z-index: 2000;
-  background: transparent;
+  background: rgba(2, 6, 23, 0.28);
 }
 
-.identity-card {
+.identity-card.floating-card {
   position: fixed;
-  top: 0;
-  width: 360px;
-  background: var(--bg-primary);
-  border-radius: var(--border-radius-xl);
-  padding: var(--spacing-lg);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-/* 下落动画 */
-.drop-enter-from .identity-card {
-  transform: translateY(-120%);
-}
-
-.drop-enter-active .identity-card,
-.drop-leave-active .identity-card {
-  transition: transform 0.35s ease;
-}
-
-.drop-enter-to .identity-card {
-  transform: translateY(0);
-}
-
-.drop-leave-to .identity-card {
-  transform: translateY(-120%);
-}
-
-.strap {
-  position: absolute;
-  top: -64px;
-  right: 24px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-
-.strap-tape {
-  width: 22px;
-  height: 56px;
-  background: linear-gradient(180deg, #f59e0b, #fbbf24);
-  border-radius: 6px;
-  box-shadow: inset 0 -4px rgba(0, 0, 0, 0.15);
-}
-
-.strap-buckle {
-  width: 36px;
-  height: 18px;
-  background: #6b4f2a;
-  border-radius: 9px;
-  box-shadow: inset 0 -2px rgba(0, 0, 0, 0.2);
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(420px, calc(100vw - 24px));
+  background: rgba(15, 23, 42, 0.92);
+  border-radius: 18px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 20px 40px rgba(2, 6, 23, 0.38);
 }
 
 .card-header {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-md);
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .icon {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   object-fit: contain;
 }
 
 .info h3 {
   margin: 0;
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-semibold);
+  font-size: 15px;
+  font-weight: 700;
 }
 
 .info p {
   margin: 0;
-  color: var(--text-secondary);
-  font-size: var(--font-size-sm);
+  color: rgba(226, 232, 240, 0.76);
+  font-size: 12px;
 }
 
 .close-btn {
   margin-left: auto;
   background: transparent;
   border: none;
-  font-size: 16px;
+  color: rgba(241, 245, 249, 0.9);
   cursor: pointer;
-  color: var(--text-secondary);
+  font-size: 16px;
 }
 
 .role-profile-header {
-  position: relative;
-  border-radius: var(--border-radius-large);
-  padding: 16px;
-  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(30, 41, 59, 0.55);
+  padding: 12px;
 }
 
 .role-profile-content {
-  position: relative;
   display: flex;
   align-items: center;
-  gap: 16px;
-  z-index: 3;
-}
-
-.role-info-section {
-  min-width: 0;
-}
-
-.role-name {
-  font-weight: var(--font-weight-semibold);
-  font-size: var(--font-size-md);
-  display: flex;
-  align-items: center;
-}
-
-.role-stats {
-  color: var(--text-secondary);
-  font-size: var(--font-size-sm);
-  display: flex;
   gap: 12px;
 }
 
-.activity-week {
-  color: var(--text-secondary);
-  font-size: var(--font-size-sm);
+.role-name {
+  font-weight: 700;
+}
+
+.role-stats {
   margin-top: 4px;
-  font-weight: var(--font-weight-medium);
+  display: flex;
+  gap: 10px;
+  color: rgba(226, 232, 240, 0.8);
+  font-size: 13px;
 }
 
-.glow-border {
-  position: absolute;
-  inset: 0;
-  border-radius: var(--border-radius-large);
-  background: linear-gradient(
-    45deg,
-    rgba(102, 126, 234, 0.4),
-    rgba(118, 75, 162, 0.4),
-    rgba(254, 202, 87, 0.4),
-    rgba(102, 126, 234, 0.4)
-  );
-  background-size: 300% 300%;
-  opacity: 0.6;
-  z-index: 1;
-  animation: glowAnimation 6s ease-in-out infinite;
+.activity-week {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #c7d2fe;
 }
 
-@keyframes glowAnimation {
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-
-  50% {
-    background-position: 100% 50%;
-  }
+.drop-enter-from .floating-card {
+  transform: translate(-50%, -120%);
 }
 
-.role-profile-header.rank-beginner {
-  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+.drop-enter-active .floating-card,
+.drop-leave-active .floating-card {
+  transition: transform 0.35s ease;
 }
 
-.role-profile-header.rank-known {
-  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+.drop-enter-to .floating-card {
+  transform: translate(-50%, 0);
 }
 
-.role-profile-header.rank-veteran {
-  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-}
-
-.role-profile-header.rank-master {
-  background: linear-gradient(135deg, #e9d5ff 0%, #ddd6fe 100%);
-}
-
-.role-profile-header.rank-hero {
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-}
-
-.role-profile-header.rank-overlord {
-  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-}
-
-.role-profile-header.rank-supreme {
-  background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+.drop-leave-to .floating-card {
+  transform: translate(-50%, -120%);
 }
 
 @media (max-width: 768px) {
@@ -1220,29 +1105,5 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
   .detail-item .value {
     font-size: 12px;
   }
-
-  .card-header {
-    flex-wrap: wrap;
-    gap: var(--spacing-sm);
-  }
-
-  .role-profile-content {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: var(--spacing-sm);
-  }
-
-  .role-info-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .role-stats {
-    justify-content: center;
-  }
 }
 </style>
-

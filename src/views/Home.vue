@@ -9,7 +9,7 @@
             <img :alt="APP_NAME" src="/icons/xiaoyugan.png" class="brand-logo" />
           </div>
           <div class="brand-meta">
-            <div class="brand-title brand-title-single">✨11068 懒帝俱乐部专属✨</div>
+            <div class="brand-title brand-title-single">✨11068 濑帝俱乐部专属✨</div>
           </div>
         </div>
 

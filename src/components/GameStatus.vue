@@ -40,11 +40,10 @@
     <!-- 怪异塔状态 -->
     <WeirdTowerStatus v-show="activeSection === 'daily'" />
 
-    <!-- 盐罐机器人状态（提取组件） -->
-    <BottleHelperCard v-show="activeSection === 'daily'" />
+    <!-- 自动化中心（挂机+机器人） -->
+    <AutomationCenterCard v-show="activeSection === 'daily'" />
 
-    <!-- 挂机状态（提取组件） -->
-    <HangUpStatusCard v-show="activeSection === 'daily'" />
+    <!-- 连接信息弱化条 -->
 
     <!-- 宝箱助手（提取组件） -->
     <BoxHelperCard v-show="activeSection === 'tools'" />
@@ -258,12 +257,11 @@ import {
   preloadQuestions,
   getQuestionCount,
 } from "@/utils/studyQuestionsFromJSON.js";
-import BottleHelperCard from "./cards/BottleHelperCard.vue";
 import BoxHelperCard from "./cards/BoxHelperCard.vue";
 import FishHelperCard from "./cards/FishHelperCard.vue";
 import RecruitHelperCard from "./cards/RecruitHelperCard.vue";
 import StarUpgradeCard from "./cards/StarUpgradeCard.vue";
-import HangUpStatusCard from "./cards/HangUpStatusCard.vue";
+import AutomationCenterCard from "./cards/AutomationCenterCard.vue";
 import MonthlyTasksCard from "./cards/MonthlyTasksCard.vue";
 import StudyChallengeCard from "./cards/StudyChallengeCard.vue";
 import SkinChallengeCard from "./cards/SkinChallengeCard.vue";
@@ -1171,7 +1169,6 @@ onUnmounted(() => {
   .status-card {
     padding: var(--spacing-md);
   }
-
   .card-header {
     flex-wrap: wrap;
     gap: var(--spacing-sm);
