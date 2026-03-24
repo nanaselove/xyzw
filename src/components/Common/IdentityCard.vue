@@ -1,6 +1,6 @@
 ﻿<template>
   <div v-if="embedded" class="identity-embedded">
-    <div class="identity-card embedded profile-card">
+    <section class="profile-card-shell profile-card-shell--embedded">
       <template v-if="hasRole">
         <div class="profile-top">
           <div class="avatar-shell">
@@ -43,49 +43,90 @@
           </div>
         </div>
 
-        <div class="core-resources">
-          <div
-            v-for="res in keyResList"
-            :key="res.id"
-            class="res-item stat-card"
-            :class="`tone-${res.tone}`"
-          >
-            <div class="label-line">
-              <span class="resource-icon" :class="`tone-${res.iconTone}`">
-                <img :src="res.iconSrc" :alt="res.label" @error="onResourceIconError" />
-              </span>
-              <span class="label">{{ res.label }}</span>
-            </div>
-            <span class="value">{{ res.value }}</span>
+        <div class="profile-section">
+          <div class="core-grid">
+            <article
+              v-for="res in keyResList"
+              :key="res.key"
+              class="core-card"
+              :class="`tone-${res.tone || res.iconTone}`"
+            >
+              <div class="core-card-head">
+                <span class="resource-icon core-icon">
+                  <img
+                    :src="res.iconSrc"
+                    :alt="res.label"
+                    @error="onResourceIconError"
+                  />
+                </span>
+                <span class="core-label">{{ res.label }}</span>
+              </div>
+              <div class="core-value">{{ res.value }}</div>
+            </article>
           </div>
         </div>
 
-        <div class="resources" :class="{ collapsed: !isExpanded }">
-          <div v-for="res in detailResList" :key="res.label" class="res-item detail-item">
-            <div class="detail-main">
-              <span class="resource-icon detail" :class="`tone-${res.iconTone}`">
-                <img
-                  :src="res.iconSrc"
-                  :alt="res.label"
-                  :class="res.iconMask"
-                  @error="onResourceIconError"
-                />
-              </span>
-              <span class="label">{{ res.label }}</span>
-            </div>
-            <span class="value">{{ res.value }}</span>
+        <div class="profile-section">
+          <div class="common-grid">
+            <article
+              v-for="res in commonResList"
+              :key="res.key"
+              class="resource-item common-item"
+              :class="`tone-${res.tone || res.iconTone}`"
+            >
+              <div class="resource-main">
+                <span class="resource-icon common-icon">
+                  <img
+                    :src="res.iconSrc"
+                    :alt="res.label"
+                    @error="onResourceIconError"
+                  />
+                </span>
+                <span class="resource-label">{{ res.label }}</span>
+              </div>
+              <span class="resource-value">{{ res.value }}</span>
+            </article>
           </div>
         </div>
 
-        <div v-if="showExpand" class="resources-toggle">
-          <n-button text @click="isExpanded = !isExpanded">
-            {{ isExpanded ? "收起详情" : "展开全部资源" }}
-          </n-button>
-        </div>
+        <button
+          v-if="showExpand"
+          type="button"
+          class="expand-button"
+          @click="isExpanded = !isExpanded"
+        >
+          {{ isExpanded ? "收起资源 ▲" : "展开全部资源 ▼" }}
+        </button>
+
+        <transition name="expand-fade">
+          <div v-if="isExpanded" class="profile-section">
+            <div class="detail-grid">
+              <article
+                v-for="res in detailResList"
+                :key="res.key"
+                class="resource-item detail-item"
+                :class="`tone-${res.tone || res.iconTone}`"
+              >
+                <div class="resource-main">
+                  <span class="resource-icon detail-icon">
+                    <img
+                      :src="res.iconSrc"
+                      :alt="res.label"
+                      :class="res.iconMask"
+                      @error="onResourceIconError"
+                    />
+                  </span>
+                  <span class="resource-label">{{ res.label }}</span>
+                </div>
+                <span class="resource-value">{{ res.value }}</span>
+              </article>
+            </div>
+          </div>
+        </transition>
       </template>
 
       <div v-else class="loading">正在获取角色信息...</div>
-    </div>
+    </section>
   </div>
 
   <transition v-else name="drop">
@@ -107,7 +148,7 @@
         <div v-if="hasRole" class="role-profile-header">
           <div class="role-profile-content">
             <div class="avatar-shell small">
-              <div class="avatar-container small">
+              <div class="avatar-frame small">
                 <img
                   :src="roleAvatar"
                   :alt="roleInfo.name || '角色'"
@@ -172,7 +213,9 @@ const roleInfo = computed(() => {
   };
 });
 
-const hasRole = computed(() => Object.keys(roleInfo.value || {}).length > 0);
+const hasRole = computed(() =>
+  Boolean(roleInfo.value?.roleId || roleInfo.value?.name || roleInfo.value?.headImg),
+);
 
 const defaultAvatars = [
   "/icons/1733492491706148.png",
@@ -255,12 +298,19 @@ const goldRod = computed(() => {
   );
 });
 
-const display = (n: number | null | undefined) => (n == null ? "-" : formatNumber(Number(n)));
-const getRawValue = (n: number | null | undefined) => (n == null ? 0 : Number(n));
-
 type ResourceIconMeta = {
   iconSrc: string;
   iconTone: string;
+};
+
+type ResourceEntry = {
+  key: string;
+  label: string;
+  value: number;
+  iconSrc: string;
+  iconTone: string;
+  iconMask: string;
+  tone: string;
 };
 
 const DEFAULT_RESOURCE_ICON = getImgPath("/icons/ta.png");
@@ -456,58 +506,168 @@ const detailDefs = [
   { label: "助威币", id: 2101 },
 ];
 
-const keyResList = computed(() => [
-  {
-    id: "gold",
-    label: "金币",
-    value: formatNumber(gold.value),
-    iconSrc: coreResourceIconMap.gold.iconSrc,
-    iconTone: coreResourceIconMap.gold.iconTone,
-    tone: "gold",
-  },
-  {
-    id: "diamond",
-    label: "金砖",
-    value: formatNumber(diamond.value),
-    iconSrc: coreResourceIconMap.diamond.iconSrc,
-    iconTone: coreResourceIconMap.diamond.iconTone,
-    tone: "diamond",
-  },
-  {
-    id: "normalRod",
-    label: "普通鱼竿",
-    value: display(normalRod.value as any),
-    iconSrc: coreResourceIconMap.normalRod.iconSrc,
-    iconTone: coreResourceIconMap.normalRod.iconTone,
-    tone: "rod",
-  },
-  {
-    id: "goldRod",
-    label: "黄金鱼竿",
-    value: display(goldRod.value as any),
-    iconSrc: coreResourceIconMap.goldRod.iconSrc,
-    iconTone: coreResourceIconMap.goldRod.iconTone,
-    tone: "vip",
-  },
-]);
-
-const detailResList = computed(() => {
-  return detailDefs.map((def) => {
-    const raw = getItemCount(items.value, def.id);
-    const iconMeta = getResourceIconMeta(def.id);
-    return {
-      id: def.id,
-      label: def.label,
-      value: display(raw as any),
-      iconSrc: iconMeta.iconSrc,
-      iconTone: iconMeta.iconTone,
-      iconMask: iconMaskClassMap[def.id] || "",
-      raw: getRawValue(raw as any),
-    };
-  });
+const displayResource = (entry: ResourceEntry) => ({
+  ...entry,
+  value: formatNumber(entry.value),
 });
 
-const showExpand = computed(() => detailResList.value.length > 8);
+const makeFieldResource = (
+  key: string,
+  label: string,
+  value: number | null | undefined,
+  meta: ResourceIconMeta,
+  tone: string = meta.iconTone,
+): ResourceEntry => ({
+  key,
+  label,
+  value: Number(value ?? 0),
+  iconSrc: meta.iconSrc,
+  iconTone: meta.iconTone,
+  iconMask: "",
+  tone,
+});
+
+const makeItemResource = (
+  id: number,
+  label: string,
+  value: number | null | undefined,
+  tone?: string,
+): ResourceEntry => {
+  const meta = getResourceIconMeta(id);
+  return {
+    key: String(id),
+    label,
+    value: Number(value ?? 0),
+    iconSrc: meta.iconSrc,
+    iconTone: meta.iconTone,
+    iconMask: iconMaskClassMap[id] || "",
+    tone: tone || meta.iconTone,
+  };
+};
+
+const resourceCatalog = computed<ResourceEntry[]>(() => {
+  const excludedDetailIds = new Set([1001, 1022, 1023]);
+  const detailItems = detailDefs.filter((def) => !excludedDetailIds.has(def.id));
+
+  return [
+    makeFieldResource("gold", "金币", gold.value, coreResourceIconMap.gold),
+    makeItemResource(1001, "招募令", getItemCount(items.value, 1001), "amber"),
+    makeFieldResource("diamond", "金砖", diamond.value, coreResourceIconMap.diamond),
+    makeItemResource(1022, "白玉", getItemCount(items.value, 1022), "sky"),
+    makeItemResource(1023, "彩玉", getItemCount(items.value, 1023), "violet"),
+    makeFieldResource("normalRod", "普通鱼竿", normalRod.value ?? 0, coreResourceIconMap.normalRod),
+    makeFieldResource("goldRod", "黄金鱼竿", goldRod.value ?? 0, coreResourceIconMap.goldRod),
+    ...detailItems.map((def) =>
+      makeItemResource(def.id, def.label, getItemCount(items.value, def.id)),
+    ),
+  ];
+});
+
+const visibleResourceKeys = new Set([
+  "1001",
+  "diamond",
+  "1022",
+  "1023",
+  "1013",
+  "1017",
+  "10002",
+  "10003",
+]);
+
+const detailDisplayOrder = [
+  "gold",
+  "1020",
+  "1033",
+  "1034",
+  "10101",
+  "10100",
+  "1019",
+  "1035",
+  "normalRod",
+  "goldRod",
+  "2001",
+  "2002",
+  "2003",
+  "2004",
+  "2005",
+  "3011",
+  "1003",
+  "1006",
+  "1016",
+  "1026",
+  "1007",
+  "1021",
+  "35002",
+  "35009",
+  "1014",
+  "2101",
+  "3009",
+  "3008",
+  "3010",
+  "3012",
+  "3001",
+  "3002",
+  "3005",
+  "3006",
+  "3007",
+  "3201",
+  "3302",
+  "1008",
+  "1009",
+  "1010",
+];
+
+const detailOrderMap = new Map(detailDisplayOrder.map((key, index) => [key, index]));
+
+const findResource = (key: string) =>
+  resourceCatalog.value.find((entry) => entry.key === key);
+
+const keyResList = computed(() => {
+  const entries = [
+    { key: "1001", tone: "amber" },
+    { key: "diamond", tone: "emerald" },
+    { key: "1022", tone: "sky" },
+    { key: "1023", tone: "violet" },
+  ];
+
+  return entries
+    .map(({ key, tone }) => {
+      const entry = findResource(key);
+      return entry ? { ...displayResource(entry), tone } : null;
+    })
+    .filter(Boolean) as any[];
+});
+
+const commonResList = computed(() => {
+  const entries = [
+    { key: "1013", tone: "pearl" },
+    { key: "1017", tone: "potion" },
+    { key: "10002", tone: "blue" },
+    { key: "10003", tone: "red" },
+  ];
+
+  return entries
+    .map(({ key, tone }) => {
+      const entry = findResource(key);
+      return entry ? { ...displayResource(entry), tone } : null;
+    })
+    .filter(Boolean) as any[];
+});
+
+const detailResList = computed(() =>
+  resourceCatalog.value
+    .filter((entry) => !visibleResourceKeys.has(entry.key))
+    .slice()
+    .sort((a, b) => {
+      const aIndex = detailOrderMap.get(a.key) ?? Number.MAX_SAFE_INTEGER;
+      const bIndex = detailOrderMap.get(b.key) ?? Number.MAX_SAFE_INTEGER;
+      if (aIndex !== bIndex) return aIndex - bIndex;
+      return a.label.localeCompare(b.label, "zh-Hans-CN");
+    })
+    .map(displayResource),
+);
+
+const showExpand = computed(() => detailResList.value.length > 0);
 
 const getCurrentActivityWeek = computed(() => {
   const now = new Date();
@@ -1102,8 +1262,506 @@ watch(
     font-size: 11px;
   }
 
-  .detail-item .value {
-    font-size: 12px;
+.detail-item .value {
+  font-size: 12px;
+}
+
+}
+
+.profile-card-shell {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  background: linear-gradient(
+    135deg,
+    rgba(80, 100, 160, 0.42),
+    rgba(40, 50, 90, 0.55)
+  );
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.45),
+    inset 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.profile-card-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(155, 170, 255, 0.16), transparent 35%),
+    radial-gradient(circle at 100% 0%, rgba(255, 255, 255, 0.08), transparent 28%),
+    radial-gradient(circle at 50% 100%, rgba(120, 120, 255, 0.12), transparent 34%);
+}
+
+.profile-card-shell--embedded {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    border-color 0.22s ease;
+}
+
+.profile-card-shell--embedded:hover {
+  transform: translateY(-2px);
+}
+
+.profile-hero {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar-shell {
+  width: 76px;
+  height: 76px;
+  flex-shrink: 0;
+}
+
+.avatar-shell.small {
+  width: 62px;
+  height: 62px;
+}
+
+.avatar-frame {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  background: rgba(14, 18, 36, 0.6);
+  border: 2px solid rgba(120, 120, 255, 0.6);
+  box-shadow: 0 0 16px rgba(120, 120, 255, 0.5);
+}
+
+.avatar-frame.small {
+  width: 62px;
+  height: 62px;
+}
+
+.role-avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
+.hero-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.hero-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.hero-name {
+  margin: 0;
+  font-size: clamp(1.5rem, 3.2vw, 1.75rem);
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(150, 150, 255, 0.18);
+}
+
+.hero-meta-row {
+  margin-top: 6px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.hero-level {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(234, 238, 255, 0.88);
+}
+
+.hero-meta-dot {
+  color: rgba(226, 232, 255, 0.55);
+}
+
+.hero-power {
+  font-size: clamp(1.4rem, 3vw, 1.625rem);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: #dde3ff;
+  text-shadow: 0 0 6px rgba(150, 150, 255, 0.3);
+}
+
+.hero-status-row {
+  margin-top: 8px;
+}
+
+.hero-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.hero-pill--gold {
+  color: #fff4dc;
+  background: rgba(255, 200, 120, 0.2);
+  border: 1px solid rgba(255, 200, 120, 0.6);
+  box-shadow: 0 0 12px rgba(255, 200, 120, 0.18);
+}
+
+.hero-pill--violet {
+  color: #eef0ff;
+  background: rgba(120, 120, 255, 0.2);
+  border: 1px solid rgba(120, 120, 255, 0.5);
+  box-shadow: 0 0 12px rgba(120, 120, 255, 0.18);
+}
+
+.profile-section {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+  letter-spacing: 0.04em;
+}
+
+.core-grid,
+.common-grid,
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.core-grid {
+  gap: 12px;
+}
+
+.common-grid,
+.detail-grid {
+  gap: 8px;
+}
+
+.core-card,
+.resource-item {
+  min-width: 0;
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    border-color 0.22s ease,
+    background-color 0.22s ease;
+}
+
+.core-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 110px;
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(100, 120, 200, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.25),
+    inset 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.core-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow:
+    0 6px 24px rgba(0, 0, 0, 0.3),
+    inset 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.core-card-head,
+.resource-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.core-label,
+.resource-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.core-label {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.resource-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 52px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.02);
+}
+
+.resource-item:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.055);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.resource-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 0;
+}
+
+.resource-icon img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  display: block;
+}
+
+.core-card .resource-icon img {
+  width: 26px;
+  height: 26px;
+}
+
+.resource-value {
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 0 6px rgba(150, 150, 255, 0.14);
+}
+
+.core-value {
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: 0.5px;
+  color: #ffffff;
+  text-shadow: 0 0 6px rgba(150, 150, 255, 0.3);
+}
+
+.expand-button {
+  width: 100%;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(120, 120, 255, 0.3);
+  background: rgba(120, 120, 255, 0.12);
+  color: #e7ebff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+  transition:
+    transform 0.22s ease,
+    background-color 0.22s ease,
+    border-color 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
+.expand-button:hover {
+  transform: translateY(-1px);
+  background: rgba(120, 120, 255, 0.18);
+  border-color: rgba(120, 120, 255, 0.42);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.24);
+}
+
+.expand-button:active {
+  transform: translateY(0);
+}
+
+.expand-fade-enter-active,
+.expand-fade-leave-active {
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease;
+}
+
+.expand-fade-enter-from,
+.expand-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+.loading-card {
+  min-height: 120px;
+  display: grid;
+  place-items: center;
+}
+
+.resource-item.tone-amber .resource-value,
+.core-card.tone-amber .core-value {
+  color: #ffe59d;
+}
+
+.resource-item.tone-emerald .resource-value,
+.core-card.tone-emerald .core-value {
+  color: #9fe7c3;
+}
+
+.resource-item.tone-sky .resource-value,
+.core-card.tone-sky .core-value {
+  color: #d6ecff;
+}
+
+.resource-item.tone-violet .resource-value,
+.core-card.tone-violet .core-value {
+  color: #c9c0ff;
+}
+
+.resource-item.tone-pearl .resource-value {
+  color: #f5ede2;
+}
+
+.resource-item.tone-potion .resource-value {
+  color: #d8c2ff;
+}
+
+.resource-item.tone-blue .resource-value {
+  color: #b8ddff;
+}
+
+.resource-item.tone-red .resource-value {
+  color: #ffc0c0;
+}
+
+.resource-item.tone-gold .resource-value,
+.core-card.tone-gold .core-value {
+  color: #ffe58f;
+}
+
+.resource-item.tone-diamond .resource-value,
+.core-card.tone-diamond .core-value {
+  color: #a6e6c5;
+}
+
+.resource-item.tone-fish .resource-value {
+  color: #8fd7ff;
+}
+
+.resource-item.tone-ticket .resource-value {
+  color: #ffd98f;
+}
+
+.resource-item.tone-gem .resource-value {
+  color: #c5bfff;
+}
+
+.resource-item.tone-shell .resource-value {
+  color: #d7d9ff;
+}
+
+.resource-item.tone-fragment .resource-value {
+  color: #ffcfb0;
+}
+
+.resource-item.tone-box .resource-value {
+  color: #ffcdb8;
+}
+
+.resource-item.tone-bag .resource-value {
+  color: #f2c6ff;
+}
+
+.resource-item.tone-tool .resource-value {
+  color: #cfd7ff;
+}
+
+.resource-item.tone-badge .resource-value {
+  color: #ffdaa1;
+}
+
+.resource-item.tone-default .resource-value {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+@media (max-width: 768px) {
+  .profile-card-shell--embedded {
+    padding: 14px;
+    gap: 14px;
+  }
+
+  .profile-hero {
+    align-items: flex-start;
+  }
+
+  .avatar-shell {
+    width: 66px;
+    height: 66px;
+  }
+
+  .avatar-frame {
+    width: 66px;
+    height: 66px;
+  }
+
+  .hero-name {
+    font-size: 1.45rem;
+  }
+
+  .hero-power {
+    font-size: 1.35rem;
+  }
+
+  .core-card {
+    min-height: 100px;
+  }
+
+  .core-value {
+    font-size: 22px;
+  }
+
+  .resource-item {
+    min-height: 50px;
+    padding: 9px 10px;
+  }
+
+  .resource-value {
+    font-size: 13px;
+  }
+
+  .resource-label {
+    font-size: 13px;
   }
 }
 </style>
