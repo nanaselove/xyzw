@@ -4,7 +4,8 @@
     :class="{
       'full-grid': activeSection === 'fightPvp',
       'full-page-mode': activeSection === 'saltFieldGroup' || activeSection === 'peachGroup' || activeSection === 'rankGroup',
-      'club-mode': activeSection === 'club'
+      'club-mode': activeSection === 'club',
+      'daily-mode': activeSection === 'daily'
     }"
   >
     <!-- 身份牌常驻（嵌入式，Tabs 上方） -->
@@ -665,7 +666,7 @@ onUnmounted(() => {
   --section-tab-text: rgba(255, 255, 255, 0.88);
   --section-tab-hover-bg: rgba(255, 255, 255, 0.14);
   --section-tab-hover-text: #f8fbff;
-  --section-tab-active-bg: linear-gradient(135deg, #6b8dff 0%, #7c6cff 100%);
+  --section-tab-active-bg: linear-gradient(135deg, #7c6cff 0%, #8b5cf6 100%);
   --section-tab-active-text: #ffffff;
   --section-tab-active-border: rgba(124, 108, 255, 0.72);
   --section-tab-active-shadow: 0 10px 18px rgba(67, 69, 173, 0.38);
@@ -713,7 +714,8 @@ onUnmounted(() => {
 }
 
 .game-status-container :deep(.status-card),
-.game-status-container :deep(.team-status-card) {
+.game-status-container :deep(.team-status-card),
+.game-status-container :deep(.team-formation-card) {
   background: var(--card-surface);
   border: 1px solid var(--card-border);
   border-radius: 18px;
@@ -727,7 +729,8 @@ onUnmounted(() => {
 }
 
 .game-status-container :deep(.status-card:hover),
-.game-status-container :deep(.team-status-card:hover) {
+.game-status-container :deep(.team-status-card:hover),
+.game-status-container :deep(.team-formation-card:hover) {
   transform: translateY(-2px);
   border-color: var(--card-border-strong);
   box-shadow: var(--card-hover-shadow);
@@ -749,6 +752,80 @@ onUnmounted(() => {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
 }
 
+.game-status-container.daily-mode :deep(.status-card),
+.game-status-container.daily-mode :deep(.team-status-card),
+.game-status-container.daily-mode :deep(.team-formation-card) {
+  background:
+    linear-gradient(145deg, rgba(93, 105, 193, 0.06), rgba(27, 34, 66, 0.18)),
+    radial-gradient(circle at 18% 14%, rgba(124, 108, 255, 0.03), transparent 28%),
+    radial-gradient(circle at 84% 10%, rgba(96, 165, 250, 0.03), transparent 26%);
+  background-blend-mode: screen, normal, screen;
+  background-position: 0 0, 18% 16%, 84% 10%;
+  background-size: 100% 100%, 220% 220%, 220% 220%;
+  backdrop-filter: blur(8px) saturate(128%);
+  -webkit-backdrop-filter: blur(8px) saturate(128%);
+  border-color: rgba(255, 255, 255, 0.05);
+  filter: saturate(1);
+  animation: dailyGlowFloat 10s ease-in-out infinite;
+}
+
+.game-status-container.daily-mode :deep(.status-card:hover),
+.game-status-container.daily-mode :deep(.team-status-card:hover),
+.game-status-container.daily-mode :deep(.team-formation-card:hover) {
+  transform: translateY(-3px) scale(1.004);
+  border-color: rgba(168, 180, 255, 0.42);
+  box-shadow:
+    0 24px 50px rgba(10, 13, 31, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 0 34px rgba(124, 108, 255, 0.14);
+}
+
+.game-status-container.daily-mode :deep(.status-card:active),
+.game-status-container.daily-mode :deep(.team-status-card:active),
+.game-status-container.daily-mode :deep(.team-formation-card:active) {
+  transform: translateY(-1px) scale(0.998);
+}
+
+.game-status-container.daily-mode :deep(.status-card:not(.team-formation-card) button),
+.game-status-container.daily-mode :deep(.team-status-card button) {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.game-status-container.daily-mode :deep(.status-card:not(.team-formation-card) button::before),
+.game-status-container.daily-mode :deep(.team-status-card button::before) {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 255, 255, 0.28) 0%,
+    rgba(255, 255, 255, 0.14) 28%,
+    transparent 68%
+  );
+  opacity: 0;
+  transform: scale(0.7);
+  transition:
+    opacity 0.24s ease,
+    transform 0.32s ease;
+  pointer-events: none;
+}
+
+.game-status-container.daily-mode :deep(.status-card:not(.team-formation-card) button:hover::before),
+.game-status-container.daily-mode :deep(.team-status-card button:hover::before) {
+  opacity: 0.12;
+  transform: scale(1);
+}
+
+.game-status-container.daily-mode :deep(.status-card:not(.team-formation-card) button:active::before),
+.game-status-container.daily-mode :deep(.team-status-card button:active::before) {
+  opacity: 0.24;
+  transform: scale(1.08);
+}
+
 .full-grid {
   grid-template-columns: repeat(1, 1fr);
 }
@@ -764,9 +841,268 @@ onUnmounted(() => {
 }
 
 .game-status-container.club-mode {
+  --text-color: #f7fbff;
+  --text-secondary: rgba(225, 237, 255, 0.84);
+  --text-tertiary: rgba(176, 194, 226, 0.9);
+  --bg-color: rgba(8, 15, 35, 0.72);
+  --bg-primary: rgba(11, 21, 44, 0.68);
+  --bg-secondary: rgba(16, 28, 54, 0.58);
+  --bg-tertiary: rgba(28, 42, 72, 0.48);
+  --border-color: rgba(124, 108, 255, 0.18);
+  --border-light: rgba(124, 108, 255, 0.16);
+  --border-medium: rgba(124, 108, 255, 0.24);
+  --border-dark: rgba(124, 108, 255, 0.34);
+  --primary-color: #7c6cff;
+  --primary-color-hover: #8b5cf6;
+  --primary-color-light: rgba(124, 108, 255, 0.16);
+  --section-tab-surface: rgba(8, 15, 35, 0.58);
+  --section-tab-border: rgba(124, 108, 255, 0.2);
+  --section-tab-text: rgba(237, 246, 255, 0.9);
+  --section-tab-hover-bg: rgba(124, 108, 255, 0.12);
+  --section-tab-hover-text: #f8fbff;
+  --section-tab-active-bg: linear-gradient(135deg, #7c6cff 0%, #8b5cf6 100%);
+  --section-tab-active-text: #ffffff;
+  --section-tab-active-border: rgba(124, 108, 255, 0.72);
+  --section-tab-active-shadow: 0 10px 18px rgba(124, 108, 255, 0.38);
+  --section-tab-shadow: 0 10px 26px rgba(8, 15, 35, 0.28);
+  --card-surface:
+    linear-gradient(165deg, rgba(7, 18, 39, 0.84) 0%, rgba(16, 31, 59, 0.68) 100%);
+  --card-border: rgba(124, 108, 255, 0.14);
+  --card-border-strong: rgba(124, 108, 255, 0.42);
+  --card-shadow: 0 18px 34px rgba(8, 15, 35, 0.18);
+  --card-hover-shadow: 0 22px 42px rgba(124, 108, 255, 0.24);
+  --card-chip-bg: rgba(15, 23, 42, 0.42);
+  --card-chip-border: rgba(124, 108, 255, 0.16);
+
   @media (min-width: 1400px) {
     grid-template-columns: repeat(2, 1fr);
     max-width: 100% !important;
+  }
+
+  :deep(.status-card),
+  :deep(.team-status-card),
+  :deep(.team-formation-card) {
+    background:
+      linear-gradient(145deg, rgba(8, 18, 40, 0.08), rgba(13, 25, 49, 0.2)),
+      radial-gradient(circle at 18% 14%, rgba(124, 108, 255, 0.08), transparent 28%),
+      radial-gradient(circle at 84% 10%, rgba(139, 92, 246, 0.08), transparent 26%);
+    background-blend-mode: screen, normal, screen;
+    background-position: 0 0, 18% 16%, 84% 10%;
+    background-size: 100% 100%, 220% 220%, 220% 220%;
+    backdrop-filter: blur(8px) saturate(128%);
+    -webkit-backdrop-filter: blur(8px) saturate(128%);
+    border-color: rgba(124, 108, 255, 0.08);
+    filter: saturate(1);
+    animation: dailyGlowFloat 10s ease-in-out infinite;
+  }
+
+  :deep(.status-card:hover),
+  :deep(.team-status-card:hover),
+  :deep(.team-formation-card:hover) {
+    transform: translateY(-3px) scale(1.004);
+    border-color: rgba(124, 108, 255, 0.38);
+    box-shadow:
+      0 24px 50px rgba(8, 15, 35, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12),
+      0 0 34px rgba(124, 108, 255, 0.16);
+  }
+
+  :deep(.status-card:active),
+  :deep(.team-status-card:active),
+  :deep(.team-formation-card:active) {
+    transform: translateY(-1px) scale(0.998);
+  }
+
+  :deep(.status-card .status-badge),
+  :deep(.status-card .card-action > button) {
+    border: 1px solid rgba(124, 108, 255, 0.14);
+    background: rgba(8, 15, 35, 0.34);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+
+  :deep(.status-card .status-badge.active),
+  :deep(.status-card .card-action.active > button) {
+    background: linear-gradient(135deg, #7c6cff 0%, #8b5cf6 100%);
+    border-color: rgba(124, 108, 255, 0.4);
+    color: #ffffff;
+    box-shadow: 0 10px 18px rgba(124, 108, 255, 0.24);
+  }
+
+  :deep(.status-card:not(.team-formation-card) button),
+  :deep(.team-status-card button) {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :deep(.status-card:not(.team-formation-card) button::before),
+  :deep(.team-status-card button::before) {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+      circle at center,
+      rgba(255, 255, 255, 0.24) 0%,
+      rgba(255, 255, 255, 0.12) 28%,
+      transparent 68%
+    );
+    opacity: 0;
+    transform: scale(0.7);
+    transition:
+      opacity 0.24s ease,
+      transform 0.32s ease;
+    pointer-events: none;
+  }
+
+  :deep(.status-card:not(.team-formation-card) button:hover::before),
+  :deep(.team-status-card button:hover::before) {
+    opacity: 0.14;
+    transform: scale(1);
+  }
+
+  :deep(.status-card:not(.team-formation-card) button:active::before),
+  :deep(.team-status-card button:active::before) {
+    opacity: 0.26;
+    transform: scale(1.08);
+  }
+
+  :deep(.status-card .card-action > button) {
+    min-height: 40px;
+    border-radius: 12px;
+    color: var(--text-color);
+    background: linear-gradient(135deg, rgba(8, 15, 35, 0.78), rgba(13, 25, 49, 0.86));
+    border-color: rgba(124, 108, 255, 0.18);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    box-shadow: 0 10px 20px rgba(8, 15, 35, 0.14);
+  }
+
+  :deep(.status-card .card-action > button:hover:not(:disabled)) {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+    background: linear-gradient(135deg, rgba(124, 108, 255, 0.26), rgba(139, 92, 246, 0.22));
+    border-color: rgba(124, 108, 255, 0.34);
+    box-shadow: 0 12px 22px rgba(124, 108, 255, 0.18);
+  }
+
+  :deep(.status-card .card-action > button:disabled) {
+    background: rgba(148, 163, 184, 0.24);
+    border-color: rgba(148, 163, 184, 0.22);
+    color: rgba(226, 232, 240, 0.56);
+    box-shadow: none;
+    transform: none;
+  }
+
+  :deep(.club-info .n-card),
+  :deep(.club-car-king),
+  :deep(.club-car-king .car-card-item) {
+    background:
+      linear-gradient(165deg, rgba(7, 18, 39, 0.84) 0%, rgba(16, 31, 59, 0.68) 100%);
+    border: 1px solid rgba(124, 108, 255, 0.14);
+    backdrop-filter: blur(8px) saturate(126%);
+    -webkit-backdrop-filter: blur(8px) saturate(126%);
+    box-shadow: 0 16px 32px rgba(8, 15, 35, 0.14);
+  }
+
+  :deep(.club-info .status-badge.active) {
+    border-color: rgba(110, 231, 183, 0.48);
+    background: rgba(52, 211, 153, 0.18);
+    color: #6ee7b7;
+    box-shadow: none;
+  }
+
+  :deep(.club-info .n-button),
+  :deep(.club-car-king .n-button) {
+    border-radius: 12px;
+    border: 1px solid rgba(124, 108, 255, 0.18);
+    color: var(--text-color);
+    background: rgba(8, 15, 35, 0.34);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    transition:
+      transform 0.2s ease,
+      filter 0.2s ease,
+      box-shadow 0.2s ease,
+      background-color 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  :deep(.club-info .n-button:hover:not(.n-button--disabled)),
+  :deep(.club-car-king .n-button:hover:not(.n-button--disabled)) {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+    background: rgba(124, 108, 255, 0.16);
+    border-color: rgba(124, 108, 255, 0.34);
+    box-shadow: 0 12px 22px rgba(124, 108, 255, 0.16);
+  }
+
+  :deep(.club-info .n-button--primary-type),
+  :deep(.club-car-king .n-button--primary-type) {
+    background: linear-gradient(135deg, #7c6cff 0%, #8b5cf6 100%);
+    border-color: rgba(124, 108, 255, 0.36);
+    color: #ffffff;
+    box-shadow: 0 10px 18px rgba(124, 108, 255, 0.22);
+  }
+
+  :deep(.club-info .n-button--secondary-type),
+  :deep(.club-car-king .n-button--secondary-type) {
+    background: rgba(8, 15, 35, 0.34);
+    color: var(--text-color);
+  }
+
+  :deep(.club-car-king .car-brand-icon),
+  :deep(.club-car-king .status-item),
+  :deep(.club-car-king .reward-tag) {
+    background: rgba(8, 15, 35, 0.34);
+    border-color: rgba(124, 108, 255, 0.16);
+  }
+
+  :deep(.club-info-tabs .n-tabs-nav) {
+    background: transparent !important;
+  }
+
+  :deep(.club-info-tabs .n-tabs-nav-scroll-wrapper),
+  :deep(.club-info-tabs .n-tabs-nav-scroll-content) {
+    background: transparent !important;
+  }
+
+  :deep(.club-info-tabs .n-tabs-bar) {
+    display: none;
+  }
+
+  :deep(.club-info-tabs .n-tabs-tab) {
+    border: 1px solid transparent;
+    border-radius: 999px;
+    min-height: 32px;
+    padding-inline: 14px;
+    color: var(--section-tab-text) !important;
+    font-weight: 700;
+    transition:
+      color 0.2s ease,
+      background-color 0.2s ease,
+      transform 0.2s ease,
+      box-shadow 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  :deep(.club-info-tabs .n-tabs-tab:hover) {
+    color: var(--section-tab-hover-text) !important;
+    background: var(--section-tab-hover-bg);
+    border-color: var(--section-tab-border);
+    transform: translateY(-1px);
+  }
+
+  :deep(.club-info-tabs .n-tabs-tab.n-tabs-tab--active) {
+    color: var(--section-tab-active-text) !important;
+    background: var(--section-tab-active-bg);
+    border-color: var(--section-tab-active-border);
+    box-shadow: var(--section-tab-active-shadow);
+    transform: translateY(0);
+  }
+
+  :deep(.club-info-tabs .n-tabs-tab .n-tabs-tab__label) {
+    color: inherit !important;
   }
 }
 
@@ -1151,6 +1487,17 @@ onUnmounted(() => {
 
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes dailyGlowFloat {
+  0%,
+  100% {
+    background-position: 0 0, 18% 16%, 84% 10%;
+  }
+
+  50% {
+    background-position: 0 0, 24% 10%, 78% 16%;
   }
 }
 

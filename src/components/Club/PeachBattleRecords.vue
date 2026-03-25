@@ -774,7 +774,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useMessage, NCheckboxGroup, NCheckbox, NRadioGroup, NRadioButton } from 'naive-ui'
 import { useTokenStore } from '@/stores/tokenStore'
-import html2canvas from 'html2canvas';
+import { captureDomCanvas } from "@/utils/imageExport";
 import { downloadCanvasAsImage } from "@/utils/imageExport";
 import {
   Trophy,
@@ -1155,7 +1155,7 @@ const exportToImage = async () => {
     });
 
     // 5. 用html2canvas渲染DOM为Canvas
-    const canvas = await html2canvas(exportDom.value, {
+    const canvas = await captureDomCanvas(exportDom.value, {
       scale: 2, // 放大2倍，解决图片模糊问题
       useCORS: true, // 允许跨域图片（若DOM内有远程图片，需开启）
       backgroundColor: '#ffffff', // 避免透明背景（默认透明）
@@ -1618,7 +1618,7 @@ onMounted(() => {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #7c6cff 0%, #8b5cf6 100%);
   color: white;
   display: flex;
   align-items: center;
@@ -2390,7 +2390,7 @@ onMounted(() => {
 }
 
 .style2-table thead {
-  background: #4285f4;
+  background: linear-gradient(135deg, #7c6cff 0%, #8b5cf6 100%);
 }
 
 .opponent-column .style2-table thead {
@@ -2420,11 +2420,11 @@ onMounted(() => {
 }
 
 .style2-table tbody tr:hover {
-  background: #f8fbff;
+  background: #f5f1ff;
 }
 
 .style2-table thead tr:hover {
-  background: #4285f4;
+  background: linear-gradient(135deg, #7c6cff 0%, #8b5cf6 100%);
 }
 
 .medal-icon { font-size: 14px; }
@@ -2522,7 +2522,7 @@ onMounted(() => {
 
 /* Style 2 Color Overrides */
 .own-column.style-2 .summary-title {
-  background: #4285f4;
+  background: linear-gradient(135deg, #7c6cff 0%, #8b5cf6 100%);
 }
 
 .opponent-column.style-2 .summary-title {

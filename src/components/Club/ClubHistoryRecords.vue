@@ -56,7 +56,7 @@
 import { ref, computed, onMounted, h, nextTick } from "vue";
 import { useMessage, NDataTable, NTag, NButton, NIcon } from "naive-ui";
 import { useTokenStore } from "@/stores/tokenStore";
-import html2canvas from 'html2canvas';
+import { captureDomCanvas } from "@/utils/imageExport";
 import { downloadCanvasAsImage } from "@/utils/imageExport";
 import {
   Trophy,
@@ -109,6 +109,39 @@ const pagination = ref({
   pageSize: 10,
 });
 
+const HISTORY_EXPORT_COLUMN_WIDTHS = {
+  legionWarType: 168,
+  warDate: 156,
+  rank: 136,
+};
+
+function normalizeRankValue(rank) {
+  if (rank === null || rank === undefined || rank === "") {
+    return null;
+  }
+
+  if (typeof rank === "number" && Number.isFinite(rank)) {
+    return rank;
+  }
+
+  if (typeof rank === "string") {
+    const parsed = Number(rank);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  if (typeof rank === "object") {
+    const candidate = rank.rank ?? rank.value ?? rank.place ?? rank.no ?? rank.position;
+    const parsed = Number(candidate);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  return null;
+}
+
+function formatRankText(rank) {
+  return Number.isFinite(rank) ? `第 ${rank} 名` : "暂无名次";
+}
+
 const tableData = computed(() => {
   if (!battleRecords.value || !battleRecords.value.warMap || !battleRecords.value.warRank) {
     return [];
@@ -118,7 +151,7 @@ const tableData = computed(() => {
     key: index,
     legionWarType: member.legionWarType,
     warDate: member.warDate,
-    rank: battleRecords.value.warRank[index],
+    rank: normalizeRankValue(battleRecords.value.warRank[index]),
   }));
 });
 
@@ -126,6 +159,7 @@ const exportDom = ref(null);
 const isExporting = ref(false);
 
 const columns = computed(() => {
+  const exportMode = isExporting.value;
   const cols = [
     {
       title: () => h(
@@ -183,28 +217,46 @@ const columns = computed(() => {
           title: "比赛类型",
           key: "legionWarType",
           align: "center",
+          width: exportMode ? HISTORY_EXPORT_COLUMN_WIDTHS.legionWarType : undefined,
+          minWidth: exportMode ? HISTORY_EXPORT_COLUMN_WIDTHS.legionWarType : undefined,
           render: (row) => legionWarTypesw(row.legionWarType),
         },
         {
           title: "比赛日期",
           key: "warDate",
           align: "center",
+          width: exportMode ? HISTORY_EXPORT_COLUMN_WIDTHS.warDate : undefined,
+          minWidth: exportMode ? HISTORY_EXPORT_COLUMN_WIDTHS.warDate : undefined,
         },
         {
           title: "名次",
           key: "rank",
           align: "center",
+          width: exportMode ? HISTORY_EXPORT_COLUMN_WIDTHS.rank : undefined,
+          minWidth: exportMode ? HISTORY_EXPORT_COLUMN_WIDTHS.rank : undefined,
           render: (row) => {
             let color = "default";
             if (row.rank === 1) color = "warning"; // 金色/冠军
             else if (row.rank === 2) color = "info"; // 银色/亚军
             else if (row.rank === 3) color = "success"; // 铜色/季军
-            else if (row.rank > 20) color = "error"; // 排名靠后
-            
+            else if (Number.isFinite(row.rank) && row.rank > 20) color = "error"; // 排名靠后
+
             return h(
-              NTag,
-              { type: color, bordered: false, size: "small" },
-              { default: () => `第 ${row.rank} 名` }
+              "div",
+              {
+                style: {
+                  width: "100%",
+                  display: "flex",
+                  justifyContent: "center",
+                },
+              },
+              [
+                h(
+                  NTag,
+                  { type: color, bordered: false, size: "small" },
+                  { default: () => formatRankText(row.rank) },
+                ),
+              ],
             );
           },
         },
@@ -277,38 +329,48 @@ const handleExportImage = async () => {
     // 等待Vue更新DOM（移除操作列等）
     await nextTick();
 
-    // 获取 table-container
-    const tableContainer = exportDom.value.querySelector('.n-data-table');
-    
-    // 临时调整表格容器高度，确保所有内容可见
-    if (tableContainer) {
-      // 尝试找到 n-data-table 的滚动容器
-      const scrollContainer = tableContainer.querySelector('.n-data-table-base-table-body');
-      if (scrollContainer) {
-        // 保存原始样式
-        scrollContainer.dataset.originalHeight = scrollContainer.style.height;
-        scrollContainer.dataset.originalOverflow = scrollContainer.style.overflow;
+    const tableContainer = exportDom.value.querySelector(".n-data-table");
+    const scrollContainer = tableContainer?.querySelector(".n-data-table-base-table-body");
 
-        // 强制展开
-        scrollContainer.style.height = "auto";
-        scrollContainer.style.overflow = "visible";
-      }
-      
-      // 保存外层table容器的样式
+    // 临时调整表格容器高度，确保所有内容可见
+    if (scrollContainer) {
+      scrollContainer.dataset.originalHeight = scrollContainer.style.height;
+      scrollContainer.dataset.originalOverflow = scrollContainer.style.overflow;
+      scrollContainer.style.height = "auto";
+      scrollContainer.style.overflow = "visible";
+    }
+
+    if (tableContainer) {
       tableContainer.dataset.originalHeight = tableContainer.style.height;
       tableContainer.style.height = "auto";
     }
 
-    // 用html2canvas渲染DOM为Canvas
-    const canvas = await html2canvas(exportDom.value, {
-      scale: 2, // 放大2倍，解决图片模糊问题
-      useCORS: true, // 允许跨域图片
-      backgroundColor: "#ffffff", // 避免透明背景
-      logging: false, // 关闭控制台日志
-      allowTaint: true, // 允许跨域图片污染画布
+    const exportColumns = columns.value[0]?.children ?? [];
+    const exportTableWidth = exportColumns.reduce((total, column) => {
+      return total + (typeof column.width === "number" ? column.width : 0);
+    }, 0);
+    const exportWidth = Math.max(exportTableWidth + 96, 540);
+    const tableBodyContent = tableContainer?.querySelector(".n-data-table-base-table-body__content");
+    const exportHeight = Math.max(
+      exportDom.value.scrollHeight || 0,
+      exportDom.value.clientHeight || 0,
+      tableContainer?.scrollHeight || 0,
+      scrollContainer?.scrollHeight || 0,
+      tableBodyContent?.scrollHeight || 0,
+    );
+
+    const canvas = await captureDomCanvas(exportDom.value, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      logging: false,
+      allowTaint: true,
+      width: exportWidth,
+      height: exportHeight,
+      windowWidth: exportWidth,
+      windowHeight: exportHeight,
     });
 
-    // Canvas转图片链接并下载
     const dateStr = new Date().toLocaleDateString().replace(/\//g, "-");
     const filename = `俱乐部历史战绩_${dateStr}.png`;
     downloadCanvasAsImage(canvas, filename);
@@ -318,36 +380,34 @@ const handleExportImage = async () => {
     console.error("DOM转图片失败：", err);
     message.error("导出图片失败，请重试");
   } finally {
-    // 恢复原始样式
-    const tableContainer = exportDom.value?.querySelector('.n-data-table');
+    const tableContainer = exportDom.value?.querySelector(".n-data-table");
     if (tableContainer) {
-      const scrollContainer = tableContainer.querySelector('.n-data-table-base-table-body');
+      const scrollContainer = tableContainer.querySelector(".n-data-table-base-table-body");
       if (scrollContainer) {
         if (scrollContainer.dataset.originalHeight) {
           scrollContainer.style.height = scrollContainer.dataset.originalHeight;
         } else {
-          scrollContainer.style.removeProperty('height');
+          scrollContainer.style.removeProperty("height");
         }
 
         if (scrollContainer.dataset.originalOverflow) {
           scrollContainer.style.overflow = scrollContainer.dataset.originalOverflow;
         } else {
-          scrollContainer.style.removeProperty('overflow');
+          scrollContainer.style.removeProperty("overflow");
         }
 
         delete scrollContainer.dataset.originalHeight;
         delete scrollContainer.dataset.originalOverflow;
       }
-      
-      // 恢复外层table容器样式
+
       if (tableContainer.dataset.originalHeight) {
         tableContainer.style.height = tableContainer.dataset.originalHeight;
       } else {
-        tableContainer.style.removeProperty('height');
+        tableContainer.style.removeProperty("height");
       }
       delete tableContainer.dataset.originalHeight;
     }
-    
+
     isExporting.value = false;
   }
 };
@@ -609,7 +669,7 @@ onMounted(() => {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #7c6cff 0%, #8b5cf6 100%);
   color: white;
   display: flex;
   align-items: center;

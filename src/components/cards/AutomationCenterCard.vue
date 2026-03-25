@@ -247,6 +247,16 @@ const claimHangUpReward = async () => {
   gap: 12px;
   min-height: 280px;
   padding: 18px;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    linear-gradient(145deg, rgba(109, 90, 196, 0.24), rgba(31, 36, 70, 0.64)),
+    radial-gradient(circle at 18% 12%, rgba(124, 108, 255, 0.16), transparent 30%),
+    radial-gradient(circle at 84% 0%, rgba(96, 165, 250, 0.1), transparent 28%);
+  background-blend-mode: screen, normal, screen;
+  backdrop-filter: blur(18px) saturate(165%);
+  -webkit-backdrop-filter: blur(18px) saturate(165%);
 }
 
 .card-header {
@@ -393,26 +403,33 @@ const claimHangUpReward = async () => {
     filter 0.2s ease,
     box-shadow 0.2s ease,
     background-color 0.2s ease;
+  position: relative;
+  overflow: hidden;
 }
 
 .action-button.primary {
-  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  border-color: rgba(167, 139, 250, 0.44);
+  box-shadow: 0 10px 20px rgba(99, 102, 241, 0.18);
 }
 
 .action-button.primary.blue {
-  background: linear-gradient(135deg, #4c7dff 0%, #3557ff 100%);
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  border-color: rgba(167, 139, 250, 0.44);
+  box-shadow: 0 10px 20px rgba(99, 102, 241, 0.18);
 }
 
 .action-button.secondary {
-  background: rgba(52, 211, 153, 0.18);
-  border-color: rgba(52, 211, 153, 0.28);
-  color: #d1fae5;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.84), rgba(99, 102, 241, 0.8));
+  border-color: rgba(167, 139, 250, 0.4);
+  color: #f8fbff;
+  box-shadow: 0 10px 20px rgba(99, 102, 241, 0.14);
 }
 
 .action-button:hover:not(:disabled) {
   transform: translateY(-1px);
   filter: brightness(1.04);
-  box-shadow: 0 10px 18px rgba(15, 23, 42, 0.22);
+  box-shadow: 0 12px 22px rgba(99, 102, 241, 0.24);
 }
 
 .action-button:disabled {

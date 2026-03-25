@@ -341,7 +341,7 @@ const gradeIcon = (color) => {
 const getGradeColor = (color) => {
   const map = {
     1: "#22c55e",
-    2: "#3b82f6",
+    2: "#7c6cff",
     3: "#a855f7",
     4: "#f59e0b",
     5: "#ef4444",

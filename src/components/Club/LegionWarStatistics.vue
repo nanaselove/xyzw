@@ -240,7 +240,7 @@ import { extractValidData, formatPower } from "@/utils/legionWar";
 import { getCurrentTimeByFormat } from "@/utils/DateTimeUtils";
 import { isLegionWarAccessible } from "@/utils/clubBattleUtils";
 import { storeToRefs } from "pinia";
-import html2canvas from "html2canvas";
+import { captureDomCanvas } from "@/utils/imageExport";
 import * as XLSX from "xlsx";
 import { 
   LogInOutline, 
@@ -355,7 +355,7 @@ const exportImage = async () => {
     // 等待一点时间确保渲染完成
     await new Promise(resolve => setTimeout(resolve, 100));
 
-    const canvas = await html2canvas(element, {
+    const canvas = await captureDomCanvas(element, {
       useCORS: true,
       scale: 2, // Higher quality
       backgroundColor: "#ffffff",

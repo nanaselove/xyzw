@@ -423,7 +423,7 @@ import {
 } from "naive-ui";
 import { Refresh, Copy } from "@vicons/ionicons5";
 import { useTokenStore } from "@/stores/tokenStore";
-import html2canvas from "html2canvas";
+import { captureDomCanvas } from "@/utils/imageExport";
 import { downloadCanvasAsImage } from "@/utils/imageExport";
 import { HERO_DICT, HeroFillInfo, legacycolor, getLineupType, LINEUP_RULES } from "@/utils/HeroList";
 import {
@@ -1040,7 +1040,7 @@ const columns = [
         {
           style: {
             cursor: "pointer",
-            color: "#1890ff",
+            color: "#7c6cff",
             textDecoration: "underline",
           },
           onClick: () => fetchTargetInfo(row.id),
@@ -1073,7 +1073,7 @@ const columns = [
 
       heroes.forEach((hero, index) => {
         // 英雄名字
-        nodes.push(h("span", { style: { color: "#40a9ff" } }, hero.heroName));
+        nodes.push(h("span", { style: { color: "#8b5cf6" } }, hero.heroName));
 
         // 红数 (红色)
         nodes.push(h("span", { style: { color: "#ff4d4f" } }, `(${hero.red})`));
@@ -1414,7 +1414,7 @@ const handleExportImage = async () => {
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     // 5. 用html2canvas渲染DOM为Canvas
-    const canvas = await html2canvas(exportDom.value, {
+    const canvas = await captureDomCanvas(exportDom.value, {
       scale: 2, // 放大2倍，解决图片模糊问题
       useCORS: true, // 允许跨域图片
       backgroundColor: "#ffffff", // 避免透明背景
@@ -1558,7 +1558,7 @@ onMounted(() => {
   &:hover {
     transform: scale(1.1);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-    border-color: #1890ff;
+    border-color: #7c6cff;
   }
 }
 
@@ -1633,7 +1633,7 @@ onMounted(() => {
   color: #333;
   margin-bottom: 10px;
   padding-left: 8px;
-  border-left: 4px solid #1890ff;
+  border-left: 4px solid #7c6cff;
 }
 
 :deep(.n-data-table) {
@@ -1667,7 +1667,7 @@ onMounted(() => {
   &:hover {
     transform: scale(1.2);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    border-color: #1890ff;
+    border-color: #7c6cff;
   }
 }
 
@@ -1675,7 +1675,7 @@ onMounted(() => {
   width: 32px;
   height: 32px;
   border-radius: 50% !important;
-  background: linear-gradient(135deg, #1890ff 0%, #69c0ff 100%);
+  background: linear-gradient(135deg, #7c6cff 0%, #a78bfa 100%);
   color: white;
   display: flex;
   align-items: center;
@@ -1701,7 +1701,7 @@ onMounted(() => {
 }
 
 .player-avatar {
-  border: 2px solid var(--primary-color, #1890ff);
+  border: 2px solid var(--primary-color, #7c6cff);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -2193,7 +2193,7 @@ onMounted(() => {
   &:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.1));
-    border-color: var(--primary-color, #1890ff);
+    border-color: var(--primary-color, #7c6cff);
   }
 }
 

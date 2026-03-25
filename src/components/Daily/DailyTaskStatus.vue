@@ -695,37 +695,29 @@ onBeforeUnmount(() => {
 }
 
 .progress-container {
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .progress-track {
   position: relative;
-  height: 10px;
+  height: 12px;
   border-radius: 999px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.16);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(78, 86, 134, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .progress-fill {
   position: relative;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #4ade80, #22c55e);
+  background: linear-gradient(90deg, #67c0ff 0%, #6f9dff 58%, #5c7dff 100%);
+  box-shadow: 0 0 14px rgba(111, 157, 255, 0.32);
   transition: width 0.35s ease;
 }
 
 .progress-shimmer {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    120deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.45) 45%,
-    rgba(255, 255, 255, 0) 80%
-  );
-  transform: translateX(-100%);
-  animation: progressShimmer 1.6s linear infinite;
+  display: none;
 }
 
 .progress-meta {

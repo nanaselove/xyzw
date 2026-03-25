@@ -21,7 +21,7 @@
           :class="['team-button', { active: currentTeam === teamId }]"
           @click="selectTeam(teamId)"
         >
-          {{ toSkillSlot(teamId) }}
+          <span class="slot-number">{{ teamId }}</span>
         </button>
         <button
           class="refresh-button"
@@ -123,17 +123,6 @@ const loading = ref(false);
 const switching = ref(false);
 const currentTeam = ref(1);
 const availableTeams = ref<number[]>([1, 2, 3, 4]);
-const SLOT_SYMBOLS: Record<number, string> = {
-  1: "①",
-  2: "②",
-  3: "③",
-  4: "④",
-  5: "⑤",
-  6: "⑥",
-};
-
-const toSkillSlot = (teamId: number) => SLOT_SYMBOLS[teamId] || String(teamId);
-
 
 
 const wsStatus = computed(() => {
@@ -376,27 +365,27 @@ watch(
 
 <style scoped lang="scss">
 .team-formation-card {
-  min-height: 260px;
+  min-height: 242px;
   background: linear-gradient(
     145deg,
-    rgba(124, 108, 255, 0.14),
-    rgba(255, 255, 255, 0.05)
+    rgba(124, 108, 255, 0.025),
+    rgba(255, 255, 255, 0.012)
   );
-  border: 1px solid rgba(124, 108, 255, 0.4);
+  border: 1px solid rgba(124, 108, 255, 0.12);
   box-shadow:
-    0 0 20px rgba(124, 108, 255, 0.22),
-    0 12px 26px rgba(15, 23, 42, 0.24);
+    0 0 10px rgba(124, 108, 255, 0.06),
+    0 10px 20px rgba(15, 23, 42, 0.1);
   border-radius: 22px;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(8px) saturate(132%);
+  -webkit-backdrop-filter: blur(8px) saturate(132%);
 }
 
 .card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: 10px;
+  margin-bottom: 2px;
 }
 
 .header-info {
@@ -427,27 +416,48 @@ watch(
 
 .team-selector {
   display: flex;
-  gap: 8px;
+  gap: 5px;
   align-items: center;
   flex-wrap: wrap;
   justify-content: flex-end;
 }
 
 .team-button {
-  min-width: 48px;
-  height: 38px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.84);
-  font-size: 18px;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+    linear-gradient(135deg, rgba(124, 108, 255, 0.14), rgba(72, 78, 186, 0.18));
+  color: #eef2ff;
+  font-size: 0;
   font-weight: 700;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -10px 18px rgba(12, 18, 44, 0.12);
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease,
     border-color 0.2s ease,
     background-color 0.2s ease;
+}
+
+.team-button::before {
+  content: none;
+}
+
+.team-button::after {
+  content: none;
 }
 
 .team-button:hover {
@@ -456,13 +466,47 @@ watch(
   box-shadow: 0 8px 14px rgba(11, 17, 36, 0.2);
 }
 
+.slot-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  font-family:
+    "Noto Sans JP",
+    "Yu Gothic UI",
+    "Hiragino Sans",
+    "Segoe UI",
+    sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  color: #f3f6ff;
+  text-shadow:
+    0 1px 0 rgba(16, 22, 49, 0.16),
+    0 0 8px rgba(124, 108, 255, 0.14);
+  -webkit-text-stroke: 0.4px rgba(124, 108, 255, 0.12);
+  transform: translateY(-0.5px);
+}
+
 .team-button.active {
-  color: #f8fcff;
-  border-color: rgba(124, 108, 255, 0.78);
-  background: linear-gradient(135deg, #6b8dff 0%, #7c6cff 100%);
+  border-color: rgba(124, 108, 255, 0.9);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04)),
+    linear-gradient(135deg, #6b8dff 0%, #7c6cff 100%);
   box-shadow:
     0 0 14px rgba(124, 108, 255, 0.68),
-    0 10px 18px rgba(124, 108, 255, 0.36);
+    0 10px 18px rgba(124, 108, 255, 0.26),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.team-button.active .slot-number {
+  color: #ffffff;
+  text-shadow:
+    0 0 10px rgba(255, 255, 255, 0.12),
+    0 0 14px rgba(124, 108, 255, 0.28);
 }
 
 .team-button:disabled {
@@ -473,14 +517,14 @@ watch(
 .refresh-button {
   display: flex;
   align-items: center;
-  gap: 6px;
-  height: 34px;
-  padding: 0 12px;
+  gap: 4px;
+  height: 48px;
+  padding: 0 10px;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
+  border-radius: 14px;
   background: rgba(255, 255, 255, 0.08);
   color: rgba(255, 255, 255, 0.8);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   cursor: pointer;
   transition:
@@ -509,8 +553,8 @@ watch(
 }
 
 .refresh-icon {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   transition: transform 0.2s ease;
 }
 
@@ -536,30 +580,40 @@ watch(
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
-  padding: 8px 10px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  margin-bottom: 4px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.012);
+  border: 1px solid rgba(255, 255, 255, 0.045);
+}
+
+.card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: -6px;
 }
 
 .card-content .label {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.72);
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.82);
+  letter-spacing: 0.01em;
 }
 
 .card-content .team-number {
-  font-size: 1.08rem;
-  font-weight: 800;
-  color: rgba(255, 255, 255, 0.96);
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(124, 108, 255, 0.22);
 }
 
 .heroes-container {
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(7, 13, 32, 0.3);
-  padding: 12px;
-  min-height: 180px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: rgba(7, 13, 32, 0.06);
+  padding: 8px 12px 12px;
+  min-height: 196px;
 }
 
 .heroes-formation {
@@ -577,23 +631,23 @@ watch(
 }
 
 .hero-circle {
-  width: 62px;
-  height: 62px;
+  width: 84px;
+  height: 84px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.08);
-  border: 2px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.14);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  box-shadow: 0 6px 14px rgba(8, 10, 22, 0.28);
+  box-shadow: 0 6px 12px rgba(8, 10, 22, 0.12);
 }
 
 .hero-circle.active {
   border-color: rgba(124, 108, 255, 0.65);
   box-shadow:
-    0 0 0 3px rgba(124, 108, 255, 0.18),
-    0 0 16px rgba(124, 108, 255, 0.62);
+    0 0 0 4px rgba(124, 108, 255, 0.08),
+    0 0 18px rgba(124, 108, 255, 0.32);
 }
 
 .hero-avatar {
@@ -626,7 +680,7 @@ watch(
 
 .front-row .hero-slot,
 .back-row .hero-slot {
-  width: 86px;
+  width: 118px;
 }
 
 .hero-slot.filled .hero-name {
@@ -658,14 +712,18 @@ watch(
   }
 
   .team-button {
-    min-width: 44px;
-    height: 36px;
-    font-size: 16px;
+    width: 46px;
+    height: 46px;
+  }
+
+  .refresh-button {
+    height: 46px;
+    padding: 0 10px;
   }
 
   .heroes-container {
     padding: 10px;
-    min-height: 168px;
+    min-height: 174px;
   }
 
   .heroes-formation {
@@ -678,33 +736,33 @@ watch(
 
   .front-row .hero-slot,
   .back-row .hero-slot {
-    width: 76px;
+    width: 84px;
   }
 
   .hero-circle {
-    width: 54px;
-    height: 54px;
+    width: 62px;
+    height: 62px;
   }
 
   .hero-name {
-    max-width: 74px;
+    max-width: 78px;
   }
 }
 
 @media (max-width: 420px) {
   .hero-circle {
-    width: 48px;
-    height: 48px;
+    width: 58px;
+    height: 58px;
   }
 
   .hero-name {
     font-size: 10px;
-    max-width: 64px;
+    max-width: 68px;
   }
 
   .front-row .hero-slot,
   .back-row .hero-slot {
-    width: 68px;
+    width: 78px;
   }
 }
 </style>

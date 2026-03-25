@@ -836,7 +836,7 @@ import {
   NSelect,
 } from "naive-ui";
 import { useTokenStore } from "@/stores/tokenStore";
-import html2canvas from "html2canvas";
+import { captureDomCanvas } from "@/utils/imageExport";
 import { downloadCanvasAsImage } from "@/utils/imageExport";
 import {
   Trophy,
@@ -2226,7 +2226,7 @@ const exportToImage = async () => {
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     // 5. 用html2canvas渲染DOM为Canvas
-    const canvas = await html2canvas(exportDom.value, {
+    const canvas = await captureDomCanvas(exportDom.value, {
       scale: 2, // 放大2倍，解决图片模糊问题
       useCORS: true, // 允许跨域图片（若DOM内有远程图片，需开启）
       backgroundColor: "#ffffff", // 避免透明背景（默认透明）
@@ -3070,7 +3070,7 @@ onMounted(() => {
 // 联盟分类标签栏
 .alliance-tabs-section {
   display: flex;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #7c6cff 0%, #8b5cf6 100%);
   padding: var(--spacing-xs);
   gap: var(--spacing-xs);
   flex-shrink: 0;

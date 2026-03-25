@@ -180,7 +180,7 @@ import {
 import { allianceincludes } from "@/utils/clubWarrankUtils";
 import { isLegionWarAccessible } from "@/utils/clubBattleUtils";
 import { storeToRefs } from "pinia";
-import html2canvas from "html2canvas";
+import { captureDomCanvas } from "@/utils/imageExport";
 
 const message = useMessage();
 const tokenStore = useTokenStore();
@@ -218,7 +218,7 @@ const exportImage = async () => {
 
   exporting.value = true;
   try {
-    const canvas = await html2canvas(element, {
+    const canvas = await captureDomCanvas(element, {
       useCORS: true,
       scale: 2, // Higher quality
       backgroundColor: "#ffffff",
@@ -422,9 +422,9 @@ const drawHexagon = (x, y, color, type) => {
 
 // 联盟颜色映射
 const allianceColors = {
-  大联盟: "#667eea", // var(--primary-color)
+  大联盟: "#7c6cff", // var(--primary-color)
   梦盟: "#18a058", // var(--success-color)
-  正义联盟: "#2080f0", // var(--info-color)
+  正义联盟: "#8b5cf6", // var(--info-color)
   龙盟: "#d03050", // var(--error-color)
   曦盟: "#9c27b0", // 紫色
   未知联盟: "#f5a623", // var(--warning-color)

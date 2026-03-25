@@ -254,7 +254,7 @@
                 <n-gi span="2" v-if="leader">
                   <n-card size="small" title="会长" embedded :bordered="false">
                     <template #header-extra>
-                      <n-icon size="18" color="#2080f0"><Person /></n-icon>
+                      <n-icon size="18" color="#7c6cff"><Person /></n-icon>
                     </template>
                     <div style="display: flex; align-items: center; gap: 12px;">
                       <n-avatar
@@ -825,6 +825,80 @@ const fetchAllMembersLineup = async () => {
   }
 };
 
+const trimExportCanvas = (canvas, padding = 16, threshold = 248) => {
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return canvas;
+
+  const { width, height } = canvas;
+  const imageData = ctx.getImageData(0, 0, width, height);
+  const { data } = imageData;
+
+  let top = height;
+  let left = width;
+  let right = -1;
+  let bottom = -1;
+
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const index = (y * width + x) * 4;
+      const alpha = data[index + 3];
+      if (!alpha) continue;
+
+      const red = data[index];
+      const green = data[index + 1];
+      const blue = data[index + 2];
+      if (red >= threshold && green >= threshold && blue >= threshold) {
+        continue;
+      }
+
+      if (x < left) left = x;
+      if (x > right) right = x;
+      if (y < top) top = y;
+      if (y > bottom) bottom = y;
+    }
+  }
+
+  if (right < left || bottom < top) {
+    return canvas;
+  }
+
+  const cropLeft = Math.max(0, left - padding);
+  const cropTop = Math.max(0, top - padding);
+  const cropRight = Math.min(width, right + padding + 1);
+  const cropBottom = Math.min(height, bottom + padding + 1);
+  const cropWidth = cropRight - cropLeft;
+  const cropHeight = cropBottom - cropTop;
+
+  if (cropWidth <= 0 || cropHeight <= 0) {
+    return canvas;
+  }
+
+  if (cropWidth === width && cropHeight === height) {
+    return canvas;
+  }
+
+  const trimmedCanvas = document.createElement("canvas");
+  trimmedCanvas.width = cropWidth;
+  trimmedCanvas.height = cropHeight;
+
+  const trimmedCtx = trimmedCanvas.getContext("2d");
+  if (!trimmedCtx) return canvas;
+
+  trimmedCtx.drawImage(
+    canvas,
+    cropLeft,
+    cropTop,
+    cropWidth,
+    cropHeight,
+    0,
+    0,
+    cropWidth,
+    cropHeight,
+  );
+
+  return trimmedCanvas;
+};
+
 const handleExportImage = async () => {
   // 校验：确保DOM已正确绑定
   if (!exportDom.value) {
@@ -862,18 +936,105 @@ const handleExportImage = async () => {
     }
 
     // 5. 用html2canvas渲染DOM为Canvas
+    const exportTableWidth = memberColumns.value.reduce((total, column) => {
+      return total + (typeof column.width === "number" ? column.width : 0);
+    }, 0);
+    const renderWidth = Math.max(exportTableWidth + 8, 600);
+    const exportHeight = Math.max(
+      exportDom.value.scrollHeight || 0,
+      exportDom.value.clientHeight || 0,
+      tableContainer?.scrollHeight || 0,
+      tableContainer?.querySelector(".n-data-table-base-table-body")?.scrollHeight || 0,
+    );
     const canvas = await html2canvas(exportDom.value, {
-      scale: 2, // 放大2倍，解决图片模糊问题
-      useCORS: true, // 允许跨域图片
-      backgroundColor: "#ffffff", // 避免透明背景
-      logging: false, // 关闭控制台日志
-      allowTaint: true, // 允许跨域图片污染画布
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      logging: false,
+      allowTaint: true,
+      width: renderWidth,
+      height: exportHeight,
+      windowWidth: renderWidth,
+      windowHeight: exportHeight,
+      onclone: (clonedDoc) => {
+        const clonedMembers = clonedDoc.querySelector(".members");
+        if (clonedMembers) {
+          clonedMembers.style.width = `${renderWidth}px`;
+          clonedMembers.style.maxWidth = `${renderWidth}px`;
+          clonedMembers.style.height = "auto";
+          clonedMembers.style.overflow = "visible";
+        }
+
+        const clonedTableShell = clonedDoc.querySelector(".n-data-table-base-table");
+        if (clonedTableShell) {
+          clonedTableShell.style.width = `${renderWidth}px`;
+          clonedTableShell.style.minWidth = `${renderWidth}px`;
+          clonedTableShell.style.maxWidth = "none";
+          clonedTableShell.style.height = "auto";
+          clonedTableShell.style.overflow = "visible";
+        }
+
+        const clonedTable = clonedDoc.querySelector(".n-data-table");
+        if (clonedTable) {
+          clonedTable.style.width = `${renderWidth}px`;
+          clonedTable.style.minWidth = `${renderWidth}px`;
+          clonedTable.style.maxWidth = "none";
+          clonedTable.style.height = "auto";
+          clonedTable.style.overflow = "visible";
+        }
+
+        const clonedScrollContainers = clonedDoc.querySelectorAll(
+          ".n-data-table-base-table-header, .n-data-table-base-table-body, .n-scrollbar-container",
+        );
+        clonedScrollContainers.forEach((el) => {
+          if ("scrollLeft" in el) {
+            el.scrollLeft = 0;
+          }
+          if ("scrollTop" in el) {
+            el.scrollTop = 0;
+          }
+          el.style.overflow = "visible";
+          el.style.overflowX = "visible";
+          el.style.overflowY = "visible";
+        });
+
+        const clonedScrollContainer = clonedDoc.querySelector(".n-data-table-base-table-body");
+        if (clonedScrollContainer) {
+          clonedScrollContainer.style.height = "auto";
+          clonedScrollContainer.style.overflow = "visible";
+          clonedScrollContainer.style.width = `${renderWidth}px`;
+          clonedScrollContainer.style.maxWidth = "none";
+        }
+
+        const clonedScrollContent = clonedDoc.querySelector(".n-scrollbar-content");
+        if (clonedScrollContent) {
+          clonedScrollContent.style.width = "max-content";
+          clonedScrollContent.style.minWidth = "max-content";
+          clonedScrollContent.style.height = "auto";
+          clonedScrollContent.style.overflow = "visible";
+        }
+
+        clonedDoc
+          .querySelectorAll(".n-data-table-base-table-body__content, .n-data-table__table, table")
+          .forEach((el) => {
+            el.style.width = "max-content";
+            el.style.minWidth = "max-content";
+          });
+
+        clonedDoc.documentElement.style.width = `${renderWidth}px`;
+        clonedDoc.documentElement.style.overflow = "visible";
+        clonedDoc.body.style.width = `${renderWidth}px`;
+        clonedDoc.body.style.margin = "0";
+        clonedDoc.body.style.overflow = "visible";
+      },
     });
+
+    const trimmedCanvas = trimExportCanvas(canvas);
 
     // 6. Canvas转图片链接并下载
     const dateStr = new Date().toLocaleDateString().replace(/\//g, "-");
     const filename = `俱乐部成员信息_${dateStr}.png`;
-    downloadCanvasAsImage(canvas, filename);
+    downloadCanvasAsImage(trimmedCanvas, filename);
 
     message.success("图片导出成功");
   } catch (err) {
@@ -1087,7 +1248,8 @@ const memberColumns = computed(() => {
       title: "成员",
       key: "name",
       align: "left",
-      minWidth: 150, // 增加最小宽度
+      width: isExporting.value ? 160 : undefined,
+      minWidth: isExporting.value ? 160 : 150, // 增加最小宽度
       render: (row) => {
         return h(
           "div",
@@ -1104,7 +1266,7 @@ const memberColumns = computed(() => {
           [
             h(
               "span",
-              { style: { fontWeight: "500", color: "#1890ff", lineHeight: "1.2" } },
+              { style: { fontWeight: "500", color: "#7c6cff", lineHeight: "1.2" } },
               row.name,
             ),
             h(
@@ -1157,23 +1319,35 @@ const memberColumns = computed(() => {
     },
   ];
 
-  if (!isExporting.value) {
-    cols.push({
-      title: "职位",
-      key: "job",
-      width: 80,
-      align: "center",
-      render: (row) => jobLabel(row.job),
-    });
-  }
+  cols.push({
+    title: "职位",
+    key: "job",
+    width: 80,
+    align: "center",
+    render: (row) => jobLabel(row.job),
+  });
 
-  if (canKick.value && !isExporting.value) {
+  if (canKick.value) {
     cols.push({
       title: "操作",
       key: "actions",
       width: 80,
       align: "center",
       render: (row) => {
+        if (isExporting.value) {
+          return h(
+            "span",
+            {
+              style: {
+                color: "#7c6cff",
+                fontSize: "12px",
+                fontWeight: "500",
+              },
+            },
+            row.job === 1 ? "—" : "踢出",
+          );
+        }
+
         if (row.job !== 1) {
           return h(
             NButton,
@@ -1940,7 +2114,7 @@ const formatNumber = (num) => {
 }
 
 .player-avatar {
-  border: 2px solid var(--primary-color, #1890ff);
+  border: 2px solid var(--primary-color, #7c6cff);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -1966,8 +2140,8 @@ const formatNumber = (num) => {
 
 .red-text { color: #ff4d4f; }
 .green-text { color: #52c41a; }
-.blue-text { color: #1890ff; }
-.highlight { color: #1890ff; font-weight: bold; }
+.blue-text { color: #7c6cff; }
+.highlight { color: #7c6cff; font-weight: bold; }
 
 /* 武将列表样式 */
 .hero-section {
@@ -2000,7 +2174,7 @@ const formatNumber = (num) => {
   &:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.1));
-    border-color: var(--primary-color, #1890ff);
+    border-color: var(--primary-color, #7c6cff);
   }
 }
 

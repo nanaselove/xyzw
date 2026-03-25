@@ -43,24 +43,18 @@
         停止爬塔
       </button>
 
-      <button
-        v-if="!isClimbing && !isUsingItems && !isMerging"
-        class="sub-action-button"
-        @click="startUseItems"
-      >
-        一键使用道具
-      </button>
+      <div v-if="!isClimbing && !isUsingItems && !isMerging" class="weird-secondary-actions">
+        <button class="sub-action-button" @click="startUseItems">
+          一键使用道具
+        </button>
+
+        <button class="sub-action-button" @click="autoMergeItems">
+          {{ isMerging ? "合成中..." : "一键合成" }}
+        </button>
+      </div>
 
       <button v-if="isUsingItems" class="stop-button" @click="stopUsingItems">
         停止使用
-      </button>
-
-      <button
-        v-if="!isClimbing && !isUsingItems && !isMerging"
-        class="sub-action-button"
-        @click="autoMergeItems"
-      >
-        {{ isMerging ? "合成中..." : "一键合成" }}
       </button>
     </div>
   </div>
@@ -676,6 +670,12 @@ onMounted(() => {
   padding-top: 2px;
 }
 
+.weird-secondary-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
 .climb-button {
   width: 100%;
   height: 48px;
@@ -775,6 +775,10 @@ onMounted(() => {
   .climb-button {
     height: 46px;
     font-size: 17px;
+  }
+
+  .weird-secondary-actions {
+    gap: 8px;
   }
 
   .sub-action-button,

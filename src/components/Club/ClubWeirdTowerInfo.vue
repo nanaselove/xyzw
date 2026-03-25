@@ -105,7 +105,7 @@
 import { ref, computed, onMounted, h, nextTick } from 'vue'
 import { useMessage, NDataTable, NAvatar, NEmpty, NButton, NIcon } from 'naive-ui'
 import { useTokenStore } from '@/stores/tokenStore'
-import html2canvas from 'html2canvas';
+import { captureDomCanvas } from "@/utils/imageExport";
 import { downloadCanvasAsImage } from "@/utils/imageExport";
 import {
   Trophy,
@@ -204,7 +204,7 @@ const columns = computed(() => {
           [
             h(
               "span",
-              { style: { fontWeight: "500", color: "#1890ff", lineHeight: "1.2" } },
+              { style: { fontWeight: "500", color: "#7c6cff", lineHeight: "1.2" } },
               row.name,
             ),
             h(
@@ -431,7 +431,7 @@ const exportToImage = async () => {
   }
 
   // 5. 用html2canvas渲染DOM为Canvas
-  const canvas = await html2canvas(exportDom.value, {
+  const canvas = await captureDomCanvas(exportDom.value, {
     scale: 2, // 放大2倍，解决图片模糊问题
     useCORS: true, // 允许跨域图片（若DOM内有远程图片，需开启）
     backgroundColor: '#ffffff', // 避免透明背景（默认透明）
@@ -548,7 +548,7 @@ onMounted(() => {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #7c6cff 0%, #8b5cf6 100%);
   color: white;
   display: flex;
   align-items: center;
@@ -570,7 +570,7 @@ onMounted(() => {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #7c6cff 0%, #8b5cf6 100%);
   color: white;
   display: flex;
   align-items: center;
