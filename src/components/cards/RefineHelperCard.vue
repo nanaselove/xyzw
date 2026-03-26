@@ -1257,8 +1257,8 @@ h4 {
 }
 
 .slot.color-3 {
-  background: rgba(33, 150, 243, 0.1);
-  border-left-color: #2196f3;
+  background: rgba(124, 108, 255, 0.1);
+  border-left-color: #7c6cff;
 }
 
 .slot.color-4 {
@@ -1286,7 +1286,7 @@ h4 {
 }
 
 .slot.locked.color-3 {
-  background: rgba(33, 150, 243, 0.2);
+  background: rgba(124, 108, 255, 0.2);
 }
 
 .slot.locked.color-4 {

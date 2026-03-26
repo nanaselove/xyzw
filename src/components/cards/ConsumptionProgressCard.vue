@@ -66,8 +66,8 @@
           <n-progress
             type="line"
             :percentage="item.percentage"
-            :color="item.isCompleted ? '#52c41a' : '#1890ff'"
-            :rail-color="'rgba(0, 0, 0, 0.06)'"
+            :color="item.isCompleted ? 'var(--success-color)' : 'var(--primary-color)'"
+            :rail-color="'rgba(255, 255, 255, 0.08)'"
             :height="8"
             :show-indicator="false"
           />

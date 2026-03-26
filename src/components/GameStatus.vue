@@ -5,6 +5,8 @@
       'full-grid': activeSection === 'fightPvp',
       'full-page-mode': activeSection === 'saltFieldGroup' || activeSection === 'peachGroup' || activeSection === 'rankGroup',
       'club-mode': activeSection === 'club',
+      'activity-mode': activeSection === 'activity',
+      'tools-mode': activeSection === 'tools',
       'daily-mode': activeSection === 'daily'
     }"
   >
@@ -840,7 +842,7 @@ onUnmounted(() => {
   }
 }
 
-.game-status-container.club-mode {
+.game-status-container:is(.club-mode, .activity-mode, .tools-mode) {
   --text-color: #f7fbff;
   --text-secondary: rgba(225, 237, 255, 0.84);
   --text-tertiary: rgba(176, 194, 226, 0.9);
@@ -855,6 +857,15 @@ onUnmounted(() => {
   --primary-color: #7c6cff;
   --primary-color-hover: #8b5cf6;
   --primary-color-light: rgba(124, 108, 255, 0.16);
+  --color-primary: #7c6cff;
+  --color-primary-hover: #8b5cf6;
+  --color-primary-light: rgba(124, 108, 255, 0.16);
+  --color-secondary: rgba(124, 108, 255, 0.22);
+  --color-secondary-hover: rgba(139, 92, 246, 0.3);
+  --color-secondary-active: rgba(107, 92, 230, 0.34);
+  --color-secondary-disabled: rgba(148, 163, 184, 0.18);
+  --secondary-color: #6f7cf3;
+  --secondary-color-hover: #5f6ce8;
   --section-tab-surface: rgba(8, 15, 35, 0.58);
   --section-tab-border: rgba(124, 108, 255, 0.2);
   --section-tab-text: rgba(237, 246, 255, 0.9);
@@ -1103,6 +1114,298 @@ onUnmounted(() => {
 
   :deep(.club-info-tabs .n-tabs-tab .n-tabs-tab__label) {
     color: inherit !important;
+  }
+}
+
+.game-status-container.tools-mode {
+  :deep(.dream-helper .ant-btn),
+  :deep(.dream-helper .arco-btn),
+  :deep(.consumption-progress .ant-btn),
+  :deep(.consumption-progress .arco-btn) {
+    border-radius: 12px;
+    border: 1px solid rgba(124, 108, 255, 0.3);
+    background: linear-gradient(
+      135deg,
+      rgba(124, 108, 255, 0.22),
+      rgba(139, 92, 246, 0.18)
+    );
+    color: var(--text-color);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 8px 16px rgba(124, 108, 255, 0.12);
+    transition:
+      transform 0.2s ease,
+      filter 0.2s ease,
+      box-shadow 0.2s ease,
+      background-color 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  :deep(.dream-helper .ant-btn-primary),
+  :deep(.dream-helper .arco-btn-primary),
+  :deep(.consumption-progress .ant-btn-primary),
+  :deep(.consumption-progress .arco-btn-primary) {
+    background: linear-gradient(135deg, #7c6cff 0%, #8b5cf6 100%);
+    border-color: rgba(124, 108, 255, 0.36);
+    color: #ffffff;
+    box-shadow: 0 10px 18px rgba(124, 108, 255, 0.2);
+  }
+
+  :deep(.dream-helper .ant-btn:hover:not(.ant-btn-disabled)),
+  :deep(.dream-helper .arco-btn:hover:not(.arco-btn-disabled)),
+  :deep(.consumption-progress .ant-btn:hover:not(.ant-btn-disabled)),
+  :deep(.consumption-progress .arco-btn:hover:not(.arco-btn-disabled)) {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+    background: linear-gradient(
+      135deg,
+      rgba(124, 108, 255, 0.32),
+      rgba(139, 92, 246, 0.26)
+    );
+    border-color: rgba(124, 108, 255, 0.46);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 12px 22px rgba(124, 108, 255, 0.18);
+  }
+
+  :deep(.dream-helper .ant-btn:disabled),
+  :deep(.dream-helper .arco-btn-disabled),
+  :deep(.consumption-progress .ant-btn:disabled),
+  :deep(.consumption-progress .arco-btn-disabled) {
+    background: rgba(148, 163, 184, 0.24);
+    border-color: rgba(148, 163, 184, 0.22);
+    color: rgba(226, 232, 240, 0.56);
+    box-shadow: none;
+    transform: none;
+  }
+
+  :deep(.refine-helper .n-button) {
+    border-radius: 12px;
+    border: 1px solid rgba(124, 108, 255, 0.3);
+    background: linear-gradient(
+      135deg,
+      rgba(124, 108, 255, 0.22),
+      rgba(139, 92, 246, 0.18)
+    );
+    color: var(--text-color);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 8px 16px rgba(124, 108, 255, 0.12);
+    transition:
+      transform 0.2s ease,
+      filter 0.2s ease,
+      box-shadow 0.2s ease,
+      background-color 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  :deep(.refine-helper .n-button--primary-type) {
+    background: linear-gradient(135deg, #7c6cff 0%, #8b5cf6 100%);
+    border-color: rgba(124, 108, 255, 0.36);
+    color: #ffffff;
+    box-shadow: 0 10px 18px rgba(124, 108, 255, 0.2);
+  }
+
+  :deep(.refine-helper .n-button:hover:not(.n-button--disabled)) {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+    background: linear-gradient(
+      135deg,
+      rgba(124, 108, 255, 0.32),
+      rgba(139, 92, 246, 0.26)
+    );
+    border-color: rgba(124, 108, 255, 0.46);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 12px 22px rgba(124, 108, 255, 0.18);
+  }
+
+  :deep(.refine-helper .n-button--disabled) {
+    background: rgba(148, 163, 184, 0.24);
+    border-color: rgba(148, 163, 184, 0.22);
+    color: rgba(226, 232, 240, 0.56);
+    box-shadow: none;
+    transform: none;
+  }
+
+  :deep(.status-card .card-action > button),
+  :deep(.bottle-helper .card-action > button),
+  :deep(.helper .card-action > button),
+  :deep(.hang-up .card-action > button),
+  :deep(.dream-helper .card-action > button),
+  :deep(.dream-helper .team-actions button),
+  :deep(.dream-helper .merchant-actions button),
+  :deep(.consumption-progress .setting-item button),
+  :deep(.consumption-progress .current button),
+  :deep(.star-upgrade .action-row button:not(:last-child)),
+  :deep(.refine-helper .n-button--primary-type),
+  :deep(.refine-helper .n-button--success-type),
+  :deep(.refine-helper .n-button--warning-type),
+  :deep(.refine-helper .n-button--error-type) {
+    background: linear-gradient(135deg, #7c6cff 0%, #8b5cf6 100%);
+    border-color: rgba(124, 108, 255, 0.36);
+    color: #ffffff;
+    box-shadow: 0 10px 18px rgba(124, 108, 255, 0.22);
+  }
+
+  :deep(.status-card .card-action > button:hover:not(:disabled)),
+  :deep(.bottle-helper .card-action > button:hover:not(:disabled)),
+  :deep(.helper .card-action > button:hover:not(:disabled)),
+  :deep(.hang-up .card-action > button:hover:not(:disabled)),
+  :deep(.dream-helper .card-action > button:hover:not(:disabled)),
+  :deep(.dream-helper .team-actions button:hover:not(:disabled)),
+  :deep(.dream-helper .merchant-actions button:hover:not(:disabled)),
+  :deep(.consumption-progress .setting-item button:hover:not(:disabled)),
+  :deep(.consumption-progress .current button:hover:not(:disabled)),
+  :deep(.star-upgrade .action-row button:not(:last-child):hover:not(:disabled)),
+  :deep(.refine-helper .n-button--primary-type:hover:not(.n-button--disabled)),
+  :deep(.refine-helper .n-button--success-type:hover:not(.n-button--disabled)),
+  :deep(.refine-helper .n-button--warning-type:hover:not(.n-button--disabled)),
+  :deep(.refine-helper .n-button--error-type:hover:not(.n-button--disabled)) {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+    background: linear-gradient(135deg, #8b5cf6 0%, #9f7cff 100%);
+    border-color: rgba(124, 108, 255, 0.46);
+    box-shadow: 0 12px 22px rgba(124, 108, 255, 0.18);
+  }
+
+  :deep(.star-upgrade .action-row button:last-child) {
+    background: rgba(8, 15, 35, 0.42);
+    border: 1px solid rgba(124, 108, 255, 0.16);
+    color: var(--text-secondary);
+  }
+
+  :deep(.star-upgrade .action-row button:last-child:hover:not(:disabled)) {
+    background: rgba(124, 108, 255, 0.16);
+    border-color: rgba(124, 108, 255, 0.34);
+    color: #ffffff;
+  }
+}
+
+.game-status-container.activity-mode {
+  :deep(.skin-challenge .boss-card) {
+    background:
+      linear-gradient(165deg, rgba(7, 18, 39, 0.84) 0%, rgba(16, 31, 59, 0.68) 100%);
+    border: 1px solid rgba(124, 108, 255, 0.14);
+    backdrop-filter: blur(8px) saturate(126%);
+    -webkit-backdrop-filter: blur(8px) saturate(126%);
+    box-shadow: 0 16px 32px rgba(8, 15, 35, 0.14);
+  }
+
+  :deep(.skin-challenge .boss-card.active) {
+    background:
+      linear-gradient(165deg, rgba(18, 27, 56, 0.92) 0%, rgba(27, 43, 82, 0.82) 100%);
+    border-color: rgba(124, 108, 255, 0.36);
+    box-shadow:
+      0 18px 36px rgba(8, 15, 35, 0.16),
+      0 0 26px rgba(124, 108, 255, 0.12);
+  }
+
+  :deep(.skin-challenge .boss-card.cleared) {
+    background:
+      linear-gradient(165deg, rgba(7, 18, 39, 0.82) 0%, rgba(14, 27, 53, 0.7) 100%);
+    border-color: rgba(110, 231, 183, 0.24);
+  }
+
+  :deep(.skin-challenge .boss-card.locked) {
+    background:
+      linear-gradient(165deg, rgba(7, 18, 39, 0.72) 0%, rgba(13, 25, 49, 0.56) 100%);
+    border-color: rgba(124, 108, 255, 0.1);
+    opacity: 0.82;
+  }
+
+  :deep(.skin-challenge .challenge-btn) {
+    background: linear-gradient(135deg, #7c6cff 0%, #8b5cf6 100%);
+    box-shadow: 0 10px 18px rgba(124, 108, 255, 0.2);
+  }
+
+  :deep(.skin-challenge .challenge-btn:not(:disabled):hover) {
+    background: linear-gradient(135deg, #8b5cf6 0%, #9f7cff 100%);
+  }
+
+  :deep(.skin-challenge .action-button.secondary) {
+    background: rgba(8, 15, 35, 0.42);
+    color: var(--text-secondary);
+    border: 1px solid rgba(124, 108, 255, 0.16);
+  }
+
+  :deep(.monthly-tasks .status-badge.active),
+  :deep(.study .status-badge.weekly),
+  :deep(.study .status-badge.completed),
+  :deep(.skin-challenge .status-badge.active),
+  :deep(.skin-challenge .status-badge.completed) {
+    background: linear-gradient(
+      135deg,
+      rgba(124, 108, 255, 0.18),
+      rgba(139, 92, 246, 0.18)
+    );
+    border: 1px solid rgba(124, 108, 255, 0.34);
+    color: #ffffff;
+    box-shadow: 0 10px 18px rgba(124, 108, 255, 0.18);
+  }
+
+  :deep(.study .card-action.weekly),
+  :deep(.study .card-action.completed) {
+    background: rgba(8, 15, 35, 0.34);
+    border: 1px solid rgba(124, 108, 255, 0.18);
+    border-radius: 12px;
+  }
+
+  :deep(.study button),
+  :deep(.study .ant-btn) {
+    border-radius: 12px;
+    border: 1px solid rgba(124, 108, 255, 0.18);
+    background: rgba(8, 15, 35, 0.34);
+    color: var(--text-color);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    transition:
+      transform 0.2s ease,
+      filter 0.2s ease,
+      box-shadow 0.2s ease,
+      background-color 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  :deep(.study .ant-btn-primary),
+  :deep(.study .ant-btn-warning),
+  :deep(.study .ant-btn-success),
+  :deep(.study .arco-btn-primary),
+  :deep(.study .arco-btn-warning),
+  :deep(.study .arco-btn-success) {
+    background: linear-gradient(135deg, #7c6cff 0%, #8b5cf6 100%);
+    border-color: rgba(124, 108, 255, 0.36);
+    color: #ffffff;
+    box-shadow: 0 10px 18px rgba(124, 108, 255, 0.2);
+  }
+
+  :deep(.study .ant-btn-primary:hover:not(.ant-btn-disabled)),
+  :deep(.study .ant-btn-warning:hover:not(.ant-btn-disabled)),
+  :deep(.study .ant-btn-success:hover:not(.ant-btn-disabled)),
+  :deep(.study .arco-btn-primary:hover:not(.arco-btn-disabled)),
+  :deep(.study .arco-btn-warning:hover:not(.arco-btn-disabled)),
+  :deep(.study .arco-btn-success:hover:not(.arco-btn-disabled)) {
+    background: linear-gradient(135deg, #8b5cf6 0%, #9f7cff 100%);
+    border-color: rgba(124, 108, 255, 0.46);
+    color: #ffffff;
+  }
+
+  :deep(.study button:hover:not(:disabled)),
+  :deep(.study .ant-btn:hover:not(.ant-btn-disabled)) {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+    background: rgba(124, 108, 255, 0.16);
+    border-color: rgba(124, 108, 255, 0.34);
+    box-shadow: 0 12px 22px rgba(124, 108, 255, 0.16);
+  }
+
+  :deep(.study button:disabled),
+  :deep(.study .ant-btn-disabled),
+  :deep(.study .arco-btn-disabled) {
+    background: rgba(148, 163, 184, 0.24);
+    border-color: rgba(148, 163, 184, 0.22);
+    color: rgba(226, 232, 240, 0.56);
+    box-shadow: none;
+    transform: none;
   }
 }
 

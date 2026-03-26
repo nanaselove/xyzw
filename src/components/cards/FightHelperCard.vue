@@ -152,7 +152,7 @@ const handleFightHelper = async () => {
         }
         .fight-count {
           margin-top: 2px;
-          color: #666;
+          color: var(--text-secondary);
         }
       }
     }

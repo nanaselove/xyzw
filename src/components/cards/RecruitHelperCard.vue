@@ -146,7 +146,7 @@ const handleHelper = async () => {
 
         .box-count {
           margin-top: 2px;
-          color: #666;
+          color: var(--text-secondary);
         }
       }
     }

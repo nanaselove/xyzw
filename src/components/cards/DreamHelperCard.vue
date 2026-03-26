@@ -184,7 +184,7 @@ function delay(seconds) {
 // 获取类型颜色
 function getTypeColor(type) {
   const colorMap = {
-    魏国: "#3b82f6",
+    魏国: "#7c6cff",
     蜀国: "#10b981",
     吴国: "#f59e0b",
     群雄: "#ef4444",
@@ -791,9 +791,22 @@ const startDreamHelper = async () => {
   }
 
   .team-actions {
-    display: flex;
-    gap: 8px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
     margin-bottom: 15px;
+
+    :deep(.arco-btn) {
+      width: 100%;
+      min-width: 0;
+      min-height: 34px;
+      height: auto;
+      padding: 4px 6px;
+      font-size: 11px;
+      line-height: 1.1;
+      white-space: nowrap;
+      letter-spacing: -0.01em;
+    }
   }
 
   .merchant-info {
@@ -806,9 +819,22 @@ const startDreamHelper = async () => {
     }
 
     .merchant-actions {
-      display: flex;
-      gap: 8px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
       margin-bottom: 10px;
+
+      :deep(.arco-btn) {
+        width: 100%;
+        min-width: 0;
+        min-height: 34px;
+        height: auto;
+        padding: 4px 6px;
+        font-size: 11px;
+        line-height: 1.1;
+        white-space: nowrap;
+        letter-spacing: -0.02em;
+      }
     }
   }
 
