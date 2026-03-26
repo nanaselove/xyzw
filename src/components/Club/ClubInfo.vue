@@ -129,10 +129,16 @@
         >
           <n-tab-pane name="overview" tab="概览" display-directive="show:lazy">
             <div class="overview">
-              <n-grid x-gap="12" y-gap="12" cols="2" item-responsive>
-                <!-- 头部信息 -->
-                <n-gi span="2">
-                  <n-card embedded :bordered="false" content-style="padding: 16px;">
+                <n-grid
+                  x-gap="12 xs:8"
+                  y-gap="12 xs:8"
+                  cols="2 xs:1"
+                  responsive="screen"
+                  item-responsive
+                >
+                  <!-- 头部信息 -->
+                  <n-gi span="2">
+                    <n-card embedded :bordered="false" content-style="padding: 16px;">
                     <n-thing>
                       <template #avatar>
                         <n-avatar
@@ -2364,6 +2370,35 @@ const formatNumber = (num) => {
       justify-content: flex-start;
       overflow-x: auto;
       padding-bottom: 4px;
+    }
+
+    .overview {
+      :deep(.n-card) {
+        min-width: 0;
+      }
+
+      :deep(.n-statistic) {
+        min-width: 0;
+      }
+
+      :deep(.n-statistic__label) {
+        white-space: nowrap;
+      }
+
+      :deep(.n-statistic-value) {
+        white-space: nowrap;
+        line-height: 1.1;
+      }
+
+      :deep(.n-statistic-value__content),
+      :deep(.n-statistic-value__prefix),
+      :deep(.n-statistic-value__suffix) {
+        white-space: nowrap;
+      }
+
+      :deep(.n-statistic-value__content) {
+        font-size: clamp(20px, 5vw, 28px);
+      }
     }
 
     :deep(.club-info-tabs .n-tabs-nav) {
