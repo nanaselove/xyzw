@@ -1703,4 +1703,149 @@ onMounted(() => {
       max-width: 96px;
     }
 }
+
+/* Salt field dark theme */
+.style-1 {
+  background: var(--card-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--card-border);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--card-shadow);
+}
+
+.style1-header h2 {
+  background: rgba(8, 15, 35, 0.34);
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--card-border);
+}
+
+.style1-table th {
+  background: linear-gradient(135deg, #7c6cff 0%, #8b5cf6 100%);
+  color: #fff;
+}
+
+.style1-table td {
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-primary);
+}
+
+.style1-table tr:nth-child(even) {
+  background-color: rgba(124, 108, 255, 0.05);
+}
+
+.summary-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+}
+
+.summary-title {
+  background: linear-gradient(135deg, #7c6cff 0%, #8b5cf6 100%);
+  color: #fff;
+}
+
+.summary-item,
+.top3-item {
+  border-bottom: 1px solid var(--border-light);
+}
+
+.top3-value,
+.top3-name,
+.rank-medal,
+.rank-medal-small {
+  color: var(--text-primary);
+}
+
+.style-2 {
+  background: var(--card-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--card-border);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--card-shadow);
+}
+
+.style2-header {
+  background: rgba(8, 15, 35, 0.34);
+  color: var(--text-primary);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.title-text h2,
+.stat-value-mini,
+.mvp-name,
+.rank-card-title-s2,
+.rank-val-s2,
+.kd-val,
+.player-name-s2 {
+  color: var(--text-primary);
+}
+
+.date-text,
+.stat-label-mini,
+.rank-num-s2 {
+  color: var(--text-secondary);
+}
+
+.stat-card-mini,
+.dashboard-mvp,
+.rank-card-s2,
+.style2-table-wrapper {
+  background: var(--bg-secondary);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+}
+
+.dashboard-mvp {
+  border-color: rgba(124, 108, 255, 0.28);
+  background: linear-gradient(
+    180deg,
+    rgba(8, 15, 35, 0.9) 0%,
+    rgba(16, 31, 59, 0.74) 100%
+  );
+}
+
+.mvp-avatar,
+.mvp-avatar-placeholder {
+  border-color: rgba(124, 108, 255, 0.36);
+}
+
+.mvp-label {
+  background: rgba(124, 108, 255, 0.18);
+  color: #f7fbff;
+}
+
+.rank-card-s2 {
+  border-top-color: rgba(124, 108, 255, 0.3);
+}
+
+.rank-num-s2 {
+  background: rgba(124, 108, 255, 0.14);
+}
+
+.style2-table thead {
+  background: linear-gradient(135deg, #7c6cff 0%, #8b5cf6 100%);
+}
+
+.style2-table th {
+  color: #fff;
+}
+
+.style2-table td {
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-primary);
+}
+
+.style2-table tbody tr:hover {
+  background: rgba(124, 108, 255, 0.08);
+}
+
+.avatar-placeholder-xs {
+  background: rgba(124, 108, 255, 0.18);
+  color: #fff;
+}
+
+.progress-bg {
+  background: rgba(255, 255, 255, 0.08);
+}
+
 </style>

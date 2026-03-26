@@ -1014,4 +1014,120 @@ onUnmounted(() => {
     height: 400px !important;
   }
 }
+
+.legion-war-map-container {
+  .legion-war-map-card {
+    background: var(--card-surface);
+    color: var(--text-primary);
+    border: 1px solid var(--card-border);
+    box-shadow: var(--card-shadow);
+
+    .access-denied-container {
+      background: transparent;
+    }
+
+    .access-denied-info {
+      color: var(--text-secondary);
+    }
+
+    .header-section {
+      background: transparent;
+      border-bottom: 1px solid var(--border-light);
+
+      .header-left {
+        .header-title {
+          h2 {
+            color: var(--text-primary);
+          }
+
+          p {
+            color: var(--text-secondary);
+          }
+        }
+      }
+
+      .stats-section {
+        .stat-item {
+          .stat-label {
+            color: var(--text-secondary);
+          }
+        }
+      }
+    }
+
+    .main-content-layout {
+      .map-container-wrapper {
+        background: var(--bg-primary);
+
+        .empty-state-overlay {
+          background-color: rgba(8, 15, 35, 0.82);
+
+          .empty-content {
+            color: var(--text-secondary);
+          }
+        }
+      }
+
+      .side-info-panel {
+        background: var(--bg-primary);
+        border-left: 1px solid var(--border-light);
+        box-shadow: -2px 0 16px rgba(8, 15, 35, 0.18);
+
+        .panel-header {
+          background: var(--bg-secondary);
+          border-bottom: 1px solid var(--border-light);
+
+          h3 {
+            color: var(--text-primary);
+          }
+        }
+
+        .legion-list {
+          .legion-item {
+            background: var(--bg-secondary);
+            border-left-color: rgba(124, 108, 255, 0.28);
+
+            &:hover {
+              background: var(--bg-primary);
+            }
+
+            .rank-badge {
+              background: rgba(124, 108, 255, 0.16);
+              color: var(--text-secondary);
+            }
+
+            .legion-info {
+              .legion-name {
+                color: var(--text-primary);
+
+                .legion-id {
+                  color: var(--text-secondary);
+                }
+              }
+
+              .legion-stats {
+                .stat-red {
+                  color: #ff7f93;
+                  background: rgba(208, 48, 80, 0.16);
+                }
+              }
+            }
+          }
+
+          .alliance-group {
+            .group-header {
+              .group-name {
+                color: var(--text-primary);
+              }
+
+              .group-count {
+                color: var(--text-secondary);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
 </style>

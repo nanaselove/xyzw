@@ -813,11 +813,72 @@ onUnmounted(() => {
     overflow-x: auto;
   }
 
-  .legion-war-statistics-container
+    .legion-war-statistics-container
     .legion-war-statistics-card
     .table-content
     :deep(.n-data-table-wrapper) {
     overflow-x: auto;
+  }
+}
+
+.legion-war-statistics-container {
+  .legion-war-statistics-card {
+    background: var(--card-surface);
+    color: var(--text-primary);
+    border: 1px solid var(--card-border);
+    box-shadow: var(--card-shadow);
+
+    .access-denied-container {
+      background: transparent;
+    }
+
+    .access-denied-info {
+      color: var(--text-secondary);
+    }
+
+    .header-section {
+      background: transparent;
+      border-bottom: 1px solid var(--border-light);
+
+      .header-left {
+        .header-title {
+          h2 {
+            color: var(--text-primary);
+          }
+
+          p {
+            color: var(--text-secondary);
+          }
+        }
+      }
+    }
+
+    .function-section {
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-light);
+
+      .function-left {
+        .stat-item {
+          .stat-label {
+            color: var(--text-secondary);
+          }
+        }
+      }
+    }
+
+    .table-content {
+      background: var(--bg-primary);
+
+      .empty-state {
+        color: var(--text-secondary);
+      }
+    }
+  }
+}
+
+:deep(.my-legion-row) {
+  td {
+    background-color: rgba(124, 108, 255, 0.08) !important;
   }
 }
 </style>

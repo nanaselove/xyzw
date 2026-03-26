@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="club-warrank-container">
     <div class="club-warrank-card">
       <!-- 头部信息区 -->
@@ -1094,8 +1094,7 @@ const getHeroInfo = (heroObj) => {
   //统计总红数
   let redCount = 0;
   let holeCount = 0;
-  let heroList = [];
-
+  let heroList = [];
   try {
     // 检查英雄数据结构，确保可以遍历
     let heroesToProcess = [];
@@ -2187,7 +2186,7 @@ const handleExport1 = async () => {
       );
     }
     if (exportmethod.value.includes("2")) {
-      exportToImage();
+      await exportToImage();
     }
     message.success("导出成功");
   } catch (error) {
@@ -2197,78 +2196,134 @@ const handleExport1 = async () => {
 };
 
 const exportToImage = async () => {
-  // 校验：确保DOM已正确绑定
   if (!exportDom.value) {
-    alert("未找到要导出的DOM元素");
+    alert("未找到要导出的 DOM 元素");
     return;
   }
 
-  // 获取 table-container
   const tableContainer = exportDom.value.querySelector(".table-container");
-  // 保存滚动位置
+  const exportCard = exportDom.value.closest(".club-warrank-card");
+  const exportShell = exportDom.value.closest(".club-warrank-container");
   const scrollTop = tableContainer ? tableContainer.scrollTop : 0;
+  const styleTargets = [exportDom.value, tableContainer, exportCard, exportShell].filter(Boolean);
+  const originalStyles = styleTargets.map((el) => ({
+    el,
+    height: el.style.height,
+    minHeight: el.style.minHeight,
+    maxHeight: el.style.maxHeight,
+    overflow: el.style.overflow,
+    overflowX: el.style.overflowX,
+    overflowY: el.style.overflowY,
+    flex: el.style.flex,
+    position: el.style.position,
+  }));
+
+  const expandForExport = (el) => {
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.minHeight = "0";
+    el.style.maxHeight = "none";
+    el.style.overflow = "visible";
+    el.style.overflowX = "visible";
+    el.style.overflowY = "visible";
+  };
 
   try {
-    // 临时调整表格容器高度，确保所有内容可见
-    exportDom.value.style.height = "auto";
-    exportDom.value.style.overflow = "visible";
-
+    styleTargets.forEach(expandForExport);
+    if (exportDom.value) {
+      exportDom.value.style.flex = "none";
+    }
     if (tableContainer) {
-      // 保存原始样式
-      tableContainer.dataset.originalHeight = tableContainer.style.height;
-      tableContainer.dataset.originalOverflow = tableContainer.style.overflow;
-
-      tableContainer.style.height = "auto";
-      tableContainer.style.overflow = "visible";
+      tableContainer.style.flex = "none";
+    }
+    if (exportCard) {
+      exportCard.style.flex = "none";
+    }
+    if (exportShell) {
+      exportShell.style.flex = "none";
     }
 
-    // 等待DOM更新
     await new Promise((resolve) => setTimeout(resolve, 100));
 
-    // 5. 用html2canvas渲染DOM为Canvas
+    const renderWidth = Math.max(
+      exportDom.value.scrollWidth || 0,
+      tableContainer?.scrollWidth || 0,
+      1,
+    );
+    const tableRows = tableContainer
+      ? Array.from(tableContainer.querySelectorAll(".table-row"))
+      : [];
+    const lastRow = tableRows[tableRows.length - 1];
+    const tableBodyHeight = lastRow ? lastRow.offsetTop + lastRow.offsetHeight : 0;
+    const renderHeight = Math.max(
+      exportDom.value.scrollHeight || 0,
+      tableContainer?.scrollHeight || 0,
+      tableBodyHeight,
+      1,
+    ) + 48;
+
     const canvas = await captureDomCanvas(exportDom.value, {
-      scale: 2, // 放大2倍，解决图片模糊问题
-      useCORS: true, // 允许跨域图片（若DOM内有远程图片，需开启）
-      backgroundColor: "#ffffff", // 避免透明背景（默认透明）
-      logging: false, // 关闭控制台日志
-      height: exportDom.value.scrollHeight, // 确保捕获完整高度
-      width: exportDom.value.scrollWidth, // 确保捕获完整宽度
-      windowWidth: exportDom.value.scrollWidth, // 设置窗口宽度
-      windowHeight: exportDom.value.scrollHeight, // 设置窗口高度
-      allowTaint: true, // 允许跨域图片污染画布
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      logging: false,
+      width: renderWidth,
+      height: renderHeight,
+      windowWidth: renderWidth,
+      windowHeight: renderHeight,
+      allowTaint: true,
+      onclone: (clonedDoc) => {
+        const clonedExportDom = clonedDoc.querySelector(".table-content");
+        const clonedTableContainer = clonedDoc.querySelector(".table-container");
+        const clonedCard = clonedDoc.querySelector(".club-warrank-card");
+        const clonedShell = clonedDoc.querySelector(".club-warrank-container");
+
+        [clonedExportDom, clonedTableContainer, clonedCard, clonedShell].forEach((el) => {
+          if (!el) return;
+          el.style.height = "auto";
+          el.style.minHeight = "0";
+          el.style.maxHeight = "none";
+          el.style.overflow = "visible";
+          el.style.overflowX = "visible";
+          el.style.overflowY = "visible";
+        });
+
+        if (clonedExportDom) {
+          clonedExportDom.style.flex = "none";
+        }
+        if (clonedTableContainer) {
+          clonedTableContainer.style.flex = "none";
+          clonedTableContainer.style.paddingBottom = "48px";
+        }
+        if (clonedCard) {
+          clonedCard.style.flex = "none";
+        }
+        if (clonedShell) {
+          clonedShell.style.flex = "none";
+        }
+      },
     });
 
-    // 6. Canvas转图片链接并下载
     const filename =
       queryDate.value.replace("/", "年").replace("/", "月") +
       "日盐场匹配信息.png";
     downloadCanvasAsImage(canvas, filename);
   } catch (err) {
-    console.error("DOM转图片失败：", err);
+    console.error("DOM 转图片失败：", err);
     alert("导出图片失败，请重试");
   } finally {
-    // 恢复原始样式
-    exportDom.value.style.removeProperty("height");
-    exportDom.value.style.removeProperty("overflow");
+    originalStyles.forEach(({ el, height, minHeight, maxHeight, overflow, overflowX, overflowY, flex, position }) => {
+      el.style.height = height;
+      el.style.minHeight = minHeight;
+      el.style.maxHeight = maxHeight;
+      el.style.overflow = overflow;
+      el.style.overflowX = overflowX;
+      el.style.overflowY = overflowY;
+      el.style.flex = flex;
+      el.style.position = position;
+    });
 
     if (tableContainer) {
-      if (tableContainer.dataset.originalHeight) {
-        tableContainer.style.height = tableContainer.dataset.originalHeight;
-      } else {
-        tableContainer.style.removeProperty("height");
-      }
-
-      if (tableContainer.dataset.originalOverflow) {
-        tableContainer.style.overflow = tableContainer.dataset.originalOverflow;
-      } else {
-        tableContainer.style.removeProperty("overflow");
-      }
-
-      // 清理 dataset
-      delete tableContainer.dataset.originalHeight;
-      delete tableContainer.dataset.originalOverflow;
-
-      // 恢复滚动位置
       tableContainer.scrollTop = scrollTop;
     }
   }
@@ -2997,6 +3052,26 @@ onMounted(() => {
       .n-input-wrapper {
         font-size: var(--font-size-sm);
       }
+    }
+
+    :deep(.arco-picker) {
+      min-width: 200px;
+      background: rgba(8, 15, 35, 0.34);
+      border: 1px solid var(--border-medium);
+      color: var(--text-primary);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+
+    :deep(.arco-picker:hover),
+    :deep(.arco-picker-focused) {
+      border-color: var(--primary-color);
+      background: rgba(124, 108, 255, 0.14);
+    }
+
+    :deep(.arco-picker input),
+    :deep(.arco-picker .arco-picker-input),
+    :deep(.arco-picker .arco-picker-value) {
+      color: var(--text-primary);
     }
 
     .action-btn {
@@ -3899,3 +3974,5 @@ onMounted(() => {
   }
 }
 </style>
+
+

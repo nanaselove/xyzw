@@ -5,6 +5,7 @@
       'full-grid': activeSection === 'fightPvp',
       'full-page-mode': activeSection === 'saltFieldGroup' || activeSection === 'peachGroup' || activeSection === 'rankGroup',
       'club-mode': activeSection === 'club',
+      'salt-field-mode': activeSection === 'saltFieldGroup',
       'activity-mode': activeSection === 'activity',
       'tools-mode': activeSection === 'tools',
       'daily-mode': activeSection === 'daily'
@@ -842,7 +843,7 @@ onUnmounted(() => {
   }
 }
 
-.game-status-container:is(.club-mode, .activity-mode, .tools-mode) {
+.game-status-container:is(.club-mode, .activity-mode, .tools-mode, .salt-field-mode) {
   --text-color: #f7fbff;
   --text-secondary: rgba(225, 237, 255, 0.84);
   --text-tertiary: rgba(176, 194, 226, 0.9);
@@ -860,6 +861,9 @@ onUnmounted(() => {
   --color-primary: #7c6cff;
   --color-primary-hover: #8b5cf6;
   --color-primary-light: rgba(124, 108, 255, 0.16);
+  --info-color: #7c6cff;
+  --info-color-hover: #8b5cf6;
+  --info-color-light: rgba(124, 108, 255, 0.16);
   --color-secondary: rgba(124, 108, 255, 0.22);
   --color-secondary-hover: rgba(139, 92, 246, 0.3);
   --color-secondary-active: rgba(107, 92, 230, 0.34);
@@ -1114,6 +1118,97 @@ onUnmounted(() => {
 
   :deep(.club-info-tabs .n-tabs-tab .n-tabs-tab__label) {
     color: inherit !important;
+  }
+}
+
+.game-status-container.salt-field-mode {
+  :deep(.salt-field-group .n-button),
+  :deep(.salt-field-group .arco-btn) {
+    border-radius: 12px;
+    border: 1px solid rgba(124, 108, 255, 0.24);
+    background: linear-gradient(
+      135deg,
+      rgba(124, 108, 255, 0.16),
+      rgba(139, 92, 246, 0.12)
+    );
+    color: var(--text-color);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 8px 16px rgba(124, 108, 255, 0.12);
+    transition:
+      transform 0.2s ease,
+      filter 0.2s ease,
+      box-shadow 0.2s ease,
+      background-color 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  :deep(.salt-field-group .n-button--primary-type),
+  :deep(.salt-field-group .n-button--info-type),
+  :deep(.salt-field-group .n-button--success-type),
+  :deep(.salt-field-group .n-button--warning-type),
+  :deep(.salt-field-group .arco-btn-primary),
+  :deep(.salt-field-group .arco-btn-info),
+  :deep(.salt-field-group .arco-btn-success),
+  :deep(.salt-field-group .arco-btn-warning) {
+    background: linear-gradient(135deg, #7c6cff 0%, #8b5cf6 100%);
+    border-color: rgba(124, 108, 255, 0.36);
+    color: #ffffff;
+    box-shadow: 0 10px 18px rgba(124, 108, 255, 0.2);
+  }
+
+  :deep(.salt-field-group .n-button:hover:not(.n-button--disabled)),
+  :deep(.salt-field-group .arco-btn:hover:not(.arco-btn-disabled)) {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+    background: linear-gradient(
+      135deg,
+      rgba(124, 108, 255, 0.28),
+      rgba(139, 92, 246, 0.22)
+    );
+    border-color: rgba(124, 108, 255, 0.44);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 12px 22px rgba(124, 108, 255, 0.18);
+  }
+
+  :deep(.salt-field-group .n-button--disabled),
+  :deep(.salt-field-group .arco-btn-disabled) {
+    background: rgba(148, 163, 184, 0.24);
+    border-color: rgba(148, 163, 184, 0.22);
+    color: rgba(226, 232, 240, 0.56);
+    box-shadow: none;
+    transform: none;
+  }
+
+  :deep(.salt-field-group .n-button--default-type) {
+    background: rgba(8, 15, 35, 0.34);
+    border-color: rgba(124, 108, 255, 0.18);
+    color: var(--text-color);
+  }
+
+  :deep(.salt-field-group .arco-picker) {
+    background: rgba(8, 15, 35, 0.34);
+    border: 1px solid rgba(124, 108, 255, 0.22);
+    color: var(--text-color);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+
+  :deep(.salt-field-group .arco-picker:hover),
+  :deep(.salt-field-group .arco-picker-focused) {
+    border-color: rgba(124, 108, 255, 0.44);
+    background: rgba(124, 108, 255, 0.14);
+  }
+
+  :deep(.salt-field-group .arco-picker input),
+  :deep(.salt-field-group .arco-picker .arco-picker-input),
+  :deep(.salt-field-group .arco-picker .arco-picker-value) {
+    color: var(--text-color);
+  }
+
+  :deep(.salt-field-group .arco-picker .arco-picker-suffix-icon),
+  :deep(.salt-field-group .arco-picker .arco-picker-clear-icon) {
+    color: rgba(225, 237, 255, 0.72);
   }
 }
 
@@ -1543,17 +1638,30 @@ onUnmounted(() => {
   border-radius: var(--border-radius-sm);
 }
 
+.sub-nav :deep(.n-tabs--segment-type) {
+  background: transparent !important;
+}
+
 .sub-nav :deep(.n-tabs--segment-type .n-tabs-rail) {
   display: inline-flex;
   width: max-content;
   min-width: max-content;
   flex-wrap: nowrap;
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: inherit;
+}
+
+.sub-nav :deep(.n-tabs--segment-type .n-tabs-capsule) {
+  display: none !important;
 }
 
 .sub-nav :deep(.n-tabs--segment-type .n-tabs-tab-wrapper) {
   flex: 0 0 auto;
   border-radius: 999px;
-  padding: 2px;
+  padding: 0;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 .sub-nav :deep(.n-tabs--segment-type .n-tabs-tab) {
@@ -1561,6 +1669,12 @@ onUnmounted(() => {
   border-radius: 999px;
   min-height: 32px;
   padding-inline: 14px;
+  margin: 2px 0;
+}
+
+.sub-nav :deep(.n-tabs-nav-scroll-wrapper),
+.sub-nav :deep(.n-tabs-nav-scroll-content) {
+  background: transparent !important;
 }
 
 .sub-nav :deep(.v-x-scroll) {
@@ -1597,8 +1711,8 @@ onUnmounted(() => {
 .sub-nav :deep(.n-tabs-tab.n-tabs-tab--active) {
   color: var(--section-tab-active-text) !important;
   background: var(--section-tab-active-bg);
-  border-color: var(--section-tab-active-border);
-  box-shadow: var(--section-tab-active-shadow);
+  border-color: transparent;
+  box-shadow: 0 10px 18px rgba(124, 108, 255, 0.3);
 }
 
 @media (min-width: 769px) {
