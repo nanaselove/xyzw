@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="legion-war-statistics-container">
     <div class="legion-war-statistics-card">
       <div v-if="!isAccessible" class="access-denied-container">
@@ -241,6 +241,7 @@ import { getCurrentTimeByFormat } from "@/utils/DateTimeUtils";
 import { isLegionWarAccessible } from "@/utils/clubBattleUtils";
 import { storeToRefs } from "pinia";
 import { captureDomCanvas } from "@/utils/imageExport";
+import { saveExcel, savePng } from "@/utils/nativeExport";
 import * as XLSX from "xlsx";
 import { 
   LogInOutline, 
@@ -272,7 +273,7 @@ const {
 const viewMode = ref("legion"); // legion | individual
 const exporting = ref(false);
 const tableMaxHeight = ref(600);
-const exportExcel = () => {
+const exportExcel = async () => {
   if (!validData.value) {
     message.warning("无数据可导出");
     return;
@@ -332,9 +333,16 @@ const exportExcel = () => {
   const ws = XLSX.utils.json_to_sheet(dataToExport);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-  
+
   const fileName = `盐场${fileNamePrefix}_${getCurrentTimeByFormat("yyyyMMdd_HHmmss")}.xlsx`;
-  XLSX.writeFile(wb, fileName);
+  const workbookData = XLSX.write(wb, {
+    bookType: "xlsx",
+    type: "array",
+  });
+  const workbookBlob = new Blob([workbookData], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+  await saveExcel(workbookBlob, fileName);
   message.success(`导出成功: ${fileName}`);
 };
 
@@ -361,11 +369,9 @@ const exportImage = async () => {
       backgroundColor: "#ffffff",
     });
 
-    const link = document.createElement("a");
     const modeName = viewMode.value === "legion" ? "俱乐部战况" : (viewMode.value === "individual" ? "个人战况" : "全部战况");
-    link.download = `盐场${modeName}_${getCurrentTimeByFormat("yyyyMMdd_HHmmss")}.png`;
-    link.href = canvas.toDataURL("image/png");
-    link.click();
+    const fileName = `盐场${modeName}_${getCurrentTimeByFormat("yyyyMMdd_HHmmss")}.png`;
+    await savePng(canvas, fileName);
     message.success("导出成功");
   } catch (error) {
     console.error("导出失败:", error);

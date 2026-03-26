@@ -8,6 +8,7 @@
  * @returns {string} 格式化的日期字符串 YYYY/MM/DD
  */
 import * as XLSX from "xlsx";
+import { saveExcel } from "./nativeExport";
 
 export function getLastSaturday() {
   const today = new Date();
@@ -336,7 +337,7 @@ export function parseAttackType(attackType) {
  * @param {string} queryDate - 查询日期
  * @returns {string} 格式化的文本
  */
-export function formatBattleRecordsForExport(roleDetailsList, queryDate) {
+export async function formatBattleRecordsForExport(roleDetailsList, queryDate) {
   if (!roleDetailsList || roleDetailsList.length === 0) {
     return "暂无战绩数据";
   }
@@ -505,7 +506,14 @@ export function formatBattleRecordsForExport(roleDetailsList, queryDate) {
   const fileName = `俱乐部战绩_${queryDate.replace(/\//g, "-")}.xlsx`;
 
   // 触发下载
-  XLSX.writeFile(workbook, fileName);
+  const workbookData = XLSX.write(workbook, {
+    bookType: "xlsx",
+    type: "array",
+  });
+  const workbookBlob = new Blob([workbookData], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+  await saveExcel(workbookBlob, fileName);
   return lines.join("\n");
 }
 /**

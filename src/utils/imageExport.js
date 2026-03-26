@@ -1,45 +1,15 @@
 import html2canvas from "html2canvas";
+import { savePng } from "./nativeExport";
 
 /**
- * Download a canvas as an image.
- * Keeps the existing share-first behavior on supported mobile browsers.
+ * Compatibility wrapper for image exports.
+ * The actual save flow is centralized in nativeExport.ts.
  */
-export const downloadCanvasAsImage = (canvas, filename) => {
+export const downloadCanvasAsImage = async (canvas, filename) => {
   try {
-    if (canvas.toBlob) {
-      canvas.toBlob((blob) => {
-        if (!blob) {
-          console.error("Canvas to Blob failed");
-          fallbackToDataURL(canvas, filename);
-          return;
-        }
-
-        if (
-          navigator.share &&
-          navigator.canShare &&
-          navigator.canShare({ files: [new File([blob], filename, { type: blob.type })] })
-        ) {
-          const file = new File([blob], filename, { type: blob.type });
-          navigator
-            .share({
-              files: [file],
-              title: "Share image",
-              text: filename,
-            })
-            .catch((err) => {
-              console.log("Share failed, falling back to download", err);
-              downloadBlob(blob, filename);
-            });
-        } else {
-          downloadBlob(blob, filename);
-        }
-      }, "image/png");
-    } else {
-      fallbackToDataURL(canvas, filename);
-    }
-  } catch (e) {
-    console.error("Image export failed:", e);
-    fallbackToDataURL(canvas, filename);
+    await savePng(canvas, filename);
+  } catch (error) {
+    console.error("Image export failed:", error);
   }
 };
 
@@ -221,7 +191,7 @@ const applyCloneDefaults = (clonedDoc, renderWidth) => {
  */
 export const captureDomCanvas = async (element, options = {}) => {
   if (!element) {
-    throw new Error("未找到要导出的DOM元素");
+    throw new Error("未找到要导出的 DOM 元素");
   }
 
   const {
@@ -282,37 +252,4 @@ export const captureDomCanvas = async (element, options = {}) => {
   });
 
   return trimCanvasWhitespace(canvas, trimPadding, trimThreshold);
-};
-
-const downloadBlob = (blob, filename) => {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-
-  document.body.appendChild(link);
-
-  try {
-    link.click();
-  } catch (e) {
-    console.error("Link click failed", e);
-  }
-
-  document.body.removeChild(link);
-  setTimeout(() => URL.revokeObjectURL(url), 100);
-};
-
-const fallbackToDataURL = (canvas, filename) => {
-  try {
-    const imgUrl = canvas.toDataURL("image/png");
-    const link = document.createElement("a");
-    link.href = imgUrl;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  } catch (e) {
-    console.error("DataURL export failed:", e);
-    alert("导出图片失败，图片可能过大");
-  }
 };

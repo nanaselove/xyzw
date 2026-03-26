@@ -1,8 +1,9 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, createWebHashHistory } from 'vue-router'
 import * as autoRoutes from "vue-router/auto-routes";
 import { useTokenStore } from '@/stores/tokenStore'
 import { isNowInLegionWarTime } from "@/utils/clubBattleUtils"
 import { buildPageTitle } from '@/constants/appMeta'
+import { isAndroidWebView } from "@/utils/env"
 
 const generatedRoutes = autoRoutes.routes ?? [];
 
@@ -140,7 +141,7 @@ const my_routes = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: isAndroidWebView() ? createWebHashHistory() : createWebHistory(),
   routes: my_routes,
   scrollBehavior(to, from, savedPosition) {
     if (savedPosition) {
@@ -160,6 +161,10 @@ router.beforeEach((to, from, next) => {
 
   // 设置页面标题
   document.title = buildPageTitle(to.meta?.title)
+  if (isAndroidWebView() && !from.name && to.path === '/') {
+    next('/tokens')
+    return
+  }
   if(to.name==="LegionWar"&&!isNowInLegionWarTime()){
   // if(to.name==="LegionWar"&&isNowInLegionWarTime()){
     next('/admin/dashboard');

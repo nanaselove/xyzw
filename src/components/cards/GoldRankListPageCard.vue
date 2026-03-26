@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="club-warrank-container">
     <div class="club-warrank-card">
       <!-- 头部信息区 -->
@@ -705,7 +705,7 @@ import {
 } from "naive-ui";
 import { useTokenStore } from "@/stores/tokenStore";
 import { captureDomCanvas } from "@/utils/imageExport";
-import { downloadCanvasAsImage } from "@/utils/imageExport";
+import { savePng } from "@/utils/nativeExport";
 import {
   Trophy,
   Refresh,
@@ -1673,7 +1673,7 @@ const handleExport1 = async () => {
       loadingMsg.destroy(); // 完成后销毁
       prepareMsg.destroy(); // 销毁准备导出的提示
 
-      formatWarrankRecordsForExport(
+      await formatWarrankRecordsForExport(
         allData,
         queryDate.value || formatTimestamp1(new Date()),
       );
@@ -1684,7 +1684,7 @@ const handleExport1 = async () => {
       if (!battleRecords1.value || !battleRecords1.value.legionRankList) {
         message.warning("当前没有可导出的图片数据");
       } else {
-        exportToImage();
+        await exportToImage();
         message.success("图片导出成功");
       }
     }
@@ -1731,7 +1731,7 @@ const exportToImage = async () => {
     const filename =
       inputDate1.value.replace("/", "年").replace("/", "月") +
       "日黄金积分俱乐部信息.png";
-    downloadCanvasAsImage(canvas, filename);
+    await savePng(canvas, filename);
   } catch (err) {
     console.error("DOM转图片失败：", err);
     alert("导出图片失败，请重试");

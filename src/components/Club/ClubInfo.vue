@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <MyCard class="club-info" :statusClass="{ active: !!club }">
     <template #icon>
       <img src="/icons/1733492491706152.png" alt="俱乐部图标" />
@@ -614,7 +614,7 @@ import CarScoreInfo from "./CarScoreInfo.vue";
 import { $emit } from "@/stores/events";
 import { HERO_DICT, legacycolor, HeroFillInfo, getLineupType, LINEUP_RULES } from "@/utils/HeroList";
 import html2canvas from 'html2canvas';
-import { downloadCanvasAsImage } from "@/utils/imageExport";
+import { savePng } from "@/utils/nativeExport";
 
 const tokenStore = useTokenStore();
 const message = useMessage();
@@ -1040,7 +1040,7 @@ const handleExportImage = async () => {
     // 6. Canvas转图片链接并下载
     const dateStr = new Date().toLocaleDateString().replace(/\//g, "-");
     const filename = `俱乐部成员信息_${dateStr}.png`;
-    downloadCanvasAsImage(trimmedCanvas, filename);
+    await savePng(trimmedCanvas, filename);
 
     message.success("图片导出成功");
   } catch (err) {

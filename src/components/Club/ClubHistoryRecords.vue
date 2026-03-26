@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <!-- Inline 模式：卡片渲染 -->
     <div v-if="inline" class="inline-wrapper" ref="exportDom">
@@ -57,7 +57,7 @@ import { ref, computed, onMounted, h, nextTick } from "vue";
 import { useMessage, NDataTable, NTag, NButton, NIcon } from "naive-ui";
 import { useTokenStore } from "@/stores/tokenStore";
 import { captureDomCanvas } from "@/utils/imageExport";
-import { downloadCanvasAsImage } from "@/utils/imageExport";
+import { savePng } from "@/utils/nativeExport";
 import {
   Trophy,
   Refresh,
@@ -373,7 +373,7 @@ const handleExportImage = async () => {
 
     const dateStr = new Date().toLocaleDateString().replace(/\//g, "-");
     const filename = `俱乐部历史战绩_${dateStr}.png`;
-    downloadCanvasAsImage(canvas, filename);
+    await savePng(canvas, filename);
 
     message.success("图片导出成功");
   } catch (err) {
@@ -544,7 +544,7 @@ const handleExport = async () => {
   }
 
   try {
-    const exportText = formatBattleRecordsForExport(
+    const exportText = await formatBattleRecordsForExport(
       battleRecords.value.roleDetailsList,
       queryDate.value,
     );

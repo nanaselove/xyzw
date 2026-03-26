@@ -837,7 +837,7 @@ import {
 } from "naive-ui";
 import { useTokenStore } from "@/stores/tokenStore";
 import { captureDomCanvas } from "@/utils/imageExport";
-import { downloadCanvasAsImage } from "@/utils/imageExport";
+import { savePng } from "@/utils/nativeExport";
 import {
   Trophy,
   Refresh,
@@ -1094,7 +1094,8 @@ const getHeroInfo = (heroObj) => {
   //统计总红数
   let redCount = 0;
   let holeCount = 0;
-  let heroList = [];
+  let heroList = [];
+
   try {
     // 检查英雄数据结构，确保可以遍历
     let heroesToProcess = [];
@@ -2180,7 +2181,7 @@ const handleExport1 = async () => {
 
   try {
     if (exportmethod.value.includes("1")) {
-      const exportText = formatWarrankRecordsForExport(
+      const exportText = await formatWarrankRecordsForExport(
         battleRecords1.value.legionRankList,
         queryDate.value,
       );
@@ -2307,7 +2308,7 @@ const exportToImage = async () => {
     const filename =
       queryDate.value.replace("/", "年").replace("/", "月") +
       "日盐场匹配信息.png";
-    downloadCanvasAsImage(canvas, filename);
+    await savePng(canvas, filename);
   } catch (err) {
     console.error("DOM 转图片失败：", err);
     alert("导出图片失败，请重试");

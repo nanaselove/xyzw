@@ -3,6 +3,7 @@
  */
 
 import * as XLSX from "xlsx";
+import { saveExcel } from "./nativeExport";
 
 /**
  * 获取今天日期
@@ -22,7 +23,7 @@ export function gettoday() {
  * @param {string} queryDate - 查询日期
  * @returns {string} 格式化的文本
  */
-export function formatWarrankRecordsForExport(legionRankList, queryDate) {
+export async function formatWarrankRecordsForExport(legionRankList, queryDate) {
   if (!legionRankList || legionRankList.length === 0) {
     return "暂无战绩数据";
   }
@@ -128,7 +129,14 @@ export function formatWarrankRecordsForExport(legionRankList, queryDate) {
   const fileName = `盐场匹配详情_${queryDate.replace(/\//g, "-")}.xlsx`;
 
   // 触发下载
-  XLSX.writeFile(workbook, fileName);
+  const workbookData = XLSX.write(workbook, {
+    bookType: "xlsx",
+    type: "array",
+  });
+  const workbookBlob = new Blob([workbookData], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+  await saveExcel(workbookBlob, fileName);
   return "";
 }
 

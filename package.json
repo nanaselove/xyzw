@@ -9,6 +9,7 @@
     "testd": "node ./test/token.js",
     "dev": "vite",
     "build": "vite build",
+    "build:android": "npm run build && node scripts/copy-to-android.js",
     "preview": "vite preview",
     "lint": "eslint src --ext .vue,.js,.ts --fix",
     "format": "prettier --write \"src/**/*.{js,vue,ts,css,scss}\""

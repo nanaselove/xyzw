@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="legion-war-map-container">
     <div class="legion-war-map-card">
       <div v-if="!isAccessible" class="access-denied-container">
@@ -181,6 +181,7 @@ import { allianceincludes } from "@/utils/clubWarrankUtils";
 import { isLegionWarAccessible } from "@/utils/clubBattleUtils";
 import { storeToRefs } from "pinia";
 import { captureDomCanvas } from "@/utils/imageExport";
+import { savePng } from "@/utils/nativeExport";
 
 const message = useMessage();
 const tokenStore = useTokenStore();
@@ -225,10 +226,8 @@ const exportImage = async () => {
       ignoreElements: (el) => el.classList.contains("no-export"),
     });
 
-    const link = document.createElement("a");
-    link.download = `盐场地图_${getCurrentTimeByFormat("yyyyMMdd_HHmmss")}.png`;
-    link.href = canvas.toDataURL("image/png");
-    link.click();
+    const filename = `盐场地图_${getCurrentTimeByFormat("yyyyMMdd_HHmmss")}.png`;
+    await savePng(canvas, filename);
     message.success("导出成功");
   } catch (error) {
     console.error("导出失败:", error);

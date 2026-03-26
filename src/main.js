@@ -7,6 +7,7 @@ import { createPinia } from "pinia";
 import naive from "naive-ui";
 import router from "./router";
 import App from "./App.vue";
+import { installAndroidAssetRuntimeFix } from "./utils/androidAssetRuntime";
 // import { i18n } from './locales';
 
 // 创建应用实例
@@ -28,6 +29,7 @@ const applyTheme = () => {
 };
 
 applyTheme();
+installAndroidAssetRuntimeFix();
 
 // 挂载应用
 app.mount("#app");

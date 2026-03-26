@@ -105,6 +105,8 @@ import { ref, onMounted, onUnmounted, reactive } from "vue";
 import { Scan, Refresh, Close, CloudUpload } from "@vicons/ionicons5";
 import { NIcon, useMessage, NButton, NForm, NFormItem, NInput } from "naive-ui";
 import { getTokenId, transformToken, getServerList } from "@/utils/token";
+import { isAndroidWebView } from "@/utils/env";
+import { requestText } from "@/utils/nativeRequest";
 import useIndexedDB from "@/hooks/useIndexedDB";
 import { g_utils } from "@/utils/bonProtocol";
 import { useTokenStore } from "@/stores/tokenStore";
@@ -138,6 +140,66 @@ const isScanning = ref(false);
 const scanInterval = ref<any>(null);
 const timeout = 120000; // 120秒超时
 const startTime = ref<number | null>(null);
+
+const WEIXIN_QR_QUERY =
+  "appid=wxfb0d5667e5cb1c44" +
+  "&bundleid=com.hortor.games.xyzw" +
+  "&scope=snsapi_base,snsapi_userinfo,snsapi_friend,snsapi_message" +
+  "&state=weixin";
+
+const WEIXIN_ANDROID_UA =
+  "Mozilla/5.0 (Linux; Android 7.0; Mi-4c Build/NRD90M; wv) " +
+  "AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/53.0.2785.49 " +
+  "Mobile MQQBrowser/6.2 TBS/043632 Safari/537.36 " +
+  "MicroMessenger/6.6.1.1220(0x26060135) NetType/WIFI Language/zh_CN";
+
+const HORTOR_ANDROID_UA =
+  "Mozilla/5.0 (Linux; Android 12; 23117RK66C Build/V417IR; wv) " +
+  "AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/95.0.4638.74 " +
+  "Mobile Safari/537.36";
+
+const getWeixinQrConnectUrl = () =>
+  isAndroidWebView()
+    ? `https://open.weixin.qq.com/connect/app/qrconnect?${WEIXIN_QR_QUERY}`
+    : `/api/weixin/connect/app/qrconnect?${WEIXIN_QR_QUERY}`;
+
+const getWeixinScanPollUrl = (uuid: string) =>
+  isAndroidWebView()
+    ? `https://long.open.weixin.qq.com/connect/l/qrconnect?uuid=${encodeURIComponent(uuid)}&f=url&_=${Date.now()}`
+    : `/api/weixin-long/connect/l/qrconnect?uuid=${encodeURIComponent(uuid)}&f=url&_=${Date.now()}`;
+
+const getHortorLoginUrl = () =>
+  isAndroidWebView()
+    ? `https://comb-platform.hortorgames.com/comb-login-server/api/v1/login?gameId=xyzwapp&timestamp=${Date.now()}&version=android-4.2.1-cn-release&cryptVersion=1.1.0&gameTp=app&system=android&deviceUniqueId=DID-0e782e88-2f3b-4f5b-9020-47f5e5a5a026&packageName=com.hortorgames.xyzw`
+    : `/api/hortor/comb-login-server/api/v1/login?gameId=xyzwapp&timestamp=${Date.now()}&version=android-4.2.1-cn-release&cryptVersion=1.1.0&gameTp=app&system=android&deviceUniqueId=DID-0e782e88-2f3b-4f5b-9020-47f5e5a5a026&packageName=com.hortorgames.xyzw`;
+
+const getWeixinHeaders = (mode: "qr" | "poll") =>
+  isAndroidWebView()
+    ? {
+        "User-Agent": WEIXIN_ANDROID_UA,
+        Accept:
+          mode === "qr"
+            ? "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+            : "*/*",
+        Referer: "https://open.weixin.qq.com/",
+      }
+    : {
+        Accept: mode === "qr" ? "text/html" : "*/*",
+      };
+
+const getHortorHeaders = () =>
+  isAndroidWebView()
+    ? {
+        "User-Agent": HORTOR_ANDROID_UA,
+        Accept: "*/*",
+        Origin: "https://open.weixin.qq.com",
+        Referer: "https://open.weixin.qq.com/",
+        "Content-Type": "text/plain; charset=utf-8",
+      }
+    : {
+        Accept: "*/*",
+        "Content-Type": "text/plain; charset=utf-8",
+      };
 
 const serverListData = ref<any[]>([]);
 const currentBinData = ref<ArrayBuffer | null>(null);
@@ -284,29 +346,17 @@ const generateQRCode = async () => {
  */
 const tryGetWeixinQR = async () => {
   try {
-    const qrPageUrl =
-      "/api/weixin/connect/app/qrconnect" +
-      "?appid=wxfb0d5667e5cb1c44" +
-      "&bundleid=com.hortor.games.xyzw" +
-      "&scope=snsapi_base,snsapi_userinfo,snsapi_friend,snsapi_message" +
-      "&state=weixin";
-
-    const response = await new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open("GET", qrPageUrl, true);
-      xhr.timeout = 15000;
-      xhr.setRequestHeader("Accept", "text/html");
-      xhr.onload = () => resolve(xhr);
-      xhr.onerror = () => reject(new Error("网络错误"));
-      xhr.ontimeout = () => reject(new Error("请求超时"));
-      xhr.send();
+    const response = await requestText(getWeixinQrConnectUrl(), {
+      method: "GET",
+      headers: getWeixinHeaders("qr"),
+      timeoutMs: 15000,
     });
 
     if (response.status !== 200) {
       throw new Error("HTTP 状态码：" + response.status);
     }
 
-    const html = response.responseText;
+    const html = response.body;
     const doc = new DOMParser().parseFromString(html, "text/html");
 
     let qrUrl = doc.querySelector("img.auth_qrcode")?.src;
@@ -367,25 +417,14 @@ const checkScanStatus = async () => {
     }
 
     // 使用微信官方推荐的扫码状态轮询路径
-    const url =
-      "/api/weixin/connect/l/qrconnect?uuid=" +
-      qrcodeUUID.value +
-      "&f=url&_=" +
-      Date.now();
-
-    const res = await new Promise((resolve) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open("GET", url, true);
-      xhr.timeout = 5000;
-      xhr.setRequestHeader("Accept", "*/*");
-      xhr.onload = () => resolve(xhr);
-      xhr.onerror = () => resolve({ status: 0 });
-      xhr.ontimeout = () => resolve({ status: 0 });
-      xhr.send();
+    const res = await requestText(getWeixinScanPollUrl(qrcodeUUID.value), {
+      method: "GET",
+      headers: getWeixinHeaders("poll"),
+      timeoutMs: 5000,
     });
 
     if (res.status === 200) {
-      const text = res.responseText;
+      const text = res.body;
 
       // 405 → 扫码确认
       if (text.includes("window.wx_errcode=405")) {
@@ -493,34 +532,20 @@ const getEncryptedData = async (code) => {
     console.log("解密:", decodePayload(encoded));
   } catch (err) { }
 
-  const loginUrl =
-    "/api/hortor/comb-login-server/api/v1/login" +
-    "?gameId=xyzwapp" +
-    "&timestamp=" +
-    Date.now() +
-    "&version=android-4.2.1-cn-release" +
-    "&cryptVersion=1.1.0" +
-    "&gameTp=app&system=android" +
-    "&deviceUniqueId=DID-0e782e88-2f3b-4f5b-9020-47f5e5a5a026" +
-    "&packageName=com.hortorgames.xyzw";
+  const loginUrl = getHortorLoginUrl();
 
-  const res = await new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", loginUrl, true);
-    xhr.timeout = 15000;
-    xhr.setRequestHeader("Accept", "*/*");
-    xhr.setRequestHeader("Content-Type", "text/plain; charset=utf-8");
-    xhr.onload = () => resolve(xhr);
-    xhr.onerror = () => reject(new Error("登录失败"));
-    xhr.ontimeout = () => reject(new Error("登录超时"));
-    xhr.send(encoded);
+  const res = await requestText(loginUrl, {
+    method: "POST",
+    headers: getHortorHeaders(),
+    body: encoded,
+    timeoutMs: 15000,
   });
 
   if (res.status !== 200) {
     throw new Error("HTTP 状态码：" + res.status);
   }
 
-  const json = JSON.parse(res.responseText);
+  const json = JSON.parse(res.body);
   if (json.meta?.errCode !== 0) {
     throw new Error("登录失败：" + json.meta?.errMsg);
   }

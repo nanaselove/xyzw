@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="club-month-battle-records-container">
     <div class="club-month-battle-records-card">
       <!-- 头部信息区 -->
@@ -460,7 +460,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useMessage, NCheckboxGroup, NCheckbox, NRadioGroup, NRadioButton } from 'naive-ui'
 import { useTokenStore } from '@/stores/tokenStore'
 import { captureDomCanvas } from "@/utils/imageExport";
-import { downloadCanvasAsImage } from "@/utils/imageExport";
+import { savePng } from "@/utils/nativeExport";
 import {
   Trophy,
   Refresh,
@@ -994,13 +994,12 @@ const exportToImage = async () => {
       },
     });
 
-    // Canvas杞浘鐗囬摼鎺ュ苟涓嬭浇
-    const monthYear = currentMonthDisplay.value.replace('骞?', '-').replace('鏈?', '');
-    const filename = monthYear + '鏈堢洂鍦烘垬缁╂€昏.png';
-    downloadCanvasAsImage(canvas, filename);
+    // Canvas转图片链接并下载
+    const filename = `${currentMonthDisplay.value}俱乐部盐场本月战绩.png`;
+    await savePng(canvas, filename);
   } catch (err) {
-    console.error('DOM杞浘鐗囧け璐ワ細', err);
-    alert('瀵煎嚭鍥剧墖澶辫触锛岃閲嶈瘯');
+    console.error('DOM转图片失败：', err);
+    alert('导出图片失败，请重试');
   } finally {
     originalStyles.forEach(({ el, width, minWidth, maxWidth, height, minHeight, maxHeight, overflow, overflowX, overflowY, flex }) => {
       el.style.width = width;

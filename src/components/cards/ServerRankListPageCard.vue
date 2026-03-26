@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="club-warrank-container">
     <div class="club-warrank-card">
       <!-- 头部信息区 -->
@@ -597,7 +597,7 @@ import {
 } from "naive-ui";
 import { useTokenStore } from "@/stores/tokenStore";
 import { captureDomCanvas } from "@/utils/imageExport";
-import { downloadCanvasAsImage } from "@/utils/imageExport";
+import { savePng } from "@/utils/nativeExport";
 import { Refresh, Copy } from "@vicons/ionicons5";
 import { gettoday } from "@/utils/clubWarrankUtils";
 import { HERO_DICT, HeroFillInfo, legacycolor } from "@/utils/HeroList";
@@ -1230,7 +1230,7 @@ const exportToImage = async () => {
 
     // 6. Canvas转图片链接并下载
     const filename = queryDate.value.replace("/", "年").replace("/", "月") + "日区服榜信息.png";
-    downloadCanvasAsImage(canvas, filename);
+    await savePng(canvas, filename);
   } catch (err) {
     console.error("DOM转图片失败：", err);
     alert("导出图片失败，请重试");

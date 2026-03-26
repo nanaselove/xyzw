@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="club-warrank-container">
     <div class="club-warrank-card">
       <!-- 头部信息区 -->
@@ -664,7 +664,7 @@ import {
 } from "naive-ui";
 import { useTokenStore } from "@/stores/tokenStore";
 import { captureDomCanvas } from "@/utils/imageExport";
-import { downloadCanvasAsImage } from "@/utils/imageExport";
+import { savePng } from "@/utils/nativeExport";
 import {
   Trophy,
   Refresh,
@@ -1476,13 +1476,13 @@ const handleExport1 = async () => {
 
   try {
     if (exportmethod.value.includes("1")) {
-      const exportText = formatWarrankRecordsForExport(
+      const exportText = await formatWarrankRecordsForExport(
         battleRecords1.value.legionRankList,
         queryDate.value,
       );
     }
     if (exportmethod.value.includes("2")) {
-      exportToImage();
+      await exportToImage();
     }
     message.success("导出成功");
   } catch (error) {
@@ -1527,7 +1527,7 @@ const exportToImage = async () => {
     const filename =
       inputDate1.value.replace("/", "年").replace("/", "月") +
       "日TOP五百服俱乐部信息.png";
-    downloadCanvasAsImage(canvas, filename);
+    await savePng(canvas, filename);
   } catch (err) {
     console.error("DOM转图片失败：", err);
     alert("导出图片失败，请重试");

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="peach-info-card" ref="exportDom">
     <div class="toolbar">
       <div class="left">
@@ -424,7 +424,7 @@ import {
 import { Refresh, Copy } from "@vicons/ionicons5";
 import { useTokenStore } from "@/stores/tokenStore";
 import { captureDomCanvas } from "@/utils/imageExport";
-import { downloadCanvasAsImage } from "@/utils/imageExport";
+import { savePng } from "@/utils/nativeExport";
 import { HERO_DICT, HeroFillInfo, legacycolor, getLineupType, LINEUP_RULES } from "@/utils/HeroList";
 import {
   getLastSaturday,
@@ -1424,7 +1424,7 @@ const handleExportImage = async () => {
 
     // 6. Canvas转图片链接并下载
     const filename = `蟠桃园敌方信息_${queryDate.value.replace(/\//g, "-")}.png`;
-    downloadCanvasAsImage(canvas, filename);
+    await savePng(canvas, filename);
 
     message.success("图片导出成功");
   } catch (err) {

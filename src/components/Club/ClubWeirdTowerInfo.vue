@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <!-- Inline 模式：卡片渲染 -->
     <div v-if="inline" class="inline-wrapper">
@@ -106,7 +106,7 @@ import { ref, computed, onMounted, h, nextTick } from 'vue'
 import { useMessage, NDataTable, NAvatar, NEmpty, NButton, NIcon } from 'naive-ui'
 import { useTokenStore } from '@/stores/tokenStore'
 import { captureDomCanvas } from "@/utils/imageExport";
-import { downloadCanvasAsImage } from "@/utils/imageExport";
+import { savePng } from "@/utils/nativeExport";
 import {
   Trophy,
   Refresh,
@@ -441,7 +441,7 @@ const exportToImage = async () => {
   // 6. Canvas转图片链接并下载
   const dateStr = gettoday();
   const filename = dateStr.replace("/",'年').replace("/",'月')+'日俱乐部怪异塔数据.png';
-  downloadCanvasAsImage(canvas, filename);
+  await savePng(canvas, filename);
 };
 
 // 关闭弹窗

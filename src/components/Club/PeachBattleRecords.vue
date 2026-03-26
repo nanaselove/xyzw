@@ -775,7 +775,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useMessage, NCheckboxGroup, NCheckbox, NRadioGroup, NRadioButton } from 'naive-ui'
 import { useTokenStore } from '@/stores/tokenStore'
 import { captureDomCanvas } from "@/utils/imageExport";
-import { downloadCanvasAsImage } from "@/utils/imageExport";
+import { savePng } from "@/utils/nativeExport";
 import {
   Trophy,
   Refresh,
@@ -1124,7 +1124,7 @@ const handleExport = async () => {
   }
 
   try {
-    exportToImage()
+    await exportToImage()
     message.success('导出成功')
   } catch (error) {
     console.error('导出失败:', error)
@@ -1139,41 +1139,170 @@ const exportToImage = async () => {
     return;
   }
 
+  const exportRoot = exportDom.value;
+  const exportContent = exportRoot.closest(".battle-records-content");
+  const expandSelectors = [
+    ".style-default",
+    ".style-1-wrapper",
+    ".style-2-wrapper",
+    ".battle-header",
+    ".overall-stats",
+    ".comparison-container",
+    ".club-column",
+    ".style1-content",
+    ".style1-table-container",
+    ".god-ranking-content",
+    ".style2-table-wrapper",
+  ];
+  const originalStyles = [];
+  const trackedElements = new Set();
+
+  const trackAndExpand = (element) => {
+    if (!element || trackedElements.has(element)) {
+      return;
+    }
+
+    trackedElements.add(element);
+    originalStyles.push({
+      element,
+      height: element.style.height,
+      minHeight: element.style.minHeight,
+      maxHeight: element.style.maxHeight,
+      overflow: element.style.overflow,
+      overflowX: element.style.overflowX,
+      overflowY: element.style.overflowY,
+      scrollLeft: typeof element.scrollLeft === "number" ? element.scrollLeft : 0,
+      scrollTop: typeof element.scrollTop === "number" ? element.scrollTop : 0,
+    });
+
+    element.style.height = "auto";
+    element.style.minHeight = "0";
+    element.style.maxHeight = "none";
+    element.style.overflow = "visible";
+    element.style.overflowX = "visible";
+    element.style.overflowY = "visible";
+    if (typeof element.scrollLeft === "number") {
+      element.scrollLeft = 0;
+    }
+    if (typeof element.scrollTop === "number") {
+      element.scrollTop = 0;
+    }
+  };
+
   try {
-    // 临时移除战神榜内容区域的最大高度限制，确保所有内容都可见
-    const godRankingContents = exportDom.value.querySelectorAll('.god-ranking-content');
-    const originalStyles = [];
-    
-    godRankingContents.forEach(content => {
-      originalStyles.push({
-        element: content,
-        maxHeight: content.style.maxHeight,
-        overflow: content.style.overflow
-      });
-      content.style.maxHeight = 'none';
-      content.style.overflow = 'visible';
+    trackAndExpand(exportRoot);
+    trackAndExpand(exportContent);
+    expandSelectors.forEach((selector) => {
+      exportRoot.querySelectorAll(selector).forEach(trackAndExpand);
     });
 
-    // 5. 用html2canvas渲染DOM为Canvas
+    await nextTick();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    const sizeTargets = [
+      exportRoot,
+      exportContent,
+      ...exportRoot.querySelectorAll(
+        ".style-default, .style-1-wrapper, .style-2-wrapper, .battle-header, .overall-stats, .comparison-container, .club-column, .style1-content, .style1-table-container, .god-ranking-content, .style2-table-wrapper, table",
+      ),
+    ].filter(Boolean);
+
+    const renderWidth = Math.max(
+      ...sizeTargets.map((element) => element.scrollWidth || 0),
+      1,
+    );
+    const renderHeight = Math.max(
+      ...sizeTargets.map((element) => element.scrollHeight || 0),
+      1,
+    );
+
     const canvas = await captureDomCanvas(exportDom.value, {
-      scale: 2, // 放大2倍，解决图片模糊问题
-      useCORS: true, // 允许跨域图片（若DOM内有远程图片，需开启）
-      backgroundColor: '#ffffff', // 避免透明背景（默认透明）
-      logging: false // 关闭控制台日志
-    });
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      logging: false,
+      allowTaint: true,
+      width: renderWidth,
+      height: renderHeight,
+      windowWidth: renderWidth,
+      windowHeight: renderHeight,
+      measureSelectors: [
+        ".style-default",
+        ".style-1-wrapper",
+        ".style-2-wrapper",
+        ".battle-header",
+        ".overall-stats",
+        ".comparison-container",
+        ".club-column",
+        ".style1-content",
+        ".style1-table-container",
+        ".god-ranking-content",
+        ".style2-table-wrapper",
+        "table",
+      ],
+      onclone: (clonedDoc) => {
+        const clonedTargets = [
+          clonedDoc.querySelector(".records-wrapper"),
+          clonedDoc.querySelector(".battle-records-content"),
+          ...clonedDoc.querySelectorAll(
+            ".style-default, .style-1-wrapper, .style-2-wrapper, .battle-header, .overall-stats, .comparison-container, .club-column, .style1-content, .style1-table-container, .god-ranking-content, .style2-table-wrapper",
+          ),
+        ].filter(Boolean);
 
-    // 恢复战神榜内容区域的原始样式
-    originalStyles.forEach(({ element, maxHeight, overflow }) => {
-      element.style.maxHeight = maxHeight;
-      element.style.overflow = overflow;
+        clonedTargets.forEach((element) => {
+          element.style.height = "auto";
+          element.style.minHeight = "0";
+          element.style.maxHeight = "none";
+          element.style.overflow = "visible";
+          element.style.overflowX = "visible";
+          element.style.overflowY = "visible";
+          if (typeof element.scrollLeft === "number") {
+            element.scrollLeft = 0;
+          }
+          if (typeof element.scrollTop === "number") {
+            element.scrollTop = 0;
+          }
+        });
+
+        if (clonedDoc.documentElement) {
+          clonedDoc.documentElement.style.width = `${renderWidth}px`;
+          clonedDoc.documentElement.style.maxWidth = `${renderWidth}px`;
+          clonedDoc.documentElement.style.height = "auto";
+          clonedDoc.documentElement.style.overflow = "visible";
+          clonedDoc.documentElement.style.margin = "0";
+        }
+
+        if (clonedDoc.body) {
+          clonedDoc.body.style.width = `${renderWidth}px`;
+          clonedDoc.body.style.maxWidth = `${renderWidth}px`;
+          clonedDoc.body.style.height = "auto";
+          clonedDoc.body.style.overflow = "visible";
+          clonedDoc.body.style.margin = "0";
+        }
+      },
     });
 
     // 6. Canvas转图片链接并下载
     const filename = queryDate.value.replace("/",'年').replace("/",'月')+'日蟠桃园战报.png';
-    downloadCanvasAsImage(canvas, filename);
+    await savePng(canvas, filename);
   } catch (err) {
     console.error('DOM转图片失败：', err);
     alert('导出图片失败，请重试');
+  } finally {
+    originalStyles.forEach(({ element, height, minHeight, maxHeight, overflow, overflowX, overflowY, scrollLeft, scrollTop }) => {
+      element.style.height = height;
+      element.style.minHeight = minHeight;
+      element.style.maxHeight = maxHeight;
+      element.style.overflow = overflow;
+      element.style.overflowX = overflowX;
+      element.style.overflowY = overflowY;
+      if (typeof element.scrollLeft === "number") {
+        element.scrollLeft = scrollLeft;
+      }
+      if (typeof element.scrollTop === "number") {
+        element.scrollTop = scrollTop;
+      }
+    });
   }
 };
 
@@ -2070,6 +2199,7 @@ onMounted(() => {
 
 .style1-table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
   font-size: 12px;
 }
@@ -2109,12 +2239,19 @@ onMounted(() => {
 }
 
 .col-rank { width: 40px; }
-.col-name { text-align: left !important; padding-left: 5px !important; }
+.col-name {
+  width: 120px;
+  text-align: left !important;
+  padding-left: 5px !important;
+}
+
+.col-kill { width: 52px; }
 
 .player-info {
   display: flex;
   align-items: center;
   gap: 5px;
+  min-width: 0;
 }
 
 .player-avatar-small {
@@ -2134,6 +2271,12 @@ onMounted(() => {
   justify-content: center;
   font-size: 10px;
   color: #fff;
+}
+
+.style1-table .player-info span {
+  min-width: 0;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .style1-summary-block {
@@ -2213,7 +2356,7 @@ onMounted(() => {
   font-weight: bold;
 }
 
-.col-kill-streak, .col-car {
+.col-kill-streak, .col-car, .col-revive, .col-kd {
   width: 60px;
 }
 

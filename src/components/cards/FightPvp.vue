@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="fight-pvp-container">
     <!-- 主卡片容器 -->
     <div class="status-card main-card">
@@ -548,7 +548,7 @@ import {
   legacycolor,
 } from "@/utils/HeroList";
 import { captureDomCanvas } from "@/utils/imageExport";
-import { downloadCanvasAsImage } from "@/utils/imageExport";
+import { savePng } from "@/utils/nativeExport";
 
 // 确保legacycolor在模板中可用
 const legacyColorMap = legacycolor;
@@ -997,7 +997,7 @@ const handleExport1 = async () => {
       resultList.style.paddingRight = originalPaddingRight;
     }
 
-    downloadCanvasAsImage(canvas, "切磋结果.png");
+    await savePng(canvas, "切磋结果.png");
   } catch (err) {
     console.error("导出图片失败:", err);
     alert("导出图片失败，请重试");

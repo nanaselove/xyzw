@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="records-container">
     <!-- 头部信息区 -->
       <div class="header-section">
@@ -440,7 +440,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useMessage, NCheckboxGroup, NCheckbox, NRadioGroup, NRadioButton } from 'naive-ui'
 import { useTokenStore } from '@/stores/tokenStore'
 import { captureDomCanvas } from "@/utils/imageExport";
-import { downloadCanvasAsImage } from "@/utils/imageExport";
+import { savePng } from "@/utils/nativeExport";
 import {
   Refresh,
   Copy,
@@ -712,10 +712,10 @@ const handleExport = async () => {
 
   try {
     if (exportmethod.value.includes('1')) {
-      const exportText = formatBattleRecordsForExport(battleRecords.value.roleDetailsList, queryDate.value)
+      const exportText = await formatBattleRecordsForExport(battleRecords.value.roleDetailsList, queryDate.value)
     }
     if (exportmethod.value.includes('2')) {
-      exportToImage()
+      await exportToImage()
     }
     message.success('导出成功')
   } catch (error) {
@@ -762,7 +762,7 @@ const exportToImage = async () => {
 
     // 6. Canvas转图片链接并下载
     const filename = queryDate.value.replace("/",'年').replace("/",'月')+'日盐场战报.png';
-    downloadCanvasAsImage(canvas, filename);
+    await savePng(canvas, filename);
   } catch (err) {
     console.error('DOM转图片失败：', err);
     alert('导出图片失败，请重试');

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="club-warrank-container">
     <div class="club-warrank-card">
       <!-- 头部信息区 -->
@@ -677,7 +677,7 @@ import {
 } from "naive-ui";
 import { useTokenStore } from "@/stores/tokenStore";
 import { captureDomCanvas } from "@/utils/imageExport";
-import { downloadCanvasAsImage } from "@/utils/imageExport";
+import { savePng } from "@/utils/nativeExport";
 import {
   Trophy,
   Refresh,
@@ -1612,7 +1612,7 @@ const handleExport1 = async () => {
   }
 
   try {
-    exportToImage();
+    await exportToImage();
     message.success("导出成功");
   } catch (error) {
     console.error("导出失败:", error);
@@ -1675,7 +1675,7 @@ const exportToImage = async () => {
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, "0");
     const filename = `${year}年${month}月${getRankParams(currentWarType.value).name}.png`;
-    downloadCanvasAsImage(canvas, filename);
+    await savePng(canvas, filename);
   } catch (err) {
     console.error("DOM转图片失败：", err);
     alert("导出图片失败，请重试");

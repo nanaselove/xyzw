@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">咸鱼金手指</string>
+    <string name="share_title">分享文件</string>
+    <string name="select_file_title">选择文件</string>
+    <string name="no_handler">没有可用的应用打开此链接</string>
+    <string name="file_chooser_failed">文件选择器打开失败</string>
+    <string name="file_saved">文件已保存：%1$s</string>
+    <string name="file_save_failed">文件保存失败</string>
+    <string name="share_failed">分享失败</string>
+</resources>
