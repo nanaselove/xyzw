@@ -866,7 +866,7 @@ const handleExport = async () => {
 
   try {
     // 导出图片
-    exportToImage()
+    await exportToImage()
     message.success('导出成功')
   } catch (error) {
     console.error('导出失败:', error)
@@ -875,28 +875,145 @@ const handleExport = async () => {
 }
 
 const exportToImage = async () => {
-  // 校验：确保DOM已正确绑定
+  // 鏍￠獙锛氱‘淇滵OM宸叉纭粦瀹?
   if (!exportDom.value) {
-    alert('未找到要导出的DOM元素');
+    alert('链壘鍒拌瀵煎嚭鐨凞OM鍏冪礌');
     return;
   }
 
+  const style2Root = exportDom.value.querySelector('.style-2');
+  const style2TableWrapper = exportDom.value.querySelector('.style2-table-wrapper');
+  const style2Table = exportDom.value.querySelector('.style2-table');
+  const exportTargets = [exportDom.value, style2Root, style2TableWrapper, style2Table].filter(Boolean);
+  const originalStyles = exportTargets.map((el) => ({
+    el,
+    width: el.style.width,
+    minWidth: el.style.minWidth,
+    maxWidth: el.style.maxWidth,
+    height: el.style.height,
+    minHeight: el.style.minHeight,
+    maxHeight: el.style.maxHeight,
+    overflow: el.style.overflow,
+    overflowX: el.style.overflowX,
+    overflowY: el.style.overflowY,
+    flex: el.style.flex,
+  }));
+
+  const expandForExport = (el) => {
+    if (!el) return;
+    el.style.width = 'max-content';
+    el.style.minWidth = 'max-content';
+    el.style.maxWidth = 'none';
+    el.style.height = 'auto';
+    el.style.minHeight = '0';
+    el.style.maxHeight = 'none';
+    el.style.overflow = 'visible';
+    el.style.overflowX = 'visible';
+    el.style.overflowY = 'visible';
+  };
+
   try {
-    // 用html2canvas渲染DOM为Canvas
+    // 鐢╤tml2canvas娓叉煋DOM涓篊anvas
+    exportTargets.forEach(expandForExport);
+    exportDom.value.style.flex = 'none';
+    if (style2Root) {
+      style2Root.style.flex = 'none';
+    }
+    if (style2TableWrapper) {
+      style2TableWrapper.style.flex = 'none';
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    const tableRows = style2Table ? Array.from(style2Table.querySelectorAll('tbody tr')) : [];
+    const lastRow = tableRows[tableRows.length - 1];
+    const tableBodyHeight = lastRow ? lastRow.offsetTop + lastRow.offsetHeight : 0;
+    const renderWidth = Math.max(
+      exportDom.value.scrollWidth || 0,
+      style2Root?.scrollWidth || 0,
+      style2TableWrapper?.scrollWidth || 0,
+      style2Table?.scrollWidth || 0,
+      760,
+      1,
+    ) + 48;
+    const renderHeight = Math.max(
+      exportDom.value.scrollHeight || 0,
+      style2Root?.scrollHeight || 0,
+      style2TableWrapper?.scrollHeight || 0,
+      style2Table?.scrollHeight || 0,
+      tableBodyHeight,
+      1,
+    ) + 48;
+
     const canvas = await captureDomCanvas(exportDom.value, {
-      scale: 2, // 放大2倍，解决图片模糊问题
-      useCORS: true, // 允许跨域图片（若DOM内有远程图片，需开启）
-      backgroundColor: '#ffffff', // 避免透明背景（默认透明）
-      logging: false // 关闭控制台日志
+      scale: 2, // 鏀惧ぇ2鍊嶏紝瑙ｅ喅鍥剧墖妯＄硦闂
+      useCORS: true, // 鍏佽璺ㄥ煙鍥剧墖锛堣嫢DOM鍐呮湁杩滅▼鍥剧墖锛岄渶寮€鍚級
+      backgroundColor: '#ffffff', // 閬垮厭閫忔槑鑳屾櫙锛堥粯璁ら€忔槑锛?
+      logging: false, // 鍏抽棴鎺у埗鍙版棩蹇?
+      allowTaint: true,
+      width: renderWidth,
+      height: renderHeight,
+      windowWidth: renderWidth,
+      windowHeight: renderHeight,
+      measureSelectors: ['.style-2', '.style2-table-wrapper', '.style2-table'],
+      onclone: (clonedDoc) => {
+        const clonedExportDom = clonedDoc.querySelector('.records-list');
+        const clonedStyle2Root = clonedDoc.querySelector('.style-2');
+        const clonedTableWrapper = clonedDoc.querySelector('.style2-table-wrapper');
+        const clonedTable = clonedDoc.querySelector('.style2-table');
+
+        [clonedExportDom, clonedStyle2Root, clonedTableWrapper, clonedTable].forEach((el) => {
+          if (!el) return;
+          el.style.width = 'max-content';
+          el.style.minWidth = 'max-content';
+          el.style.maxWidth = 'none';
+          el.style.height = 'auto';
+          el.style.minHeight = '0';
+          el.style.maxHeight = 'none';
+          el.style.overflow = 'visible';
+          el.style.overflowX = 'visible';
+          el.style.overflowY = 'visible';
+        });
+
+        if (clonedExportDom) {
+          clonedExportDom.style.flex = 'none';
+        }
+        if (clonedStyle2Root) {
+          clonedStyle2Root.style.flex = 'none';
+        }
+        if (clonedTableWrapper) {
+          clonedTableWrapper.style.flex = 'none';
+          clonedTableWrapper.style.paddingRight = '24px';
+          clonedTableWrapper.style.paddingBottom = '48px';
+        }
+        if (clonedTable) {
+          clonedTable.style.width = 'max-content';
+          clonedTable.style.minWidth = 'max-content';
+          clonedTable.style.maxWidth = 'none';
+        }
+      },
     });
 
-    // Canvas转图片链接并下载
-    const monthYear = currentMonthDisplay.value.replace('年', '-').replace('月', '');
-    const filename = `${monthYear}月盐场战绩总览.png`;
+    // Canvas杞浘鐗囬摼鎺ュ苟涓嬭浇
+    const monthYear = currentMonthDisplay.value.replace('骞?', '-').replace('鏈?', '');
+    const filename = monthYear + '鏈堢洂鍦烘垬缁╂€昏.png';
     downloadCanvasAsImage(canvas, filename);
   } catch (err) {
-    console.error('DOM转图片失败：', err);
-    alert('导出图片失败，请重试');
+    console.error('DOM杞浘鐗囧け璐ワ細', err);
+    alert('瀵煎嚭鍥剧墖澶辫触锛岃閲嶈瘯');
+  } finally {
+    originalStyles.forEach(({ el, width, minWidth, maxWidth, height, minHeight, maxHeight, overflow, overflowX, overflowY, flex }) => {
+      el.style.width = width;
+      el.style.minWidth = minWidth;
+      el.style.maxWidth = maxWidth;
+      el.style.height = height;
+      el.style.minHeight = minHeight;
+      el.style.maxHeight = maxHeight;
+      el.style.overflow = overflow;
+      el.style.overflowX = overflowX;
+      el.style.overflowY = overflowY;
+      el.style.flex = flex;
+    });
   }
 };
 
