@@ -58,7 +58,7 @@
 
           <div class="option-actions">
             <n-button
-              type="success"
+              type="primary"
               :disabled="loading1 || !targetId || !memberData"
               @click="fightPVPRefresh"
               size="medium"

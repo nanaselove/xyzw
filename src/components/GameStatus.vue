@@ -8,7 +8,9 @@
       'salt-field-mode': activeSection === 'saltFieldGroup',
       'activity-mode': activeSection === 'activity',
       'tools-mode': activeSection === 'tools',
-      'daily-mode': activeSection === 'daily'
+      'daily-mode': activeSection === 'daily',
+      'rank-group-mode': activeSection === 'rankGroup',
+      'fight-pvp-mode': activeSection === 'fightPvp'
     }"
   >
     <!-- 身份牌常驻（嵌入式，Tabs 上方） -->
@@ -843,7 +845,14 @@ onUnmounted(() => {
   }
 }
 
-.game-status-container:is(.club-mode, .activity-mode, .tools-mode, .salt-field-mode) {
+.game-status-container:is(
+  .club-mode,
+  .activity-mode,
+  .tools-mode,
+  .salt-field-mode,
+  .rank-group-mode,
+  .fight-pvp-mode
+) {
   --text-color: #f7fbff;
   --text-secondary: rgba(225, 237, 255, 0.84);
   --text-tertiary: rgba(176, 194, 226, 0.9);
@@ -1209,6 +1218,91 @@ onUnmounted(() => {
   :deep(.salt-field-group .arco-picker .arco-picker-suffix-icon),
   :deep(.salt-field-group .arco-picker .arco-picker-clear-icon) {
     color: rgba(225, 237, 255, 0.72);
+  }
+}
+
+.game-status-container.fight-pvp-mode {
+  :deep(.fight-pvp-container .main-card),
+  :deep(.fight-pvp-container .info-card) {
+    background:
+      linear-gradient(165deg, rgba(7, 18, 39, 0.84) 0%, rgba(16, 31, 59, 0.68) 100%);
+    border: 1px solid rgba(124, 108, 255, 0.14);
+    backdrop-filter: blur(8px) saturate(126%);
+    -webkit-backdrop-filter: blur(8px) saturate(126%);
+    box-shadow: 0 16px 32px rgba(8, 15, 35, 0.14);
+  }
+
+  :deep(.fight-pvp-container .main-card:hover),
+  :deep(.fight-pvp-container .info-card:hover) {
+    transform: translateY(-2px);
+    border-color: rgba(124, 108, 255, 0.34);
+    box-shadow: 0 22px 42px rgba(8, 15, 35, 0.2);
+  }
+
+  :deep(.fight-pvp-container .n-button),
+  :deep(.fight-pvp-container .action-button) {
+    border-radius: 12px;
+    border: 1px solid rgba(124, 108, 255, 0.22);
+    background: linear-gradient(
+      135deg,
+      rgba(124, 108, 255, 0.16),
+      rgba(139, 92, 246, 0.12)
+    );
+    color: var(--text-color);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 8px 16px rgba(124, 108, 255, 0.12);
+    transition:
+      transform 0.2s ease,
+      filter 0.2s ease,
+      box-shadow 0.2s ease,
+      background-color 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  :deep(.fight-pvp-container .n-button:hover:not(.n-button--disabled)),
+  :deep(.fight-pvp-container .action-button:hover:not(:disabled)) {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+    background: linear-gradient(
+      135deg,
+      rgba(124, 108, 255, 0.28),
+      rgba(139, 92, 246, 0.22)
+    );
+    border-color: rgba(124, 108, 255, 0.42);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 12px 22px rgba(124, 108, 255, 0.18);
+  }
+
+  :deep(.fight-pvp-container .n-button--primary-type),
+  :deep(.fight-pvp-container .n-button--success-type) {
+    background: linear-gradient(135deg, #7c6cff 0%, #8b5cf6 100%);
+    border-color: rgba(124, 108, 255, 0.36);
+    color: #ffffff;
+    box-shadow: 0 10px 18px rgba(124, 108, 255, 0.22);
+  }
+
+  :deep(.fight-pvp-container .n-button--default-type) {
+    background: rgba(8, 15, 35, 0.34);
+    border-color: rgba(124, 108, 255, 0.18);
+    color: var(--text-color);
+  }
+
+  :deep(.fight-pvp-container .n-button--disabled),
+  :deep(.fight-pvp-container .action-button:disabled) {
+    background: rgba(148, 163, 184, 0.24);
+    border-color: rgba(148, 163, 184, 0.22);
+    color: rgba(226, 232, 240, 0.56);
+    box-shadow: none;
+    transform: none;
+  }
+
+  :deep(.fight-pvp-container .n-input),
+  :deep(.fight-pvp-container .n-select) {
+    background: rgba(8, 15, 35, 0.34);
+    border-color: rgba(124, 108, 255, 0.18);
+    color: var(--text-color);
   }
 }
 
