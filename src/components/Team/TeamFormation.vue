@@ -115,6 +115,7 @@ import { ref, computed, watch, onMounted } from "vue";
 import { useTokenStore } from "@/stores/tokenStore";
 import { useMessage } from "naive-ui";
 import { HERO_DICT } from "@/utils/HeroList.js";
+import { getAssetUrl } from "@/utils/env";
 
 const tokenStore = useTokenStore();
 const message = useMessage();
@@ -192,9 +193,7 @@ const currentTeamHeroes = computed(() => {
     if (!hid) continue;
     const meta = HERO_DICT[Number(hid)];
     const avatarPath = meta?.avatar;
-    const fullAvatarPath = avatarPath
-      ? import.meta.env.BASE_URL + avatarPath.replace(/^\//, "")
-      : undefined;
+    const fullAvatarPath = avatarPath ? getAssetUrl(avatarPath) : undefined;
     heroes.push({
       id: Number(hid),
       name: meta?.name ?? `英雄${hid}`,

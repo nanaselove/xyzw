@@ -3,18 +3,14 @@
  * 用于一键答题功能，从公共目录读取题目数据
  */
 
+import { getAssetUrl } from "./env";
+
 let questionsData = null;
 let isLoading = false;
 
 const queryPromise = (async () => {
-  // Try loading from the app base URL first (supports Vite `base` config / GitHub Pages subpaths),
-  // then fall back to common locations.
-  const base = (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.BASE_URL)
-    ? import.meta.env.BASE_URL
-    : "/";
-
   const candidates = [
-    `${base.replace(/\/$/, "")}/answer.json`,
+    getAssetUrl("/answer.json"),
     `/answer.json`,
     `answer.json`,
   ];

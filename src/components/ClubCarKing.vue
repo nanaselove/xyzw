@@ -213,6 +213,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from "vue";
 import { useMessage, NCard, NThing, NAvatar, NSpace, NButton, NTag, NGrid, NGi, NIcon, NModal, NSelect, NSpin, NEmpty, NStatistic } from "naive-ui";
 import { useTokenStore } from "@/stores/tokenStore";
 import { CarSport, Refresh, Flash, ArrowUpCircle, Person, Ticket } from "@vicons/ionicons5";
+import { getAssetUrl } from "@/utils/env";
 
 const tokenStore = useTokenStore();
 const message = useMessage();
@@ -335,7 +336,7 @@ const gradeIcon = (color) => {
     6: "/icons/兰博基尼.svg",
   };
   const path = map[color] || "/icons/大众.svg";
-  return import.meta.env.BASE_URL + path.replace(/^\//, "");
+  return getAssetUrl(path);
 };
 
 const getGradeColor = (color) => {

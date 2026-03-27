@@ -162,14 +162,13 @@ const handleQuickAction = (action) => {
 
 // 初始化
 onMounted(async () => {
-  // 无 Token 时跳转至 Token 管理页
-  if (!tokenStore.hasTokens) {
-    router.push("/tokens");
-    return;
-  }
-
   // 初始化 Token Store
   tokenStore.initTokenStore();
+
+  // 无 Token 时跳转至 Token 管理页
+  if (!tokenStore.hasTokens) {
+    router.replace("/tokens");
+  }
 });
 </script>
 <style scoped lang="scss">
@@ -730,4 +729,3 @@ onMounted(async () => {
   }
 }
 </style>
-

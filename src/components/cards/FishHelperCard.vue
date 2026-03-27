@@ -46,19 +46,19 @@ import { ref, computed, watch, onMounted, onUnmounted, watchEffect } from "vue";
 import { useMessage } from "naive-ui";
 import { useTokenStore } from "@/stores/tokenStore";
 import MyCard from "../Common/MyCard.vue";
+import { getAssetUrl } from "@/utils/env";
 
 const tokenStore = useTokenStore();
 const message = useMessage();
 
 const iconPath = computed(() => {
-  return import.meta.env.BASE_URL + "fish/hjyg.png";
+  return getAssetUrl("/fish/hjyg.png");
 });
 
 const roleInfo = computed(() => tokenStore.gameData?.roleInfo || null);
 
 const dataList = computed(() => {
-  const getImgPath = (path) =>
-    import.meta.env.BASE_URL + path.replace(/^\//, "");
+  const getImgPath = (path) => getAssetUrl(path);
   return [
     {
       type: "普通鱼竿",

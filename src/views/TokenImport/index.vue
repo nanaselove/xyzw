@@ -1,23 +1,104 @@
 <template>
   <div class="token-import-page">
+    <div class="page-bg" aria-hidden="true">
+      <span class="page-orb orb-a"></span>
+      <span class="page-orb orb-b"></span>
+      <span class="page-orb orb-c"></span>
+      <span class="page-grid"></span>
+    </div>
+
     <div class="container">
-      <!-- 页面头部 -->
-      <div class="page-header">
-        <div class="header-content">
-          <div class="header-top">
+      <section class="hero-panel">
+        <div class="hero-top">
+          <div class="hero-brand">
             <img src="/icons/xiaoyugan.png" alt="XYZW" class="brand-logo" />
-            <!-- 主题切换按钮 -->
+            <div class="hero-copy">
+              <p class="eyebrow">TOKEN CONTROL CENTER</p>
+              <h1>游戏 Token 管理</h1>
+              <p class="hero-desc">
+                集中管理登录凭证、连接状态和批量任务，一屏完成导入、刷新、升级与进入控制台。
+              </p>
+            </div>
+          </div>
+
+          <div class="hero-tools">
             <ThemeToggle />
           </div>
-          <h1>游戏Token管理</h1>
         </div>
-      </div>
+
+        <div class="hero-stats">
+          <article class="stat-card stat-card-primary">
+            <span class="stat-label">总 Token</span>
+            <strong class="stat-value">{{ totalTokenCount }}</strong>
+            <span class="stat-hint">当前库中所有账号</span>
+          </article>
+          <article class="stat-card">
+            <span class="stat-label">在线连接</span>
+            <strong class="stat-value">{{ connectedTokenCount }}</strong>
+            <span class="stat-hint">{{ connectingTokenCount }} 个正在连接</span>
+          </article>
+          <article class="stat-card">
+            <span class="stat-label">长期有效</span>
+            <strong class="stat-value">{{ permanentTokenCount }}</strong>
+            <span class="stat-hint">{{ temporaryTokenCount }} 个临时存储</span>
+          </article>
+          <article class="stat-card stat-card-wide">
+            <span class="stat-label">当前选中</span>
+            <strong class="stat-value stat-value-name">
+              {{ tokenStore.selectedToken?.name || "未选择 Token" }}
+            </strong>
+            <span class="stat-hint">
+              {{ tokenStore.selectedToken?.server || "从下方列表选择一个角色进入控制台" }}
+            </span>
+          </article>
+        </div>
+
+        <div class="hero-actions">
+          <n-button type="primary" size="large" @click="showImportForm = true">
+            <template #icon>
+              <n-icon>
+                <Add />
+              </n-icon>
+            </template>
+            添加Token
+          </n-button>
+
+          <n-button size="large" secondary @click="goToDashboard">
+            <template #icon>
+              <n-icon>
+                <List />
+              </n-icon>
+            </template>
+            批量功能
+          </n-button>
+
+          <n-button ghost type="info" size="large" @click="checkAppUpdate">
+            <template #icon>
+              <n-icon>
+                <SyncCircle />
+              </n-icon>
+            </template>
+            检查更新
+          </n-button>
+
+          <n-dropdown :options="bulkOptions" @select="handleBulkAction">
+            <n-button size="large" ghost>
+              <template #icon>
+                <n-icon>
+                  <Menu />
+                </n-icon>
+              </template>
+              批量操作
+            </n-button>
+          </n-dropdown>
+        </div>
+      </section>
 
       <!-- 限流等待提示 -->
       <n-alert
         v-if="rateLimitWaiting"
         type="warning"
-        style="margin-bottom: 16px"
+        class="rate-limit-alert"
       >
         {{ rateLimitMessage }}
       </n-alert>
@@ -84,14 +165,19 @@
       <!-- Token列表 -->
       <div v-if="tokenStore.hasTokens" class="tokens-section">
         <div class="section-header">
-          <n-space align="center">
+          <div class="section-copy">
+            <span class="section-kicker">TOKEN 库</span>
             <h2>我的Token列表 ({{ tokenStore.gameTokens.length }}个)</h2>
-            <n-radio-group v-model:value="viewMode" size="small">
+            <p>拖拽可重新排序，点击卡片快速进入控制台或刷新连接。</p>
+          </div>
+
+          <div class="section-toolbar">
+            <n-radio-group v-model:value="viewMode" size="small" class="view-switch">
               <n-radio-button value="list">列表</n-radio-button>
               <n-radio-button value="card">卡片</n-radio-button>
             </n-radio-group>
-            <n-divider vertical style="height: 24px"></n-divider>
-            <n-button-group size="small">
+
+            <n-button-group size="small" class="sort-switch">
               <n-button
                 @click="toggleSort('name')"
                 :type="sortConfig.field === 'name' ? 'primary' : 'default'"
@@ -117,50 +203,13 @@
                 最后使用 {{ getSortIcon("lastUsed") }}
               </n-button>
             </n-button-group>
-          </n-space>
-          <div class="header-actions">
-            <n-button type="success" @click="goToDashboard">
-              <template #icon>
-                <n-icon>
-                  <List />
-                </n-icon>
-              </template>
-              批量功能
-            </n-button>
-
-            <n-button
-              v-if="!showImportForm"
-              type="primary"
-              @click="showImportForm = true"
-            >
-              <template #icon>
-                <n-icon>
-                  <Add />
-                </n-icon>
-              </template>
-              添加Token
-            </n-button>
-
-            <n-button ghost type="info" @click="checkAppUpdate">
-              <template #icon>
-                <n-icon>
-                  <SyncCircle />
-                </n-icon>
-              </template>
-              检查更新
-            </n-button>
-
-            <n-dropdown :options="bulkOptions" @select="handleBulkAction">
-              <n-button>
-                <template #icon>
-                  <n-icon>
-                    <Menu />
-                  </n-icon>
-                </template>
-                批量操作
-              </n-button>
-            </n-dropdown>
           </div>
+        </div>
+
+        <div class="toolbar-hints">
+          <span>支持拖拽重排</span>
+          <span>点击卡片进入控制台</span>
+          <span>支持批量导入与刷新</span>
         </div>
 
         <div class="tokens-grid" v-if="viewMode === 'card'">
@@ -173,6 +222,7 @@
             @drop="handleDrop(index, $event)"
             :class="{
               'token-card': true,
+              'token-card-shell': true,
               active: selectedTokenId === token.id,
             }"
             @click="selectToken(token)"
@@ -369,7 +419,7 @@
             style="margin-bottom: 8px"
             hoverable
             @click="selectToken(token)"
-            :class="{ active: selectedTokenId === token.id }"
+            :class="{ active: selectedTokenId === token.id, 'token-row-card': true }"
           >
             <n-space justify="space-between" align="center">
               <!-- Info -->
@@ -556,15 +606,21 @@
       </div>
 
       <!-- 空状态 -->
-      <a-empty v-if="!tokenStore.hasTokens && !showImportForm">
-        <template #image>
-          <i class="mdi:bed-empty"></i>
-        </template>
-        还没有导入任何Token
-        <a-button type="link" @click="openshowImportForm"
-          >打开Token管理</a-button
-        >
-      </a-empty>
+      <section v-if="!tokenStore.hasTokens && !showImportForm" class="empty-panel">
+        <div class="empty-visual">
+          <img src="/icons/xiaoyugan.png" alt="XYZW" />
+        </div>
+        <h2>还没有导入任何 Token</h2>
+        <p>先添加一个账号，或从 URL、BIN、微信扫码导入，再进入控制台开始管理。</p>
+        <div class="empty-actions">
+          <n-button type="primary" @click="showImportForm = true">
+            添加 Token
+          </n-button>
+          <n-button ghost type="info" @click="checkAppUpdate">
+            检查更新
+          </n-button>
+        </div>
+      </section>
     </div>
 
     <!-- 编辑Token模态框 -->
@@ -643,11 +699,12 @@ import {
   TrashBin,
 } from "@vicons/ionicons5";
 import { NIcon, NAlert, useDialog, useMessage } from "naive-ui";
-import { h, onMounted, onUnmounted, reactive, ref, watch } from "vue";
+import { computed, h, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { transformToken, scheduleAuthUserRequest } from "@/utils/token";
 import { $emit } from "@/stores/events/index.ts";
 import useIndexedDB from "@/hooks/useIndexedDB";
+import { isAndroidWebView } from "@/utils/env";
 const { getArrayBuffer, storeArrayBuffer, deleteArrayBuffer, clearAll } =
   useIndexedDB();
 // 接收路由参数
@@ -1094,6 +1151,34 @@ const getServerTagColor = (tokenId) => {
   return status === "connected" ? "green" : "red";
 };
 
+const isPersistentToken = (token) =>
+  token.importMethod === "url" ||
+  token.importMethod === "bin" ||
+  token.importMethod === "wxQrcode" ||
+  token.upgradedToPermanent;
+
+const totalTokenCount = computed(() => tokenStore.gameTokens.length);
+
+const connectedTokenCount = computed(() =>
+  tokenStore.gameTokens.filter(
+    (token) => getConnectionStatus(token.id) === "connected",
+  ).length,
+);
+
+const connectingTokenCount = computed(() =>
+  tokenStore.gameTokens.filter(
+    (token) => getConnectionStatus(token.id) === "connecting",
+  ).length,
+);
+
+const permanentTokenCount = computed(() =>
+  tokenStore.gameTokens.filter((token) => isPersistentToken(token)).length,
+);
+
+const temporaryTokenCount = computed(() =>
+  Math.max(totalTokenCount.value - permanentTokenCount.value, 0),
+);
+
 const getTokenActions = (token) => {
   const actions = [
     {
@@ -1522,12 +1607,25 @@ const checkAppUpdate = () => {
 };
 
 // 开始任务管理 - 直接跳转到控制台
-const startTaskManagement = (token) => {
+const startTaskManagement = async (token) => {
   // 选择token
   tokenStore.selectToken(token.id);
-  // 直接跳转到控制台，不等待连接
   message.success(`正在进入 ${token.name} 的控制台`);
-  router.push("/admin/dashboard");
+
+  try {
+    await router.replace({ name: "Dashboard" });
+  } catch (error) {
+    console.error("进入控制台失败:", error);
+  }
+
+  // 某些 Android WebView 环境下路由切换可能会被拦截，做一次 hash 兜底。
+  if (
+    isAndroidWebView() &&
+    router.currentRoute.value.name !== "Dashboard" &&
+    window.location.hash !== "#/admin/dashboard"
+  ) {
+    window.location.hash = "#/admin/dashboard";
+  }
 };
 
 // URL参数处理函数
@@ -1651,144 +1749,564 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 .token-import-page {
+  --page-bg-start: #0c1021;
+  --page-bg-end: #181d36;
+  --panel-bg: rgba(15, 20, 38, 0.82);
+  --panel-bg-strong: rgba(18, 24, 46, 0.96);
+  --panel-border: rgba(255, 255, 255, 0.1);
+  --panel-shadow: 0 24px 60px rgba(2, 6, 23, 0.34);
+  --text-main: #f7fbff;
+  --text-soft: rgba(236, 244, 255, 0.78);
+  --text-faint: rgba(236, 244, 255, 0.54);
+  --accent: #7af1d0;
+  --accent-strong: #8f7bff;
+  --accent-soft: rgba(122, 241, 208, 0.14);
+  --danger-soft: rgba(255, 102, 138, 0.14);
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: var(--spacing-xl) 0;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 15% 10%, rgba(122, 241, 208, 0.14), transparent 28%),
+    radial-gradient(circle at 85% 0%, rgba(143, 123, 255, 0.16), transparent 24%),
+    linear-gradient(160deg, var(--page-bg-start), var(--page-bg-end));
+  color: var(--text-main);
 }
 
-/* 深色主题下的页面背景 */
-[data-theme="dark"] .token-import-page {
-  background: linear-gradient(135deg, #0f172a 0%, #1f2937 100%);
+.page-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.page-orb {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(12px);
+  opacity: 0.6;
+  animation: drift 18s ease-in-out infinite alternate;
+}
+
+.orb-a {
+  width: 26rem;
+  height: 26rem;
+  top: -10rem;
+  right: -6rem;
+  background: radial-gradient(circle, rgba(143, 123, 255, 0.32), transparent 68%);
+}
+
+.orb-b {
+  width: 20rem;
+  height: 20rem;
+  bottom: -8rem;
+  left: -5rem;
+  background: radial-gradient(circle, rgba(122, 241, 208, 0.24), transparent 68%);
+  animation-delay: -7s;
+}
+
+.orb-c {
+  width: 16rem;
+  height: 16rem;
+  top: 48%;
+  left: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.08), transparent 68%);
+  animation-delay: -12s;
+}
+
+.page-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.28), transparent 78%);
 }
 
 .container {
-  max-width: 1200px;
+  position: relative;
+  z-index: 1;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 0 var(--spacing-lg);
-}
-
-.page-header {
-  text-align: center;
-  margin-bottom: var(--spacing-2xl);
-}
-
-.header-content {
+  padding: clamp(16px, 3vw, 28px);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-md);
-  color: white;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  gap: 18px;
 }
 
-.header-top {
+.hero-panel,
+.tokens-section,
+.empty-panel {
+  background: linear-gradient(180deg, rgba(20, 26, 48, 0.86), rgba(12, 17, 34, 0.8));
+  border: 1px solid var(--panel-border);
+  box-shadow: var(--panel-shadow);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.hero-panel {
+  border-radius: 30px;
+  padding: clamp(18px, 3vw, 28px);
+}
+
+.hero-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.hero-brand {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
-  position: relative;
-  width: 100%;
-  justify-content: center;
-}
-
-.theme-toggle {
-  position: absolute;
-  right: 0;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  gap: 16px;
+  min-width: 0;
 }
 
 .brand-logo {
-  width: 64px;
-  height: 64px;
-  border-radius: var(--border-radius-medium);
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  width: 74px;
+  height: 74px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.28);
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
-.header-content h1 {
-  font-size: var(--font-size-3xl);
-  font-weight: var(--font-weight-bold);
+.hero-copy {
+  min-width: 0;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  color: rgba(122, 241, 208, 0.86);
+}
+
+.hero-copy h1 {
   margin: 0;
-  color: #ffffff;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  font-size: clamp(1.9rem, 5vw, 3.35rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
 }
 
-.header-content p {
-  font-size: var(--font-size-lg);
-  margin: 0;
-  color: rgba(255, 255, 255, 0.95);
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+.hero-desc {
+  margin: 10px 0 0;
+  max-width: 48rem;
+  font-size: 0.98rem;
+  line-height: 1.7;
+  color: var(--text-soft);
 }
 
-.import-section {
-  margin-bottom: var(--spacing-2xl);
-}
-
-.import-card {
-  background: var(--bg-primary);
-  border-radius: var(--border-radius-xl);
-  padding: var(--spacing-2xl);
-  box-shadow: var(--shadow-large);
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.card-header {
-  text-align: center;
-  margin-bottom: var(--spacing-xl);
-
-  h2 {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--spacing-sm);
-    color: var(--text-primary);
-    font-size: var(--font-size-xl);
-    margin-bottom: var(--spacing-sm);
-  }
-
-  p {
-    color: var(--text-secondary);
-    margin: 0 0 var(--spacing-md) 0;
-  }
-
-  .subtitle {
-    font-size: var(--font-size-md);
-    color: var(--text-tertiary);
-    margin: 0;
-    font-weight: var(--font-weight-normal);
-  }
-
-  .import-method-tabs {
-    margin-top: var(--spacing-md);
-    display: flex;
-    justify-content: center;
-  }
-}
-
-.form-tips {
+.hero-tools {
+  flex-shrink: 0;
   display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
-
-.form-tip {
-  color: var(--text-tertiary);
-  font-size: var(--font-size-sm);
-}
-
-.cors-tip {
-  color: var(--warning-color);
-  font-weight: var(--font-weight-medium);
-}
-
-.connection-actions {
-  display: flex;
-  gap: var(--spacing-xs);
   align-items: center;
 }
 
-/* 深色主题强制覆盖（与全局 data-theme 保持一致） */
+.hero-stats {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.stat-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  padding: 16px 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 112px;
+}
+
+.stat-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at top right, rgba(143, 123, 255, 0.16), transparent 45%),
+    radial-gradient(circle at bottom left, rgba(122, 241, 208, 0.12), transparent 40%);
+  pointer-events: none;
+}
+
+.stat-card-primary {
+  background: linear-gradient(160deg, rgba(122, 241, 208, 0.18), rgba(143, 123, 255, 0.12));
+  border-color: rgba(122, 241, 208, 0.18);
+}
+
+.stat-card-wide {
+  grid-column: span 1;
+}
+
+.stat-label {
+  font-size: 0.82rem;
+  color: var(--text-faint);
+  position: relative;
+  z-index: 1;
+}
+
+.stat-value {
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  position: relative;
+  z-index: 1;
+}
+
+.stat-value-name {
+  font-size: clamp(1.1rem, 2.2vw, 1.6rem);
+}
+
+.stat-hint {
+  font-size: 0.82rem;
+  color: var(--text-soft);
+  position: relative;
+  z-index: 1;
+}
+
+.hero-actions {
+  margin-top: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.hero-actions :deep(.n-button) {
+  min-width: 10rem;
+}
+
+.rate-limit-alert {
+  border-radius: 20px;
+  border: 1px solid rgba(245, 158, 11, 0.24);
+  background: rgba(245, 158, 11, 0.1);
+  color: #fff;
+}
+
+.tokens-section {
+  border-radius: 30px;
+  padding: clamp(18px, 3vw, 28px);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.section-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: start;
+}
+
+.section-copy h2,
+.empty-panel h2 {
+  margin: 0;
+  font-size: clamp(1.35rem, 2.2vw, 1.9rem);
+  line-height: 1.1;
+}
+
+.section-copy p {
+  margin: 8px 0 0;
+  color: var(--text-soft);
+  line-height: 1.6;
+}
+
+.section-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: rgba(122, 241, 208, 0.9);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+}
+
+.section-toolbar {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.view-switch,
+.sort-switch {
+  flex-wrap: wrap;
+}
+
+.toolbar-hints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  color: var(--text-soft);
+  font-size: 0.82rem;
+}
+
+.toolbar-hints span {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tokens-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.tokens-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.token-card,
+.token-row-card {
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(180deg, rgba(30, 35, 62, 0.88), rgba(18, 22, 44, 0.9)),
+    linear-gradient(135deg, rgba(122, 241, 208, 0.06), rgba(143, 123, 255, 0.04));
+  box-shadow: 0 16px 36px rgba(2, 6, 23, 0.2);
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease;
+  overflow: hidden;
+}
+
+.token-card-shell {
+  position: relative;
+}
+
+.token-card-shell::before,
+.token-row-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at top right, rgba(143, 123, 255, 0.16), transparent 40%),
+    radial-gradient(circle at bottom left, rgba(122, 241, 208, 0.12), transparent 35%);
+  pointer-events: none;
+}
+
+.token-card-shell:hover,
+.token-row-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 44px rgba(2, 6, 23, 0.26);
+  border-color: rgba(122, 241, 208, 0.16);
+}
+
+.token-card-shell.active,
+.token-row-card.active {
+  border-color: rgba(122, 241, 208, 0.48);
+  box-shadow: 0 0 0 1px rgba(122, 241, 208, 0.28), 0 22px 48px rgba(2, 6, 23, 0.32);
+}
+
+.token-card-shell :deep(.arco-card-header),
+.token-card-shell :deep(.arco-card-body),
+.token-card-shell :deep(.arco-card-actions),
+.token-row-card :deep(.n-card__header),
+.token-row-card :deep(.n-card__content),
+.token-row-card :deep(.n-card__footer) {
+  background: transparent;
+  border: 0;
+}
+
+.token-card-shell :deep(.arco-card-body),
+.token-row-card :deep(.n-card__content) {
+  padding-top: 0;
+}
+
+.token-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-main);
+  font-size: 1.02rem;
+  font-weight: 800;
+}
+
+.token-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+}
+
+.token-label {
+  color: var(--text-faint);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.token-value {
+  flex: 1;
+  min-width: 0;
+  font-family:
+    "SFMono-Regular",
+    Consolas,
+    "Liberation Mono",
+    monospace;
+  font-size: 0.86rem;
+  color: var(--text-main);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.token-remark {
+  margin: 10px 0;
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--text-soft);
+  cursor: pointer;
+  transition: background 180ms ease, border-color 180ms ease;
+}
+
+.token-remark:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(122, 241, 208, 0.16);
+}
+
+.token-remark-edit {
+  cursor: default;
+}
+
+.remark-label {
+  font-weight: 700;
+  color: var(--text-main);
+  flex-shrink: 0;
+}
+
+.remark-value {
+  flex: 1;
+  min-width: 0;
+  color: var(--text-soft);
+  word-break: break-all;
+}
+
+.token-timestamps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.timestamp-item {
+  padding: 10px 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.timestamp-label {
+  display: block;
+  font-size: 0.76rem;
+  color: var(--text-faint);
+  margin-bottom: 4px;
+}
+
+.timestamp-value {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--text-main);
+}
+
+.storage-info {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.storage-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.storage-label {
+  font-size: 0.82rem;
+  color: var(--text-faint);
+  font-weight: 600;
+}
+
+.storage-upgrade {
+  margin-top: 6px;
+}
+
+.empty-panel {
+  border-radius: 30px;
+  padding: clamp(28px, 4vw, 42px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+}
+
+.empty-visual {
+  width: 88px;
+  height: 88px;
+  border-radius: 28px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(160deg, rgba(122, 241, 208, 0.18), rgba(143, 123, 255, 0.16));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 18px 36px rgba(2, 6, 23, 0.18);
+}
+
+.empty-visual img {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+}
+
+.empty-panel p {
+  max-width: 34rem;
+  margin: 0;
+  color: var(--text-soft);
+  line-height: 1.7;
+}
+
+.empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+:global([data-theme="dark"] .token-import-modal .arco-modal) {
+  background: linear-gradient(180deg, rgba(21, 27, 50, 0.98), rgba(15, 20, 38, 0.98)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 [data-theme="dark"] .n-form-item-label,
 [data-theme="dark"] .n-form-item-label__text {
   color: #ffffff !important;
@@ -1797,37 +2315,15 @@ onUnmounted(() => {
 [data-theme="dark"] .n-input__input,
 [data-theme="dark"] .n-input__textarea {
   color: #ffffff !important;
-  background-color: rgba(255, 255, 255, 0.1) !important;
+  background-color: rgba(255, 255, 255, 0.08) !important;
 }
 
 [data-theme="dark"] .n-input__placeholder {
-  color: rgba(255, 255, 255, 0.5) !important;
+  color: rgba(255, 255, 255, 0.42) !important;
 }
 
 [data-theme="dark"] .n-card {
-  background-color: rgba(255, 255, 255, 0.1) !important;
   color: #ffffff !important;
-}
-
-[data-theme="dark"] .import-card {
-  background: rgba(45, 55, 72, 0.9) !important;
-  color: #ffffff !important;
-}
-
-[data-theme="dark"] .import-card h2 {
-  color: #ffffff !important;
-}
-
-[data-theme="dark"] .import-card .subtitle {
-  color: rgba(255, 255, 255, 0.7) !important;
-}
-
-[data-theme="dark"] .n-collapse-item__header {
-  color: #ffffff !important;
-}
-
-[data-theme="dark"] .n-collapse-item__content-wrapper {
-  background-color: transparent !important;
 }
 
 [data-theme="dark"] .n-radio-button {
@@ -1835,487 +2331,103 @@ onUnmounted(() => {
 }
 
 [data-theme="dark"] .n-radio-button--checked {
-  background-color: rgba(16, 185, 129, 0.8) !important;
+  background-color: rgba(122, 241, 208, 0.18) !important;
   color: #ffffff !important;
 }
 
-[data-theme="dark"] .form-tip {
-  color: rgba(255, 255, 255, 0.6) !important;
-}
+@keyframes drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
 
-.optional-fields {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-md);
-}
-
-.form-actions {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-  margin-top: var(--spacing-xl);
-}
-
-.tokens-section {
-  background: var(--bg-primary);
-  border-radius: var(--border-radius-xl);
-  padding: var(--spacing-xl);
-  box-shadow: var(--shadow-medium);
-  display: flex;
-  flex-direction: column;
-  max-height: calc(100vh - var(--spacing-2xl) * 4);
-}
-
-/* 深色主题下的列表区域背景 */
-[data-theme="dark"] .tokens-section {
-  background: rgba(45, 55, 72, 0.9);
-  color: #ffffff;
-}
-
-/* 深色主题下的固定头部 */
-[data-theme="dark"] .section-header {
-  background: rgba(45, 55, 72, 0.9);
-  border-bottom-color: rgba(255, 255, 255, 0.1);
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--spacing-xl);
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background: var(--bg-primary);
-  padding: var(--spacing-lg) 0;
-  margin: -var(--spacing-xl) -var(--spacing-xl) var(--spacing-md);
-  padding: var(--spacing-xl);
-  border-bottom: 1px solid var(--border-light);
-
-  h2 {
-    color: var(--text-primary);
-    font-size: var(--font-size-xl);
-    margin: 0;
+  to {
+    transform: translate3d(0, 18px, 0) scale(1.06);
   }
 }
 
-.header-actions {
-  display: flex;
-  gap: var(--spacing-md);
-  max-width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  flex-wrap: nowrap;
-}
-
-.tokens-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: var(--spacing-lg);
-  overflow-y: auto;
-  padding-right: var(--spacing-sm);
-  scrollbar-width: thin;
-  scrollbar-color: var(--border-medium) var(--bg-tertiary);
-  flex: 1;
-
-  &::-webkit-scrollbar {
-    width: 6px;
+@media (max-width: 1024px) {
+  .hero-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  &::-webkit-scrollbar-track {
-    background: var(--bg-tertiary);
-    border-radius: 3px;
+  .section-header {
+    grid-template-columns: 1fr;
   }
 
-  &::-webkit-scrollbar-thumb {
-    background: var(--border-medium);
-    border-radius: 3px;
+  .section-toolbar {
+    align-items: stretch;
   }
-
-  &::-webkit-scrollbar-thumb:hover {
-    background: var(--border-dark);
-  }
-}
-
-.token-card {
-  border: 2px solid var(--border-light);
-  border-radius: var(--border-radius-large);
-  padding: var(--spacing-lg);
-  cursor: pointer;
-  transition: all var(--transition-normal);
-
-  &:hover {
-    box-shadow: var(--shadow-medium);
-    transform: translateY(-2px);
-  }
-
-  &.active {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-  }
-
-  &.connected {
-    border-left: 4px solid var(--success-color);
-  }
-}
-
-.tokens-list {
-  overflow-y: auto;
-  padding-right: var(--spacing-sm);
-  scrollbar-width: thin;
-  scrollbar-color: var(--border-medium) var(--bg-tertiary);
-  flex: 1;
-
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: var(--bg-tertiary);
-    border-radius: 3px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: var(--border-medium);
-    border-radius: 3px;
-  }
-
-  &::-webkit-scrollbar-thumb:hover {
-    background: var(--border-dark);
-  }
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: var(--spacing-md);
-}
-
-.token-info {
-  flex: 1;
-}
-
-.token-name {
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
-  margin: 0 0 var(--spacing-xs) 0;
-}
-
-.token-meta {
-  display: flex;
-  gap: var(--spacing-sm);
-  flex-wrap: wrap;
-}
-
-.meta-item {
-  background: var(--bg-tertiary);
-  color: var(--text-secondary);
-  font-size: var(--font-size-xs);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--border-radius-small);
-}
-
-.card-body {
-  margin-bottom: var(--spacing-md);
-}
-
-.token-display {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-md);
-  padding: var(--spacing-sm);
-  background: var(--bg-tertiary);
-  border-radius: var(--border-radius-medium);
-}
-
-.token-label {
-  color: var(--text-secondary);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-}
-
-.token-value {
-  font-family: monospace;
-  font-size: var(--font-size-sm);
-  color: var(--text-primary);
-  flex: 1;
-}
-
-.connection-status {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--spacing-md);
-}
-
-.status-indicator {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--text-tertiary);
-
-  &.connected {
-    background: var(--success-color);
-  }
-
-  &.connecting {
-    background: var(--warning-color);
-  }
-
-  &.error {
-    background: var(--error-color);
-  }
-}
-
-.status-text {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-}
-
-.token-remark {
-  margin: var(--spacing-sm) 0;
-  padding: var(--spacing-sm);
-  background: var(--bg-tertiary);
-  border-radius: var(--border-radius-small);
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  display: flex;
-  align-items: flex-start;
-  gap: var(--spacing-xs);
-
-  &:hover {
-    background: var(--bg-secondary);
-  }
-}
-
-.token-remark-edit {
-  cursor: default;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-medium);
-
-  &:hover {
-    background: var(--bg-primary);
-  }
-}
-
-.remark-label {
-  font-weight: var(--font-weight-medium);
-  margin-right: var(--spacing-xs);
-  color: var(--text-primary);
-  flex-shrink: 0;
-}
-
-.remark-value {
-  font-style: italic;
-  flex: 1;
-}
-
-.token-timestamps {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--spacing-sm);
-}
-
-.timestamp-item {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
-
-.timestamp-label {
-  font-size: var(--font-size-xs);
-  color: var(--text-tertiary);
-}
-
-.timestamp-value {
-  font-size: var(--font-size-xs);
-  color: var(--text-secondary);
-}
-
-.card-footer {
-  border-top: 1px solid var(--border-light);
-  padding-top: var(--spacing-md);
-}
-
-/* 连接状态指示器样式 */
-.connection-indicator {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  margin-left: var(--spacing-xs);
-  position: relative;
-
-  &.connected {
-    background-color: #10b981;
-    /* 绿色 - 已连接 */
-    animation: pulse-green 2s infinite;
-  }
-
-  &.connecting {
-    background-color: #f59e0b;
-    /* 黄色 - 连接中 */
-    animation: pulse-yellow 1s infinite;
-  }
-
-  &.disconnected {
-    background-color: #6b7280;
-    /* 灰色 - 已断开 */
-  }
-
-  &.error {
-    background-color: #ef4444;
-    /* 红色 - 连接错误 */
-    animation: pulse-red 1s infinite;
-  }
-}
-
-.connection-status {
-  font-size: var(--font-size-xs);
-  font-weight: 500;
-  padding: 2px 6px;
-  border-radius: 4px;
-
-  &.connected {
-    color: #10b981;
-    background-color: rgba(16, 185, 129, 0.1);
-  }
-
-  &.connecting {
-    color: #f59e0b;
-    background-color: rgba(245, 158, 11, 0.1);
-  }
-
-  &.disconnected {
-    color: #6b7280;
-    background-color: rgba(107, 114, 128, 0.1);
-  }
-
-  &.error {
-    color: #ef4444;
-    background-color: rgba(239, 68, 68, 0.1);
-  }
-}
-
-@keyframes pulse-green {
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.5;
-  }
-}
-
-@keyframes pulse-yellow {
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.3;
-  }
-}
-
-@keyframes pulse-red {
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.6;
-  }
-}
-
-.empty-state {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 400px;
-  background: var(--bg-primary);
-  border-radius: var(--border-radius-xl);
-  box-shadow: var(--shadow-medium);
-}
-
-.modal-actions {
-  display: flex;
-  gap: var(--spacing-md);
-  justify-content: flex-end;
 }
 
 @media (max-width: 768px) {
-  .container {
-    padding: 0 var(--spacing-md);
+  .hero-top {
+    flex-direction: column;
+  }
+
+  .hero-brand {
+    align-items: flex-start;
+  }
+
+  .hero-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+  }
+
+  .hero-actions :deep(.n-button) {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .section-toolbar {
+    width: 100%;
+  }
+
+  .sort-switch,
+  .view-switch {
+    width: 100%;
+  }
+
+  .sort-switch :deep(.n-button),
+  .view-switch :deep(.n-radio-button) {
+    flex: 1 1 auto;
   }
 
   .tokens-grid {
     grid-template-columns: 1fr;
   }
 
-  .optional-fields {
+  .token-timestamps {
     grid-template-columns: 1fr;
   }
 
-  .section-header {
-    flex-direction: column;
-    gap: var(--spacing-md);
-    align-items: stretch;
-  }
-
-  .token-timestamps {
+  .modal-actions {
     flex-direction: column;
   }
+}
 
-  .storage-info {
-    flex-direction: column;
-    gap: var(--spacing-sm);
+@media (max-width: 480px) {
+  .container {
+    padding: 12px;
   }
-}
 
-/* 存储信息样式 */
-.storage-info {
-  margin-top: var(--spacing-md);
-  padding-top: var(--spacing-md);
-  border-top: 1px solid var(--border-light);
-}
+  .hero-panel,
+  .tokens-section,
+  .empty-panel {
+    border-radius: 24px;
+  }
 
-.storage-item {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-sm);
-}
+  .brand-logo {
+    width: 64px;
+    height: 64px;
+  }
 
-.storage-label {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-  font-weight: var(--font-weight-medium);
-  min-width: 70px;
-}
-
-.storage-upgrade {
-  margin-top: var(--spacing-xs);
-}
-
-:global([data-theme="dark"] .token-import-modal .arco-modal) {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-}
-
-[data-theme="dark"] .token-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  .token-display,
+  .token-remark,
+  .timestamp-item {
+    border-radius: 14px;
+  }
 }
 </style>

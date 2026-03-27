@@ -53,17 +53,17 @@ import { ref, computed, watch, onMounted, onUnmounted, watchEffect } from "vue";
 import { useMessage } from "naive-ui";
 import { useTokenStore } from "@/stores/tokenStore";
 import MyCard from "../Common/MyCard.vue";
+import { getAssetUrl } from "@/utils/env";
 
 const tokenStore = useTokenStore();
 const message = useMessage();
 
-const iconPath = computed(() => import.meta.env.BASE_URL + "box/zsbx.png");
+const iconPath = computed(() => getAssetUrl("/box/zsbx.png"));
 
 const roleInfo = computed(() => tokenStore.gameData?.roleInfo || null);
 
 const boxDataList = computed(() => {
-  const getImgPath = (path) =>
-    import.meta.env.BASE_URL + path.replace(/^\//, "");
+  const getImgPath = (path) => getAssetUrl(path);
   return [
     {
       type: "木质宝箱",

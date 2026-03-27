@@ -124,6 +124,7 @@ import { ref, computed, watch, onMounted, onUnmounted, watchEffect } from "vue";
 import { useMessage } from "naive-ui";
 import { useTokenStore } from "@/stores/tokenStore";
 import MyCard from "../Common/MyCard.vue";
+import { getAssetUrl } from "@/utils/env";
 import {
   merchantConfig,
   goldItemsConfig,
@@ -133,9 +134,7 @@ import {
 const tokenStore = useTokenStore();
 const message = useMessage();
 
-const iconPath = computed(
-  () => import.meta.env.BASE_URL + "174061875626614.png",
-);
+const iconPath = computed(() => getAssetUrl("/174061875626614.png"));
 
 // 状态管理
 const isRunning = ref(false);

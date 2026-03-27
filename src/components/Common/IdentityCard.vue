@@ -180,11 +180,11 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useTokenStore } from "@/stores/tokenStore";
 import { legacycolor as rawLegacyColor } from "@/utils/HeroList";
+import { getAssetUrl } from "@/utils/env";
 
 const legacycolor = rawLegacyColor as any;
 const tokenStore = useTokenStore();
-const getImgPath = (path: string) =>
-  import.meta.env.BASE_URL + path.replace(/^\//, "");
+const getImgPath = (path: string) => getAssetUrl(path);
 
 const props = defineProps<{ visible?: boolean; embedded?: boolean }>();
 const emit = defineEmits(["close"]);
