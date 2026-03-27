@@ -141,6 +141,15 @@
               添加Token
             </n-button>
 
+            <n-button ghost type="info" @click="checkAppUpdate">
+              <template #icon>
+                <n-icon>
+                  <SyncCircle />
+                </n-icon>
+              </template>
+              检查更新
+            </n-button>
+
             <n-dropdown :options="bulkOptions" @select="handleBulkAction">
               <n-button>
                 <template #icon>
@@ -1501,6 +1510,15 @@ const formatTime = (timestamp) => {
 
 const goToDashboard = () => {
   router.push("/admin/batch-daily-tasks");
+};
+
+const checkAppUpdate = () => {
+  if (window.AndroidBridge?.checkApkUpdate) {
+    window.AndroidBridge.checkApkUpdate();
+    return;
+  }
+
+  message.info("请在 Android App 中使用该功能");
 };
 
 // 开始任务管理 - 直接跳转到控制台

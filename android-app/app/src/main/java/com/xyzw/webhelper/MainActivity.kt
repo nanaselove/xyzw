@@ -6,6 +6,7 @@ import android.content.pm.ApplicationInfo
 import android.net.Uri
 import android.os.Bundle
 import android.view.ViewGroup
+import android.webkit.WebResourceError
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
@@ -16,6 +17,7 @@ import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import java.io.File
 import java.io.InputStream
@@ -26,8 +28,21 @@ import java.net.URLConnection
 import org.json.JSONObject
 
 class MainActivity : AppCompatActivity() {
+  companion object {
+    private const val REMOTE_APP_HOST = "xyzw-9bj.pages.dev"
+    private const val REMOTE_WEB_ENTRY_URL = "https://xyzw-9bj.pages.dev/#/tokens"
+    private const val LOCAL_WEB_ENTRY_URL = "file:///android_asset/www/index.html#/tokens"
+  }
+
   private lateinit var webView: WebView
   private var filePathCallback: ValueCallback<Array<Uri>>? = null
+  private val apkUpdateManager by lazy { ApkUpdateManager(this) }
+  private var activeUpdateDialog: AlertDialog? = null
+  private var activeLoadingDialog: AlertDialog? = null
+  private var isCheckingApkUpdate = false
+  private var isDownloadingApkUpdate = false
+  private var forceUpdatePending = false
+  private var hasLoadedLocalFallback = false
 
   private val fileChooserLauncher =
     registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -47,11 +62,20 @@ class MainActivity : AppCompatActivity() {
     configureWebView()
 
     if (savedInstanceState == null) {
-      webView.loadUrl("file:///android_asset/www/index.html#/tokens")
+      webView.loadUrl(REMOTE_WEB_ENTRY_URL)
     }
   }
 
   override fun onBackPressed() {
+    if (forceUpdatePending) {
+      finishAffinity()
+      return
+    }
+
+    if (activeLoadingDialog?.isShowing == true) {
+      return
+    }
+
     if (webView.canGoBack()) {
       webView.goBack()
     } else {
@@ -60,6 +84,7 @@ class MainActivity : AppCompatActivity() {
   }
 
   override fun onDestroy() {
+    dismissUpdateDialogs()
     if (::webView.isInitialized) {
       webView.apply {
         stopLoading()
@@ -109,6 +134,37 @@ class MainActivity : AppCompatActivity() {
     startActivity(Intent.createChooser(intent, title))
   }
 
+  fun checkApkUpdate(showLatestToast: Boolean = true) {
+    if (isCheckingApkUpdate || isDownloadingApkUpdate) {
+      Toast.makeText(this, "正在检查更新，请稍候", Toast.LENGTH_SHORT).show()
+      return
+    }
+
+    isCheckingApkUpdate = true
+    apkUpdateManager.checkApkUpdate { result ->
+      isCheckingApkUpdate = false
+      when (result) {
+        is ApkUpdateManager.UpdateCheckResult.ForceUpdate -> {
+          showUpdateDialog(result.info, force = true)
+        }
+
+        is ApkUpdateManager.UpdateCheckResult.NormalUpdate -> {
+          showUpdateDialog(result.info, force = false)
+        }
+
+        is ApkUpdateManager.UpdateCheckResult.Latest -> {
+          if (showLatestToast) {
+            Toast.makeText(this, "当前已是最新版本", Toast.LENGTH_SHORT).show()
+          }
+        }
+
+        is ApkUpdateManager.UpdateCheckResult.Error -> {
+          Toast.makeText(this, result.message, Toast.LENGTH_SHORT).show()
+        }
+      }
+    }
+  }
+
   fun deliverNativeHttpResponse(requestId: String, payloadJson: String) {
     val script =
       "window.__xyzwNativeHttpReceive && window.__xyzwNativeHttpReceive(" +
@@ -122,6 +178,132 @@ class MainActivity : AppCompatActivity() {
         webView.evaluateJavascript(script, null)
       }
     }
+  }
+
+  private fun showUpdateDialog(info: ApkUpdateInfo, force: Boolean) {
+    dismissUpdateDialogs()
+
+    val dialog =
+      AlertDialog.Builder(this)
+        .setTitle(if (force) "发现强制更新" else "发现新版本")
+        .setMessage(buildUpdateMessage(info, force))
+        .setCancelable(!force)
+        .setPositiveButton("立即更新") { _, _ ->
+          startUpdateDownload(info, force)
+        }
+        .apply {
+          if (!force) {
+            setNegativeButton("稍后再说") { dialog, _ ->
+              dialog.dismiss()
+            }
+          }
+        }
+        .create()
+
+    if (force) {
+      dialog.setOnDismissListener {
+        if (forceUpdatePending && !isDownloadingApkUpdate) {
+          finishAffinity()
+        }
+      }
+    }
+
+    activeUpdateDialog = dialog
+    forceUpdatePending = force
+    dialog.show()
+  }
+
+  private fun startUpdateDownload(info: ApkUpdateInfo, force: Boolean) {
+    if (isDownloadingApkUpdate) {
+      return
+    }
+
+    isDownloadingApkUpdate = true
+    apkUpdateManager.downloadApk(
+      info = info,
+      onLoadingChanged = { loading ->
+        if (loading) {
+          showLoadingDialog("正在下载更新，请稍候...")
+        } else {
+          dismissLoadingDialog()
+        }
+      },
+      onSuccess = { apkFile ->
+        isDownloadingApkUpdate = false
+        dismissLoadingDialog()
+        try {
+          apkUpdateManager.installApk(apkFile, force)
+        } catch (error: Exception) {
+          Toast.makeText(
+            this,
+            error.message ?: "安装更新失败",
+            Toast.LENGTH_SHORT,
+          ).show()
+          if (force) {
+            finishAffinity()
+          }
+        } finally {
+          if (!force) {
+            forceUpdatePending = false
+          }
+        }
+      },
+      onError = { errorMessage ->
+        isDownloadingApkUpdate = false
+        dismissLoadingDialog()
+        Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
+        if (force) {
+          finishAffinity()
+        } else {
+          forceUpdatePending = false
+        }
+      },
+    )
+  }
+
+  private fun showLoadingDialog(message: String) {
+    if (activeLoadingDialog?.isShowing == true) {
+      activeLoadingDialog?.setMessage(message)
+      return
+    }
+
+    activeLoadingDialog =
+      AlertDialog.Builder(this)
+        .setMessage(message)
+        .setCancelable(false)
+        .create()
+        .also { it.show() }
+  }
+
+  private fun dismissLoadingDialog() {
+    activeLoadingDialog?.dismiss()
+    activeLoadingDialog = null
+  }
+
+  private fun dismissUpdateDialogs() {
+    dismissLoadingDialog()
+    activeUpdateDialog?.dismiss()
+    activeUpdateDialog = null
+    forceUpdatePending = false
+    isDownloadingApkUpdate = false
+  }
+
+  private fun buildUpdateMessage(info: ApkUpdateInfo, force: Boolean): String {
+    val lines = mutableListOf<String>()
+    lines += "最新版本：${info.versionName} (${info.versionCode})"
+    if (info.notes.isNotBlank()) {
+      lines += ""
+      lines += "更新说明："
+      lines += info.notes
+    }
+    if (force) {
+      lines += ""
+      lines += "当前版本低于最低支持版本，必须更新后才能继续使用。"
+    } else {
+      lines += ""
+      lines += "是否立即更新？"
+    }
+    return lines.joinToString("\n")
   }
 
   private fun configureWebView() {
@@ -191,6 +373,28 @@ class MainActivity : AppCompatActivity() {
 
   private fun createWebViewClient() =
     object : WebViewClient() {
+      override fun onReceivedError(
+        view: WebView?,
+        request: WebResourceRequest?,
+        error: WebResourceError?,
+      ) {
+        super.onReceivedError(view, request, error)
+        if (request?.isForMainFrame == true) {
+          loadLocalFallbackEntry()
+        }
+      }
+
+      override fun onReceivedHttpError(
+        view: WebView?,
+        request: WebResourceRequest?,
+        errorResponse: WebResourceResponse?,
+      ) {
+        super.onReceivedHttpError(view, request, errorResponse)
+        if (request?.isForMainFrame == true && isRemoteAppUrl(request.url)) {
+          loadLocalFallbackEntry()
+        }
+      }
+
       override fun shouldInterceptRequest(
         view: WebView?,
         request: WebResourceRequest?,
@@ -282,7 +486,33 @@ class MainActivity : AppCompatActivity() {
       return uri.toString().startsWith("file:///android_asset/")
     }
 
+    if (isRemoteAppUrl(uri)) {
+      return true
+    }
+
     return uri.scheme == "about" || uri.scheme == "javascript"
+  }
+
+  private fun isRemoteAppUrl(uri: Uri): Boolean {
+    val scheme = uri.scheme?.lowercase() ?: return false
+    if (scheme != "https" && scheme != "http") {
+      return false
+    }
+
+    return uri.host == REMOTE_APP_HOST
+  }
+
+  private fun loadLocalFallbackEntry() {
+    if (hasLoadedLocalFallback) {
+      return
+    }
+
+    hasLoadedLocalFallback = true
+    runOnUiThread {
+      if (::webView.isInitialized) {
+        webView.loadUrl(LOCAL_WEB_ENTRY_URL)
+      }
+    }
   }
 
   private fun resolveMimeType(params: WebChromeClient.FileChooserParams?): String {

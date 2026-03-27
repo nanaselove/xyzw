@@ -6,6 +6,7 @@ declare global {
     shareBase64File?(base64: string, fileName: string, mimeType: string): void;
     shareText?(text: string, title: string): void;
     openExternalUrl?(url: string): void;
+    checkApkUpdate?(): void;
     requestText?(
       requestId: string,
       url: string,

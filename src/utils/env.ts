@@ -9,3 +9,11 @@ export const getAndroidBridge = () => {
 };
 
 export const isAndroidWebView = () => Boolean(getAndroidBridge());
+
+export const isAndroidAssetPage = () => {
+  if (!isAndroidWebView() || !isBrowser()) {
+    return false;
+  }
+
+  return window.location.href.startsWith("file:///android_asset/");
+};

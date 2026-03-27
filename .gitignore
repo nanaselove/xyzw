@@ -14,6 +14,10 @@ docker/**/*.tgz
 # Production builds
 dist/
 build/
+.gradle-home/
+.gradle/
+android-app/.gradle/
+android-app/app/build/
 
 # Environment variables
 .env

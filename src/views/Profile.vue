@@ -128,6 +128,14 @@
             <n-button @click="exportData"> 导出 </n-button>
           </div>
 
+          <div class="security-item">
+            <div class="security-info">
+              <h3>应用更新</h3>
+              <p>检查 APK 最新版本并下载安装</p>
+            </div>
+            <n-button type="primary" @click="checkAppUpdate"> 检查更新 </n-button>
+          </div>
+
           <div class="security-item danger">
             <div class="security-info">
               <h3>删除账户</h3>
@@ -273,6 +281,15 @@ const viewLoginHistory = () => {
 
 const exportData = () => {
   message.info("数据导出功能开发中...");
+};
+
+const checkAppUpdate = () => {
+  if (window.AndroidBridge?.checkApkUpdate) {
+    window.AndroidBridge.checkApkUpdate();
+    return;
+  }
+
+  message.info("请在 Android App 中使用该功能");
 };
 
 const deleteAccount = () => {

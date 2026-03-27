@@ -1,4 +1,4 @@
-import { isAndroidWebView } from "./env";
+import { isAndroidAssetPage } from "./env";
 
 const ASSET_PREFIX = "file:///android_asset/www/";
 
@@ -43,7 +43,7 @@ const rewriteAttributeValue = (name: string, value: string) => {
 
 export const installAndroidAssetRuntimeFix = () => {
   if (
-    !isAndroidWebView() ||
+    !isAndroidAssetPage() ||
     typeof window === "undefined" ||
     typeof document === "undefined"
   ) {

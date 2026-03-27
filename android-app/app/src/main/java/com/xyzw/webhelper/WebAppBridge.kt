@@ -74,6 +74,13 @@ class WebAppBridge(private val activity: MainActivity) {
   }
 
   @JavascriptInterface
+  fun checkApkUpdate() {
+    activity.runOnUiThread {
+      activity.checkApkUpdate()
+    }
+  }
+
+  @JavascriptInterface
   fun requestText(
     requestId: String,
     url: String,
