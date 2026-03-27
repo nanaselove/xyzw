@@ -25,6 +25,9 @@ const isAndroidWebViewByUserAgent = () => {
 export const isAndroidWebView = () =>
   Boolean(getAndroidBridge()) || isAndroidWebViewByUserAgent();
 
+const isAbsoluteOrSpecialUrl = (value: string) =>
+  /^(?:[a-zA-Z][a-zA-Z\d+\-.]*:|\/\/|#)/.test(value);
+
 export const getAssetUrl = (value: string) => {
   const trimmed = value.trim();
 
