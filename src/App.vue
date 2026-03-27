@@ -160,10 +160,12 @@ body {
     sans-serif;
   transition: color 0.3s ease;
   background: transparent !important;
+  scrollbar-gutter: stable;
 }
 
 body {
   position: relative;
+  overflow-y: scroll;
 }
 
 body::before {

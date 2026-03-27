@@ -31,7 +31,13 @@
 
     <!-- 操作按钮 -->
     <div class="form-actions">
-      <n-button type="primary" block @click="generateQRCode" :loading="isProcessing">
+      <n-button
+        type="default"
+        class="import-action import-action--primary"
+        block
+        @click="generateQRCode"
+        :loading="isProcessing"
+      >
         <template #icon>
           <n-icon>
             <Refresh />
@@ -79,7 +85,14 @@
 
     <!-- 操作按钮 -->
     <div class="form-actions">
-      <n-button type="primary" size="large" block :loading="isImporting" @click="handleImport">
+      <n-button
+        type="default"
+        class="import-action import-action--primary"
+        size="large"
+        block
+        :loading="isImporting"
+        @click="handleImport"
+      >
         <template #icon>
           <n-icon>
             <CloudUpload />
@@ -88,7 +101,13 @@
         添加Token
       </n-button>
 
-      <n-button block @click="$emit('cancel')" :disabled="isProcessing">
+      <n-button
+        type="default"
+        class="import-action import-action--secondary"
+        block
+        @click="$emit('cancel')"
+        :disabled="isProcessing"
+      >
         <template #icon>
           <n-icon>
             <Close />
@@ -902,5 +921,39 @@ onUnmounted(() => {
   flex-direction: column;
   gap: var(--spacing-md);
   margin-top: var(--spacing-xl);
+}
+
+.form-actions :deep(button.import-action),
+.form-actions :deep(.n-button.import-action) {
+  width: 100%;
+  min-height: 48px;
+  border-radius: 999px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  color: var(--section-tab-text) !important;
+  background-color: rgba(124, 108, 255, 0.14) !important;
+  background-image: linear-gradient(180deg, rgba(124, 108, 255, 0.18), rgba(18, 22, 44, 0.74)) !important;
+  border: 1px solid var(--section-tab-border) !important;
+  box-shadow: var(--section-tab-shadow) !important;
+}
+
+.form-actions :deep(button.import-action--primary),
+.form-actions :deep(.n-button.import-action--primary) {
+  color: #ffffff !important;
+  background-color: #7c6cff !important;
+  background-image: linear-gradient(135deg, #8b5cf6 0%, #7c6cff 100%) !important;
+  border-color: var(--section-tab-active-border) !important;
+  box-shadow: var(--section-tab-active-shadow) !important;
+}
+
+.form-actions :deep(button.import-action--secondary),
+.form-actions :deep(.n-button.import-action--secondary) {
+  color: #f8fbff !important;
+  --n-text-color: #f8fbff;
+  --n-text-color-hover: #ffffff;
+  --n-text-color-pressed: #ffffff;
+  background-color: rgba(124, 108, 255, 0.16) !important;
+  background-image: linear-gradient(180deg, rgba(124, 108, 255, 0.16), rgba(18, 22, 44, 0.72)) !important;
+  border-color: rgba(180, 166, 255, 0.34) !important;
 }
 </style>

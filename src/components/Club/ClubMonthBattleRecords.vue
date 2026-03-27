@@ -875,9 +875,9 @@ const handleExport = async () => {
 }
 
 const exportToImage = async () => {
-  // 鏍￠獙锛氱‘淇滵OM宸叉纭粦瀹?
+  // 校验：确认 DOM 已正确绑定
   if (!exportDom.value) {
-    alert('链壘鍒拌瀵煎嚭鐨凞OM鍏冪礌');
+    alert('未找到要导出的 DOM 元素');
     return;
   }
 
@@ -913,7 +913,7 @@ const exportToImage = async () => {
   };
 
   try {
-    // 鐢╤tml2canvas娓叉煋DOM涓篊anvas
+    // 用 html2canvas 渲染 DOM 为 Canvas
     exportTargets.forEach(expandForExport);
     exportDom.value.style.flex = 'none';
     if (style2Root) {
@@ -946,10 +946,10 @@ const exportToImage = async () => {
     ) + 48;
 
     const canvas = await captureDomCanvas(exportDom.value, {
-      scale: 2, // 鏀惧ぇ2鍊嶏紝瑙ｅ喅鍥剧墖妯＄硦闂
-      useCORS: true, // 鍏佽璺ㄥ煙鍥剧墖锛堣嫢DOM鍐呮湁杩滅▼鍥剧墖锛岄渶寮€鍚級
-      backgroundColor: '#ffffff', // 閬垮厭閫忔槑鑳屾櫙锛堥粯璁ら€忔槑锛?
-      logging: false, // 鍏抽棴鎺у埗鍙版棩蹇?
+      scale: 2, // 放大 2 倍，解决图片模糊问题
+      useCORS: true, // 允许跨域图片（若 DOM 内有远程图片，需开启）
+      backgroundColor: '#ffffff', // 避免透明背景（默认透明）
+      logging: false, // 关闭控制台日志
       allowTaint: true,
       width: renderWidth,
       height: renderHeight,

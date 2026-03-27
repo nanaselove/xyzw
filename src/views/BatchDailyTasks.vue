@@ -4,44 +4,22 @@
       <!-- Left Column -->
       <div class="left-column">
         <!-- Header -->
-        <div
-          class="page-header"
-          style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-          "
-        >
-          <div style="display: flex; align-items: center; gap: 16px">
+        <div class="page-header">
+          <div class="page-header-meta">
             <h2>批量日常任务</h2>
-            <div
-              style="
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                padding: 8px 12px;
-                background-color: #f8f9fa;
-                border-radius: 8px;
-                border: 1px solid #e9ecef;
-              "
-            >
-              <div style="font-size: 14px; color: #495057">
+            <div class="page-header-meta-card">
+              <div class="page-header-meta-item">
                 共 {{ scheduledTasks.length }} 个定时任务
               </div>
-              <div
-                v-if="shortestCountdownTask"
-                style="font-size: 14px; font-weight: 500; color: #1677ff"
-              >
+              <div v-if="shortestCountdownTask" class="page-header-meta-item page-header-meta-item--accent">
                 即将执行：{{ shortestCountdownTask.task.name }} ({{
                   shortestCountdownTask.countdown.formatted
                 }})
               </div>
-              <div v-else style="font-size: 14px; color: #6c757d">
+              <div v-else class="page-header-meta-item page-header-meta-item--muted">
                 暂无定时任务
               </div>
-              <div style="display: flex; gap: 8px">
+              <div class="page-header-meta-actions">
                 <n-button type="primary" size="small" @click="openTaskModal">
                   新增定时任务
                 </n-button>
@@ -61,17 +39,7 @@
               </div>
             </div>
           </div>
-          <div
-            style="
-              display: flex;
-              align-items: center;
-              gap: 12px;
-              padding: 8px 12px;
-              background-color: #f8f9fa;
-              border-radius: 8px;
-              border: 1px solid #e9ecef;
-            "
-          >
+          <div class="page-header-actions">
             <n-button
               type="primary"
               @click="startBatch"
@@ -187,8 +155,8 @@
           </div>
 
           <!-- 排序按钮组 -->
-          <div class="sort-buttons" style="margin-bottom: 12px">
-            <n-space align="center">
+          <div class="sort-buttons">
+            <n-space align="center" class="sort-buttons-rail">
               <n-button-group size="small">
                 <n-button
                   @click="toggleSort('name')"
@@ -5879,6 +5847,16 @@ const stopBatch = () => {
 
 <style scoped>
 .batch-daily-tasks {
+  --section-tab-surface: linear-gradient(180deg, rgba(92, 77, 214, 0.22), rgba(18, 22, 44, 0.72));
+  --section-tab-border: rgba(180, 166, 255, 0.36);
+  --section-tab-text: rgba(248, 251, 255, 0.96);
+  --section-tab-hover-bg: rgba(124, 108, 255, 0.26);
+  --section-tab-hover-text: #f8fbff;
+  --section-tab-active-bg: linear-gradient(135deg, #8b5cf6 0%, #7c6cff 100%);
+  --section-tab-active-text: #ffffff;
+  --section-tab-active-border: rgba(193, 178, 255, 0.78);
+  --section-tab-active-shadow: 0 12px 22px rgba(124, 108, 255, 0.42);
+  --section-tab-shadow: 0 12px 30px rgba(6, 10, 24, 0.3);
   padding: 20px;
   height: 100vh;
   box-sizing: border-box;
@@ -5910,8 +5888,145 @@ const stopBatch = () => {
 .page-header {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.page-header-meta {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.page-header-meta h2 {
+  margin: 0;
+}
+
+.page-header-meta-card,
+.page-header-actions,
+.sort-buttons-rail {
+  display: flex;
   align-items: center;
-  margin-bottom: 20px;
+  flex-wrap: nowrap;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid var(--section-tab-border);
+  border-radius: 999px;
+  background: var(--section-tab-surface);
+  box-shadow: var(--section-tab-shadow);
+  backdrop-filter: blur(14px);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.page-header-meta-card::-webkit-scrollbar,
+.page-header-actions::-webkit-scrollbar,
+.sort-buttons-rail::-webkit-scrollbar {
+  display: none;
+}
+
+.page-header-meta-item {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  padding: 8px 12px;
+  border-radius: 999px;
+  color: var(--section-tab-text);
+  font-weight: 600;
+}
+
+.page-header-meta-item--accent {
+  color: #ffffff;
+  background: var(--section-tab-active-bg);
+  box-shadow: var(--section-tab-active-shadow);
+}
+
+.page-header-meta-item--muted {
+  color: var(--section-tab-text);
+}
+
+.page-header-meta-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.page-header-meta-actions :deep(.n-button),
+.page-header-actions :deep(.n-button) {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  min-height: 36px;
+  border-radius: 999px;
+  padding-inline: 14px;
+}
+
+.page-header-actions {
+  justify-content: flex-end;
+}
+
+.page-header-actions :deep(.n-button--primary-type),
+.sort-buttons :deep(.n-button--primary-type) {
+  color: var(--section-tab-active-text) !important;
+  background: var(--section-tab-active-bg) !important;
+  border-color: var(--section-tab-active-border) !important;
+  box-shadow: var(--section-tab-active-shadow);
+}
+
+.page-header-actions :deep(.n-button:hover),
+.page-header-meta-actions :deep(.n-button:hover),
+.sort-buttons :deep(.n-button:hover) {
+  color: var(--section-tab-hover-text) !important;
+  background: var(--section-tab-hover-bg);
+  border-color: var(--section-tab-border);
+}
+
+.sort-buttons {
+  margin-bottom: 12px;
+  width: 100%;
+}
+
+.sort-buttons-rail {
+  width: 100%;
+  overflow: visible;
+  scrollbar-width: none;
+}
+
+.sort-buttons-rail::-webkit-scrollbar {
+  display: none;
+}
+
+.sort-buttons :deep(.n-button-group) {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid var(--section-tab-border);
+  border-radius: 999px;
+  background: var(--section-tab-surface);
+  box-shadow: var(--section-tab-shadow);
+  backdrop-filter: blur(14px);
+  width: 100%;
+  overflow: hidden;
+}
+
+.sort-buttons :deep(.n-button-group)::-webkit-scrollbar {
+  display: none;
+}
+
+.sort-buttons :deep(.n-button) {
+  flex: 1 1 0;
+  min-width: 0;
+  white-space: nowrap;
+  min-height: 36px;
+  border-radius: 999px;
+  padding-inline: 10px;
+  color: var(--section-tab-text);
+  border: 1px solid transparent;
+  background: transparent;
 }
 
 .token-item {
@@ -6161,7 +6276,13 @@ const stopBatch = () => {
     align-items: stretch;
   }
 
-  .page-header .actions {
+  .page-header-meta,
+  .page-header-actions,
+  .sort-buttons {
+    width: 100%;
+  }
+
+  .page-header-actions {
     display: flex;
     gap: 8px;
   }

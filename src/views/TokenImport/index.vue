@@ -9,88 +9,78 @@
 
     <div class="container">
       <section class="hero-panel">
-        <div class="hero-top">
-          <div class="hero-brand">
-            <img src="/icons/xiaoyugan.png" alt="XYZW" class="brand-logo" />
-            <div class="hero-copy">
-              <p class="eyebrow">TOKEN CONTROL CENTER</p>
-              <h1>游戏 Token 管理</h1>
-              <p class="hero-desc">
-                集中管理登录凭证、连接状态和批量任务，一屏完成导入、刷新、升级与进入控制台。
-              </p>
-            </div>
-          </div>
 
-          <div class="hero-tools">
-            <ThemeToggle />
+        <div class="hero-stats-shell">
+          <div class="hero-stats">
+            <article class="stat-card stat-card-primary">
+              <span class="stat-label">总 Token</span>
+              <strong class="stat-value">{{ totalTokenCount }}</strong>
+              <span class="stat-hint">当前库中所有账号</span>
+            </article>
+            <article class="stat-card">
+              <span class="stat-label">在线连接</span>
+              <strong class="stat-value">{{ connectedTokenCount }}</strong>
+              <span class="stat-hint">{{ connectingTokenCount }} 个正在连接</span>
+            </article>
+            <article class="stat-card">
+              <span class="stat-label">长期有效</span>
+              <strong class="stat-value">{{ permanentTokenCount }}</strong>
+              <span class="stat-hint">{{ temporaryTokenCount }} 个临时存储</span>
+            </article>
+            <article class="stat-card stat-card-wide">
+              <span class="stat-label">当前选中</span>
+              <strong class="stat-value stat-value-name">
+                {{ tokenStore.selectedToken?.name || "未选择 Token" }}
+              </strong>
+              <span class="stat-hint">
+                {{ tokenStore.selectedToken?.server || "从下方列表选择一个角色进入控制台" }}
+              </span>
+            </article>
           </div>
-        </div>
-
-        <div class="hero-stats">
-          <article class="stat-card stat-card-primary">
-            <span class="stat-label">总 Token</span>
-            <strong class="stat-value">{{ totalTokenCount }}</strong>
-            <span class="stat-hint">当前库中所有账号</span>
-          </article>
-          <article class="stat-card">
-            <span class="stat-label">在线连接</span>
-            <strong class="stat-value">{{ connectedTokenCount }}</strong>
-            <span class="stat-hint">{{ connectingTokenCount }} 个正在连接</span>
-          </article>
-          <article class="stat-card">
-            <span class="stat-label">长期有效</span>
-            <strong class="stat-value">{{ permanentTokenCount }}</strong>
-            <span class="stat-hint">{{ temporaryTokenCount }} 个临时存储</span>
-          </article>
-          <article class="stat-card stat-card-wide">
-            <span class="stat-label">当前选中</span>
-            <strong class="stat-value stat-value-name">
-              {{ tokenStore.selectedToken?.name || "未选择 Token" }}
-            </strong>
-            <span class="stat-hint">
-              {{ tokenStore.selectedToken?.server || "从下方列表选择一个角色进入控制台" }}
-            </span>
-          </article>
         </div>
 
         <div class="hero-actions">
-          <n-button type="primary" size="large" @click="showImportForm = true">
-            <template #icon>
-              <n-icon>
-                <Add />
-              </n-icon>
-            </template>
-            添加Token
-          </n-button>
-
-          <n-button size="large" secondary @click="goToDashboard">
-            <template #icon>
-              <n-icon>
-                <List />
-              </n-icon>
-            </template>
-            批量功能
-          </n-button>
-
-          <n-button ghost type="info" size="large" @click="checkAppUpdate">
-            <template #icon>
-              <n-icon>
-                <SyncCircle />
-              </n-icon>
-            </template>
-            检查更新
-          </n-button>
-
-          <n-dropdown :options="bulkOptions" @select="handleBulkAction">
-            <n-button size="large" ghost>
+          <div class="hero-action-primary">
+            <n-button type="primary" size="large" @click="showImportForm = true">
               <template #icon>
                 <n-icon>
-                  <Menu />
+                  <Add />
                 </n-icon>
               </template>
-              批量操作
+              添加Token
             </n-button>
-          </n-dropdown>
+          </div>
+
+          <div class="hero-action-rail" role="toolbar" aria-label="页面操作">
+            <n-button size="large" @click="goToDashboard">
+              <template #icon>
+                <n-icon>
+                  <List />
+                </n-icon>
+              </template>
+              批量功能
+            </n-button>
+
+            <n-button size="large" @click="checkAppUpdate">
+              <template #icon>
+                <n-icon>
+                  <SyncCircle />
+                </n-icon>
+              </template>
+              检查更新
+            </n-button>
+
+            <n-dropdown :options="bulkOptions" @select="handleBulkAction">
+              <n-button size="large">
+                <template #icon>
+                  <n-icon>
+                    <Menu />
+                  </n-icon>
+                </template>
+                批量操作
+              </n-button>
+            </n-dropdown>
+          </div>
         </div>
       </section>
 
@@ -107,31 +97,78 @@
       <a-modal
         class="token-import-modal"
         v-model:visible="showImportForm"
-        width="40rem"
+        width="min(94vw, 58rem)"
         :footer="false"
         :default-visible="!tokenStore.hasTokens"
       >
         <template #title>
-          <h2>
-            <n-icon>
-              <Add />
-            </n-icon>
-            添加游戏Token
-          </h2>
+          <div class="modal-title-block">
+            <span class="modal-kicker">TOKEN IMPORT</span>
+            <h2>
+              <n-icon>
+                <Add />
+              </n-icon>
+              添加游戏Token
+            </h2>
+            <p class="modal-note">
+              先选择导入方式，再填写对应内容。支持手动、URL、微信扫码和 BIN 导入。
+            </p>
+          </div>
         </template>
         <div class="card-header">
-          <!-- 导入方式选择 -->
-          <n-radio-group
-            v-model:value="importMethod"
-            class="import-method-tabs"
-            size="small"
-          >
-            <n-radio-button value="manual"> 手动输入 </n-radio-button>
-            <n-radio-button value="url"> URL获取 </n-radio-button>
-            <n-radio-button value="wxQrcode"> 微信扫码获取 </n-radio-button>
-            <n-radio-button value="bin"> BIN多角色获取 </n-radio-button>
-            <n-radio-button value="singlebin"> BIN单角色获取 </n-radio-button>
-          </n-radio-group>
+          <div class="import-method-groups">
+            <section class="import-method-group">
+              <div class="import-method-group-head">
+                <span class="import-method-group-kicker">快速导入</span>
+                <p>适合手头已经有网页链接、账号信息或扫码入口的场景。</p>
+              </div>
+              <div
+                class="import-method-tabs import-method-tabs--quick"
+                role="tablist"
+                aria-label="快速导入方式"
+              >
+                <n-button
+                  v-for="method in quickImportMethods"
+                  :key="method.value"
+                  class="import-method-tab"
+                  :class="{ active: importMethod === method.value }"
+                  type="default"
+                  size="small"
+                  role="tab"
+                  :aria-selected="importMethod === method.value"
+                  @click="importMethod = method.value"
+                >
+                  {{ method.label }}
+                </n-button>
+              </div>
+            </section>
+
+            <section class="import-method-group import-method-group--advanced">
+              <div class="import-method-group-head">
+                <span class="import-method-group-kicker">高级导入</span>
+                <p>适合从 BIN 文件恢复或做多角色迁移，适合批量处理。</p>
+              </div>
+              <div
+                class="import-method-tabs import-method-tabs--advanced"
+                role="tablist"
+                aria-label="高级导入方式"
+              >
+                <n-button
+                  v-for="method in advancedImportMethods"
+                  :key="method.value"
+                  class="import-method-tab"
+                  :class="{ active: importMethod === method.value }"
+                  type="default"
+                  size="small"
+                  role="tab"
+                  :aria-selected="importMethod === method.value"
+                  @click="importMethod = method.value"
+                >
+                  {{ method.label }}
+                </n-button>
+              </div>
+            </section>
+          </div>
         </div>
         <div class="card-body">
           <manual-token-form
@@ -172,10 +209,24 @@
           </div>
 
           <div class="section-toolbar">
-            <n-radio-group v-model:value="viewMode" size="small" class="view-switch">
-              <n-radio-button value="list">列表</n-radio-button>
-              <n-radio-button value="card">卡片</n-radio-button>
-            </n-radio-group>
+            <div class="view-switch" role="tablist" aria-label="展示方式">
+              <n-button
+                size="small"
+                class="view-switch-option"
+                :class="{ active: viewMode === 'list' }"
+                @click="viewMode = 'list'"
+              >
+                列表
+              </n-button>
+              <n-button
+                size="small"
+                class="view-switch-option"
+                :class="{ active: viewMode === 'card' }"
+                @click="viewMode = 'card'"
+              >
+                卡片
+              </n-button>
+            </div>
 
             <n-button-group size="small" class="sort-switch">
               <n-button
@@ -204,12 +255,6 @@
               </n-button>
             </n-button-group>
           </div>
-        </div>
-
-        <div class="toolbar-hints">
-          <span>支持拖拽重排</span>
-          <span>点击卡片进入控制台</span>
-          <span>支持批量导入与刷新</span>
         </div>
 
         <div class="tokens-grid" v-if="viewMode === 'card'">
@@ -735,6 +780,15 @@ const urlFormRef = ref(null);
 const editFormRef = ref(null);
 const editingToken = ref(null);
 const importMethod = ref("manual");
+const quickImportMethods = [
+  { value: "manual", label: "手动输入" },
+  { value: "url", label: "URL获取" },
+  { value: "wxQrcode", label: "微信扫码" },
+];
+const advancedImportMethods = [
+  { value: "bin", label: "BIN多角色" },
+  { value: "singlebin", label: "BIN单角色" },
+];
 const refreshingTokens = ref(new Set());
 const connectingTokens = ref(new Set());
 // 从localStorage读取上次的视图模式，默认为列表视图
@@ -1762,6 +1816,16 @@ onUnmounted(() => {
   --accent-strong: #8f7bff;
   --accent-soft: rgba(122, 241, 208, 0.14);
   --danger-soft: rgba(255, 102, 138, 0.14);
+  --section-tab-surface: linear-gradient(180deg, rgba(92, 77, 214, 0.22), rgba(18, 22, 44, 0.72));
+  --section-tab-border: rgba(180, 166, 255, 0.36);
+  --section-tab-text: rgba(248, 251, 255, 0.96);
+  --section-tab-hover-bg: rgba(124, 108, 255, 0.26);
+  --section-tab-hover-text: #f8fbff;
+  --section-tab-active-bg: linear-gradient(135deg, #8b5cf6 0%, #7c6cff 100%);
+  --section-tab-active-text: #ffffff;
+  --section-tab-active-border: rgba(193, 178, 255, 0.78);
+  --section-tab-active-shadow: 0 12px 22px rgba(124, 108, 255, 0.42);
+  --section-tab-shadow: 0 12px 30px rgba(6, 10, 24, 0.3);
   min-height: 100vh;
   position: relative;
   overflow: hidden;
@@ -1846,8 +1910,15 @@ onUnmounted(() => {
 }
 
 .hero-panel {
-  border-radius: 30px;
-  padding: clamp(18px, 3vw, 28px);
+  border-radius: 26px;
+  padding: clamp(16px, 2.5vw, 24px);
+}
+
+.hero-top,
+.hero-brand,
+.hero-copy,
+.hero-tools {
+  display: none !important;
 }
 
 .hero-top {
@@ -1860,14 +1931,14 @@ onUnmounted(() => {
 .hero-brand {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   min-width: 0;
 }
 
 .brand-logo {
-  width: 74px;
-  height: 74px;
-  border-radius: 24px;
+  width: 68px;
+  height: 68px;
+  border-radius: 22px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   box-shadow: 0 14px 30px rgba(0, 0, 0, 0.28);
   object-fit: cover;
@@ -1882,22 +1953,22 @@ onUnmounted(() => {
   margin: 0 0 8px;
   font-size: 0.76rem;
   font-weight: 700;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.2em;
   color: rgba(122, 241, 208, 0.86);
 }
 
 .hero-copy h1 {
   margin: 0;
-  font-size: clamp(1.9rem, 5vw, 3.35rem);
+  font-size: clamp(1.75rem, 4.5vw, 3rem);
   line-height: 1;
   letter-spacing: -0.04em;
 }
 
 .hero-desc {
-  margin: 10px 0 0;
+  margin: 8px 0 0;
   max-width: 48rem;
-  font-size: 0.98rem;
-  line-height: 1.7;
+  font-size: 0.95rem;
+  line-height: 1.65;
   color: var(--text-soft);
 }
 
@@ -1908,23 +1979,34 @@ onUnmounted(() => {
 }
 
 .hero-stats {
-  margin-top: 22px;
+  margin-top: 0;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.hero-stats-shell {
+  margin-top: 0;
+  padding: 12px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.015)),
+    rgba(255, 255, 255, 0.02);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .stat-card {
   position: relative;
   overflow: hidden;
-  border-radius: 24px;
-  padding: 16px 18px;
+  border-radius: 18px;
+  padding: 14px 16px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
   border: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   flex-direction: column;
   gap: 6px;
-  min-height: 112px;
+  min-height: 98px;
 }
 
 .stat-card::before {
@@ -1954,7 +2036,7 @@ onUnmounted(() => {
 }
 
 .stat-value {
-  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-size: clamp(1.45rem, 2.8vw, 2rem);
   font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.04em;
@@ -1963,7 +2045,7 @@ onUnmounted(() => {
 }
 
 .stat-value-name {
-  font-size: clamp(1.1rem, 2.2vw, 1.6rem);
+  font-size: clamp(1rem, 2vw, 1.4rem);
 }
 
 .stat-hint {
@@ -1974,14 +2056,59 @@ onUnmounted(() => {
 }
 
 .hero-actions {
-  margin-top: 18px;
+  margin-top: 14px;
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.hero-actions :deep(.n-button) {
-  min-width: 10rem;
+.hero-action-primary :deep(.n-button) {
+  width: 100%;
+  min-height: 48px;
+  border-radius: 999px;
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: #ffffff !important;
+  background: var(--section-tab-active-bg) !important;
+  border: 1px solid var(--section-tab-active-border) !important;
+  box-shadow: var(--section-tab-active-shadow) !important;
+}
+
+.hero-action-rail {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 0.95fr) minmax(0, 1.1fr);
+  gap: 8px;
+  width: 100%;
+  padding: 6px;
+  border-radius: 999px;
+  border: 1px solid var(--section-tab-border);
+  background: var(--section-tab-surface);
+  box-shadow: var(--section-tab-shadow);
+  backdrop-filter: blur(14px);
+}
+
+.hero-action-rail :deep(.n-button) {
+  width: 100%;
+  min-width: 0;
+  min-height: 38px;
+  border-radius: 999px;
+  padding-inline: 8px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--section-tab-text) !important;
+  background: rgba(124, 108, 255, 0.14) !important;
+  border: 1px solid rgba(180, 166, 255, 0.34) !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hero-action-rail :deep(.n-button__content) {
+  color: #f8fbff !important;
+}
+
+.hero-action-rail :deep(.n-dropdown) {
+  display: block;
+  width: 100%;
 }
 
 .rate-limit-alert {
@@ -2039,27 +2166,96 @@ onUnmounted(() => {
 
 .view-switch,
 .sort-switch {
-  flex-wrap: wrap;
-}
-
-.toolbar-hints {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  color: var(--text-soft);
-  font-size: 0.82rem;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid var(--section-tab-border);
+  border-radius: 999px;
+  background: var(--section-tab-surface);
+  backdrop-filter: blur(14px);
+  box-shadow: var(--section-tab-shadow);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
 }
 
-.toolbar-hints span {
-  padding: 8px 12px;
+.view-switch::-webkit-scrollbar,
+.sort-switch::-webkit-scrollbar {
+  display: none;
+}
+
+.view-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  width: 100%;
+  overflow: hidden;
+}
+
+.view-switch-option,
+.sort-switch :deep(.n-button) {
+  flex: 0 0 auto;
+  white-space: nowrap;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  min-height: 36px;
+  padding-inline: 14px;
+  color: var(--section-tab-text) !important;
+  border: 1px solid transparent;
+  background: transparent;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.view-switch-option {
+  width: 100%;
+  min-width: 0;
+  border-color: rgba(180, 166, 255, 0.34) !important;
+  background: rgba(124, 108, 255, 0.14) !important;
+  color: var(--section-tab-text) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.view-switch-option :deep(.n-button__content) {
+  color: #f8fbff !important;
+  font-weight: 800;
+}
+
+.view-switch-option:hover,
+.sort-switch :deep(.n-button:hover) {
+  color: var(--section-tab-hover-text) !important;
+  background: var(--section-tab-hover-bg);
+  border-color: var(--section-tab-border);
+  transform: translateY(-1px);
+}
+
+.view-switch-option.active,
+.view-switch-option.active:hover {
+  color: var(--section-tab-active-text) !important;
+  background: var(--section-tab-active-bg);
+  border-color: var(--section-tab-active-border);
+  box-shadow: var(--section-tab-active-shadow);
+}
+
+.sort-switch :deep(.n-button--primary-type) {
+  color: var(--section-tab-active-text) !important;
+  background: var(--section-tab-active-bg) !important;
+  border-color: var(--section-tab-active-border) !important;
+  box-shadow: var(--section-tab-active-shadow);
+}
+
+.sort-switch :deep(.n-button) {
+  padding-inline: 16px;
 }
 
 .tokens-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 16px;
 }
 
@@ -2071,7 +2267,7 @@ onUnmounted(() => {
 
 .token-card,
 .token-row-card {
-  border-radius: 24px;
+  border-radius: 28px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background:
     linear-gradient(180deg, rgba(30, 35, 62, 0.88), rgba(18, 22, 44, 0.9)),
@@ -2125,6 +2321,56 @@ onUnmounted(() => {
 .token-card-shell :deep(.arco-card-body),
 .token-row-card :deep(.n-card__content) {
   padding-top: 0;
+}
+
+.token-row-card :deep(.n-button),
+.token-card-shell :deep(.arco-btn) {
+  min-height: 38px;
+  border-radius: 999px !important;
+  padding-inline: 14px;
+  font-weight: 800;
+  color: #f8fbff !important;
+  background-color: rgba(124, 108, 255, 0.16) !important;
+  background-image: linear-gradient(180deg, rgba(124, 108, 255, 0.22), rgba(18, 22, 44, 0.76)) !important;
+  border: 1px solid rgba(180, 166, 255, 0.36) !important;
+  box-shadow: 0 10px 18px rgba(124, 108, 255, 0.14);
+}
+
+.token-row-card :deep(.n-button:hover),
+.token-card-shell :deep(.arco-btn:hover) {
+  color: #ffffff !important;
+  background-color: rgba(124, 108, 255, 0.26) !important;
+  background-image: linear-gradient(180deg, rgba(124, 108, 255, 0.28), rgba(18, 22, 44, 0.82)) !important;
+  border-color: rgba(193, 178, 255, 0.56) !important;
+}
+
+.token-row-card :deep(.n-button--primary-type),
+.token-card-shell :deep(.arco-btn-primary) {
+  color: #ffffff !important;
+  background-color: #7c6cff !important;
+  background-image: linear-gradient(135deg, #8b5cf6 0%, #7c6cff 100%) !important;
+  border-color: rgba(193, 178, 255, 0.68) !important;
+  box-shadow: var(--section-tab-active-shadow) !important;
+}
+
+.token-row-card :deep(.n-button__content),
+.token-card-shell :deep(.arco-btn-text),
+.token-card-shell :deep(.arco-btn-content) {
+  color: inherit !important;
+  font-weight: 800;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.18);
+}
+
+.token-row-card :deep(.n-button--circle) {
+  width: 38px;
+  min-width: 38px;
+  padding: 0 !important;
+}
+
+.token-row-card :deep(.n-button--circle .n-button__content) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .token-name {
@@ -2302,37 +2548,265 @@ onUnmounted(() => {
   justify-content: flex-end;
 }
 
+:global(.token-import-modal .arco-modal) {
+  width: min(94vw, 58rem) !important;
+  max-width: calc(100vw - 24px);
+  border-radius: 28px;
+  overflow: hidden;
+}
+
+:global(.token-import-modal .arco-modal-body) {
+  max-height: calc(100vh - 120px);
+  padding: 18px 20px 22px;
+  overflow-y: auto;
+}
+
+.card-header {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.modal-title-block h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  line-height: 1.15;
+  color: #f8fbff;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.18);
+}
+
+.modal-note {
+  margin: 0;
+  color: rgba(248, 251, 255, 0.92);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.import-method-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.import-method-group {
+  padding: 14px;
+  border-radius: 22px;
+  border: 1px solid rgba(180, 166, 255, 0.24);
+  background:
+    linear-gradient(180deg, rgba(124, 108, 255, 0.18), rgba(17, 21, 40, 0.9)),
+    rgba(255, 255, 255, 0.03);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 12px 26px rgba(2, 6, 23, 0.18);
+}
+
+.import-method-group-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.import-method-group-kicker {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c6cff 100%);
+  border: 1px solid rgba(193, 178, 255, 0.66);
+  box-shadow: 0 10px 18px rgba(124, 108, 255, 0.32);
+}
+
+.import-method-group-head p {
+  margin: 0;
+  color: rgba(248, 251, 255, 0.92);
+  font-size: 0.84rem;
+  line-height: 1.45;
+  text-align: right;
+}
+
+.import-method-tabs {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px;
+  border-radius: 999px;
+  border: 1px solid var(--section-tab-border);
+  background: var(--section-tab-surface);
+  backdrop-filter: blur(14px);
+  box-shadow: var(--section-tab-shadow);
+  overflow: hidden;
+}
+
+.import-method-tabs--quick {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.import-method-tabs--advanced {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.import-method-tab {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  border-radius: 999px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  line-height: 1.15;
+  padding: 8px 12px;
+  color: var(--section-tab-text) !important;
+  border: 1px solid rgba(180, 166, 255, 0.34) !important;
+  background: rgba(124, 108, 255, 0.14) !important;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.import-method-tab :deep(.n-button__content) {
+  color: #f8fbff !important;
+  font-weight: 800;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.18);
+}
+
+.import-method-tab.active {
+  color: var(--section-tab-active-text) !important;
+  background: var(--section-tab-active-bg) !important;
+  border-color: var(--section-tab-active-border) !important;
+  box-shadow: var(--section-tab-active-shadow) !important;
+}
+
+.import-method-tab:hover {
+  color: var(--section-tab-hover-text) !important;
+  background: var(--section-tab-hover-bg) !important;
+  border-color: var(--section-tab-border) !important;
+  transform: translateY(-1px);
+}
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 14px;
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(124, 108, 255, 0.08), rgba(12, 17, 34, 0.96)),
+    rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(180, 166, 255, 0.18);
+}
+
+.token-import-modal :deep(.form-actions) {
+  margin-top: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.token-import-modal :deep(.form-actions button.import-action),
+.token-import-modal :deep(.form-actions .n-button.import-action),
+.token-import-modal :deep(.form-actions .n-button),
+.token-import-modal :deep(.form-actions .arco-btn) {
+  width: 100%;
+  min-height: 44px;
+  border-radius: 999px;
+  padding-inline: 18px;
+  font-weight: 800;
+  color: var(--section-tab-text) !important;
+  background-color: rgba(124, 108, 255, 0.14) !important;
+  background-image: linear-gradient(180deg, rgba(124, 108, 255, 0.18), rgba(18, 22, 44, 0.74)) !important;
+  border: 1px solid rgba(180, 166, 255, 0.36) !important;
+  box-shadow: var(--section-tab-shadow);
+}
+
+.token-import-modal :deep(.form-actions button.import-action:hover),
+.token-import-modal :deep(.form-actions .n-button.import-action:hover),
+.token-import-modal :deep(.form-actions .n-button:hover),
+.token-import-modal :deep(.form-actions .arco-btn:hover) {
+  color: var(--section-tab-hover-text) !important;
+  background-color: rgba(124, 108, 255, 0.24) !important;
+  background-image: linear-gradient(180deg, rgba(124, 108, 255, 0.24), rgba(18, 22, 44, 0.78)) !important;
+  border-color: var(--section-tab-border) !important;
+}
+
+.token-import-modal :deep(.form-actions button.import-action--primary),
+.token-import-modal :deep(.form-actions .n-button.import-action--primary),
+.token-import-modal :deep(.form-actions .n-button--primary-type),
+.token-import-modal :deep(.form-actions .arco-btn-primary) {
+  color: #ffffff !important;
+  background-color: #7c6cff !important;
+  background-image: linear-gradient(135deg, #8b5cf6 0%, #7c6cff 100%) !important;
+  border-color: var(--section-tab-active-border) !important;
+  box-shadow: var(--section-tab-active-shadow) !important;
+}
+
+.token-import-modal :deep(.form-actions button.import-action--secondary),
+.token-import-modal :deep(.form-actions .n-button.import-action--secondary) {
+  color: #f8fbff !important;
+  --n-text-color: #f8fbff;
+  --n-text-color-hover: #ffffff;
+  --n-text-color-pressed: #ffffff;
+  background-color: rgba(124, 108, 255, 0.16) !important;
+  background-image: linear-gradient(180deg, rgba(124, 108, 255, 0.16), rgba(18, 22, 44, 0.72)) !important;
+  border-color: rgba(180, 166, 255, 0.3) !important;
+}
+
+.token-import-modal :deep(.form-actions .n-button__content),
+.token-import-modal :deep(.form-actions .arco-btn-text) {
+  color: inherit !important;
+  font-weight: 800;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.18);
+}
+
 :global([data-theme="dark"] .token-import-modal .arco-modal) {
-  background: linear-gradient(180deg, rgba(21, 27, 50, 0.98), rgba(15, 20, 38, 0.98)) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, rgba(19, 24, 46, 0.98), rgba(11, 15, 31, 0.98)) !important;
+  border: 1px solid rgba(180, 166, 255, 0.16);
 }
 
-[data-theme="dark"] .n-form-item-label,
-[data-theme="dark"] .n-form-item-label__text {
-  color: #ffffff !important;
+:global(.token-import-modal .n-form-item-label),
+:global(.token-import-modal .n-form-item-label__text),
+:global(.token-import-modal .arco-form-item-label),
+:global(.token-import-modal .arco-form-item-label-col) {
+  color: rgba(248, 251, 255, 0.96) !important;
+  font-weight: 700;
 }
 
-[data-theme="dark"] .n-input__input,
-[data-theme="dark"] .n-input__textarea {
-  color: #ffffff !important;
-  background-color: rgba(255, 255, 255, 0.08) !important;
+:global(.token-import-modal .n-input),
+:global(.token-import-modal .n-input__input),
+:global(.token-import-modal .n-input__textarea),
+:global(.token-import-modal .arco-input),
+:global(.token-import-modal .arco-textarea) {
+  color: #f8fbff !important;
+  background-color: rgba(124, 108, 255, 0.12) !important;
 }
 
-[data-theme="dark"] .n-input__placeholder {
-  color: rgba(255, 255, 255, 0.42) !important;
-}
-
-[data-theme="dark"] .n-card {
-  color: #ffffff !important;
-}
-
-[data-theme="dark"] .n-radio-button {
-  color: #ffffff !important;
-}
-
-[data-theme="dark"] .n-radio-button--checked {
-  background-color: rgba(122, 241, 208, 0.18) !important;
-  color: #ffffff !important;
+:global(.token-import-modal .n-input__placeholder),
+:global(.token-import-modal .arco-input::placeholder),
+:global(.token-import-modal .arco-textarea::placeholder),
+:global(.token-import-modal .n-input__placeholder span) {
+  color: rgba(248, 251, 255, 0.48) !important;
 }
 
 @keyframes drift {
@@ -2346,10 +2820,6 @@ onUnmounted(() => {
 }
 
 @media (max-width: 1024px) {
-  .hero-stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .section-header {
     grid-template-columns: 1fr;
   }
@@ -2360,6 +2830,13 @@ onUnmounted(() => {
 }
 
 @media (max-width: 768px) {
+  .hero-top,
+  .hero-brand,
+  .hero-copy,
+  .hero-tools {
+    display: none !important;
+  }
+
   .hero-top {
     flex-direction: column;
   }
@@ -2369,16 +2846,26 @@ onUnmounted(() => {
   }
 
   .hero-stats {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .hero-actions {
     flex-direction: column;
   }
 
-  .hero-actions :deep(.n-button) {
+  .hero-action-primary :deep(.n-button) {
     width: 100%;
-    min-width: 0;
+  }
+
+  .hero-action-rail {
+    gap: 6px;
+    grid-template-columns: minmax(0, 0.92fr) minmax(0, 0.92fr) minmax(0, 1.16fr);
+  }
+
+  .hero-action-rail :deep(.n-button) {
+    min-height: 36px;
+    padding-inline: 6px;
+    font-size: 0.7rem;
   }
 
   .section-toolbar {
@@ -2390,9 +2877,8 @@ onUnmounted(() => {
     width: 100%;
   }
 
-  .sort-switch :deep(.n-button),
-  .view-switch :deep(.n-radio-button) {
-    flex: 1 1 auto;
+  .import-method-tab {
+    font-size: 0.74rem;
   }
 
   .tokens-grid {
@@ -2428,6 +2914,46 @@ onUnmounted(() => {
   .token-remark,
   .timestamp-item {
     border-radius: 14px;
+  }
+
+  :global(.token-import-modal .arco-modal-body) {
+    padding: 14px 12px 16px;
+  }
+
+  .modal-title-block h2 {
+    font-size: 1.05rem;
+  }
+
+  .modal-note {
+    font-size: 0.82rem;
+  }
+
+  .modal-intro {
+    padding: 12px 14px;
+  }
+
+  .import-method-group {
+    padding: 12px;
+    border-radius: 16px;
+  }
+
+  .import-method-group-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .import-method-group-head p {
+    text-align: left;
+    font-size: 0.78rem;
+  }
+
+  .import-method-tab {
+    font-size: 0.74rem;
+    padding: 8px 10px;
+  }
+
+  .card-body {
+    padding: 12px;
   }
 }
 </style>
