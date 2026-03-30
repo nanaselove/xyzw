@@ -129,6 +129,37 @@
         style="width: 800px; max-width: 90vw"
         :bordered="false"
       >
+        <div class="saved-lineups-modal-toolbar">
+          <div class="saved-lineups-modal-hint">
+            可以导出当前 Token 的阵容备份，或从 JSON 文件恢复。
+          </div>
+          <div class="saved-lineups-modal-actions">
+            <n-button
+              size="small"
+              secondary
+              @click="exportSavedLineups"
+              :disabled="savedLineups.length === 0 || !tokenStore.selectedToken"
+            >
+              导出备份
+            </n-button>
+            <n-button
+              size="small"
+              type="primary"
+              secondary
+              @click="openSavedLineupsImportDialog"
+              :disabled="!tokenStore.selectedToken"
+            >
+              导入备份
+            </n-button>
+          </div>
+        </div>
+        <input
+          ref="lineupImportInput"
+          class="saved-lineups-import-input"
+          type="file"
+          accept=".json,application/json"
+          @change="handleSavedLineupsImport"
+        />
         <div v-if="savedLineups.length === 0" class="empty-tip">
           暂无保存的阵容，点击"保存阵容"开始使用
         </div>
@@ -438,6 +469,7 @@ const selectedCountry = ref("全部");
 const savedLineupsModalVisible = ref(false);
 const selectedTeamTab = ref(1);
 const expandedLineup = ref(null);
+const lineupImportInput = ref(null);
 
 const draggedHeroId = ref(null);
 const dragOverPosition = ref(null);
@@ -886,6 +918,193 @@ const saveLineupsToStorage = () => {
     console.error("保存阵容到缓存失败:", e);
     message.error("保存阵容失败");
   }
+};
+
+const exportSavedLineups = () => {
+  try {
+    const token = tokenStore.selectedToken;
+    if (!token) {
+      message.warning("请先选择Token");
+      return;
+    }
+
+    if (savedLineups.value.length === 0) {
+      message.warning("暂无可导出的阵容");
+      return;
+    }
+
+    const exportData = {
+      schema: "xyzw.unlimitedlineup.backup",
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      tokenId: token.id,
+      currentTeamId: currentTeamId.value,
+      availableTeams: [...availableTeams.value],
+      savedLineups: savedLineups.value.map((lineup) => ({
+        name: lineup.name,
+        teamId: lineup.teamId,
+        savedAt: lineup.savedAt,
+        applying: false,
+        heroes: Array.isArray(lineup.heroes)
+          ? lineup.heroes.map((hero) => ({
+              heroId: hero.heroId,
+              artifactId: hero.artifactId ?? null,
+              position: hero.position,
+            }))
+          : [],
+      })),
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+      type: "application/json;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `lineups_backup_${token.id}_${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    message.success(`已导出 ${savedLineups.value.length} 个阵容`);
+  } catch (error) {
+    console.error("导出阵容失败:", error);
+    message.error(`导出失败: ${error.message}`);
+  }
+};
+
+const openSavedLineupsImportDialog = () => {
+  const input = lineupImportInput.value;
+  if (!input) {
+    message.error("无法打开文件选择器");
+    return;
+  }
+
+  input.value = "";
+  input.click();
+};
+
+const normalizeImportedHeroes = (heroes) => {
+  if (!Array.isArray(heroes)) return [];
+
+  return heroes
+    .map((hero, heroIndex) => {
+      if (!hero || typeof hero !== "object") return null;
+
+      const heroId = Number(hero.heroId);
+      const position = Number(
+        hero.position !== undefined ? hero.position : heroIndex,
+      );
+      const artifactId =
+        hero.artifactId === undefined || hero.artifactId === null
+          ? null
+          : hero.artifactId;
+
+      if (!Number.isFinite(heroId) || !Number.isFinite(position)) {
+        return null;
+      }
+
+      return {
+        heroId,
+        artifactId,
+        position,
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.position - b.position);
+};
+
+const normalizeImportedLineups = (payload) => {
+  const rawLineups = Array.isArray(payload)
+    ? payload
+    : Array.isArray(payload?.savedLineups)
+      ? payload.savedLineups
+      : Array.isArray(payload?.lineups)
+        ? payload.lineups
+        : null;
+
+  if (!rawLineups) {
+    throw new Error("文件中未找到阵容数据");
+  }
+
+  const normalized = rawLineups
+    .map((lineup, index) => {
+      if (!lineup || typeof lineup !== "object") {
+        throw new Error(`第 ${index + 1} 条阵容数据无效`);
+      }
+
+      const teamId = Number(lineup.teamId);
+      const heroes = normalizeImportedHeroes(lineup.heroes);
+
+      if (!Number.isFinite(teamId)) {
+        throw new Error(`第 ${index + 1} 条阵容缺少有效阵容槽位`);
+      }
+
+      if (heroes.length === 0) {
+        throw new Error(`第 ${index + 1} 条阵容没有有效英雄数据`);
+      }
+
+      return {
+        name: String(lineup.name || `阵容${teamId}-${index + 1}`),
+        teamId,
+        savedAt: Number(lineup.savedAt) || Date.now(),
+        applying: false,
+        heroes,
+      };
+    })
+    .filter(Boolean);
+
+  if (normalized.length === 0) {
+    throw new Error("文件中未找到可导入的阵容");
+  }
+
+  return normalized;
+};
+
+const handleSavedLineupsImport = (event) => {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const text = String(reader.result || "").replace(/^\uFEFF/, "");
+      const payload = JSON.parse(text);
+      const importedLineups = normalizeImportedLineups(payload);
+
+      dialog.warning({
+        title: "导入阵容备份",
+        content: `将用文件中的 ${importedLineups.length} 个阵容覆盖当前已保存阵容，是否继续？`,
+        positiveText: "导入",
+        negativeText: "取消",
+        onPositiveClick: () => {
+          savedLineups.value = importedLineups;
+          saveLineupsToStorage();
+
+          const importedTeamIds = [
+            ...new Set(importedLineups.map((lineup) => lineup.teamId)),
+          ].sort((a, b) => a - b);
+          const nextSelectedTeam =
+            importedTeamIds.find((teamId) =>
+              availableTeams.value.includes(teamId),
+            ) ?? currentTeamId.value ?? availableTeams.value[0] ?? 1;
+
+          selectedTeamTab.value = nextSelectedTeam;
+          expandedLineup.value = null;
+
+          message.success(`已导入 ${importedLineups.length} 个阵容`);
+        },
+      });
+    } catch (error) {
+      console.error("导入阵容失败:", error);
+      message.error(`导入失败: ${error.message}`);
+    }
+  };
+  reader.onerror = () => {
+    message.error("读取阵容备份文件失败");
+  };
+  reader.readAsText(file);
 };
 
 const refreshTeamInfo = async () => {
@@ -1810,6 +2029,30 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
+}
+
+.saved-lineups-modal-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.saved-lineups-modal-hint {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+}
+
+.saved-lineups-modal-actions {
+  display: flex;
+  gap: var(--spacing-xs);
+  margin-left: auto;
+}
+
+.saved-lineups-import-input {
+  display: none;
 }
 
 .team-tabs {
