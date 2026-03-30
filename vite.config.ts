@@ -143,6 +143,7 @@ export default defineConfig(async () => {
       port: 3000,
       open: true,
       host: true,
+      cors: true,
       proxy: {
         "/api/weixin": {
           target: "https://open.weixin.qq.com",

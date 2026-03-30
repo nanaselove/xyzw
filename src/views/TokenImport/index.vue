@@ -2546,6 +2546,33 @@ onUnmounted(() => {
   margin-top: 8px;
 }
 
+.empty-actions :deep(.n-button) {
+  flex: 1 1 160px;
+  min-height: 46px;
+  border-radius: 999px;
+  padding-inline: 18px;
+  font-weight: 800;
+  color: #ffffff !important;
+  background-color: #7c6cff !important;
+  background-image: linear-gradient(135deg, #8b5cf6 0%, #7c6cff 100%) !important;
+  border: 1px solid rgba(193, 178, 255, 0.68) !important;
+  box-shadow: 0 12px 26px rgba(124, 108, 255, 0.22) !important;
+}
+
+.empty-actions :deep(.n-button:hover) {
+  color: #ffffff !important;
+  background-color: #8b5cf6 !important;
+  background-image: linear-gradient(135deg, #9c7bff 0%, #8b5cf6 100%) !important;
+  border-color: rgba(217, 208, 255, 0.76) !important;
+  transform: translateY(-1px);
+}
+
+.empty-actions :deep(.n-button__content),
+.empty-actions :deep(.n-button__icon) {
+  color: inherit !important;
+  font-weight: 800;
+}
+
 .modal-actions {
   display: flex;
   gap: 12px;

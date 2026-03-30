@@ -161,6 +161,10 @@ router.beforeEach((to, from, next) => {
 
   // 设置页面标题
   document.title = buildPageTitle(to.meta?.title)
+  if (to.path === '/' && !tokenStore.hasTokens) {
+    next('/tokens')
+    return
+  }
   if (isAndroidWebView() && !from.name && to.path === '/') {
     next('/tokens')
     return
@@ -181,6 +185,8 @@ router.beforeEach((to, from, next) => {
     } else {
       next('/tokens')
     }
+  } else if (to.name === 'NotFound' && !tokenStore.hasTokens) {
+    next('/tokens')
   } else {
     next()
   }

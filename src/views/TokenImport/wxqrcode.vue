@@ -180,10 +180,16 @@ const HORTOR_ANDROID_UA =
   "AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/95.0.4638.74 " +
   "Mobile Safari/537.36";
 
+// 开发环境里把浏览器请求固定打到 Vite 代理端口，避免页面跑在别的 localhost 端口时丢失 /api 代理。
+const DEV_PROXY_ORIGIN = "http://localhost:3000";
+
+const getDevProxyUrl = (path: string) =>
+  import.meta.env.DEV ? `${DEV_PROXY_ORIGIN}${path}` : path;
+
 const getWeixinQrConnectUrl = () =>
   isAndroidWebView()
     ? `https://open.weixin.qq.com/connect/app/qrconnect?${WEIXIN_QR_QUERY}`
-    : `/api/weixin/connect/app/qrconnect?${WEIXIN_QR_QUERY}`;
+    : getDevProxyUrl(`/api/weixin/connect/app/qrconnect?${WEIXIN_QR_QUERY}`);
 
 const getWeixinScanPollUrl = (uuid: string) =>
   `https://long.open.weixin.qq.com/connect/l/qrconnect?uuid=${encodeURIComponent(uuid)}&f=url&_=${Date.now()}`;
@@ -249,7 +255,9 @@ const loadWeixinScanPollResult = (uuid: string) => {
 const getHortorLoginUrl = () =>
   isAndroidWebView()
     ? `https://comb-platform.hortorgames.com/comb-login-server/api/v1/login?gameId=xyzwapp&timestamp=${Date.now()}&version=android-4.2.1-cn-release&cryptVersion=1.1.0&gameTp=app&system=android&deviceUniqueId=DID-0e782e88-2f3b-4f5b-9020-47f5e5a5a026&packageName=com.hortorgames.xyzw`
-    : `/api/hortor/comb-login-server/api/v1/login?gameId=xyzwapp&timestamp=${Date.now()}&version=android-4.2.1-cn-release&cryptVersion=1.1.0&gameTp=app&system=android&deviceUniqueId=DID-0e782e88-2f3b-4f5b-9020-47f5e5a5a026&packageName=com.hortorgames.xyzw`;
+    : getDevProxyUrl(
+        `/api/hortor/comb-login-server/api/v1/login?gameId=xyzwapp&timestamp=${Date.now()}&version=android-4.2.1-cn-release&cryptVersion=1.1.0&gameTp=app&system=android&deviceUniqueId=DID-0e782e88-2f3b-4f5b-9020-47f5e5a5a026&packageName=com.hortorgames.xyzw`,
+      );
 
 const getWeixinHeaders = (mode: "qr" | "poll") =>
   isAndroidWebView()

@@ -49,9 +49,7 @@
     <!-- 怪异塔状态 -->
     <WeirdTowerStatus v-show="activeSection === 'daily'" />
 
-    <BottleHelperCard v-show="activeSection === 'daily'" />
 
-    <HangUpStatusCard v-show="activeSection === 'daily'" />
 
     <!-- 自动化中心（挂机+机器人） -->
     <AutomationCenterCard v-show="activeSection === 'daily'" />
@@ -346,8 +344,6 @@ import ConsumptionProgressCard from "./cards/ConsumptionProgressCard.vue";
 import RefineHelperCard from "./cards/RefineHelperCard.vue";
 import TowerStatus from "./Tower/TowerStatus.vue";
 import WeirdTowerStatus from "./Tower/WeirdTowerStatus.vue";
-import BottleHelperCard from "./cards/BottleHelperCard.vue";
-import HangUpStatusCard from "./cards/HangUpStatusCard.vue";
 import BossTower from "./Tower/BossTower.vue";
 import PeachInfo from "./Club/PeachInfo.vue";
 import ServerRankList from "./cards/ServerRankListPageCard.vue";

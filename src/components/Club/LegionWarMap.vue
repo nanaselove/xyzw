@@ -208,6 +208,20 @@ const isJoined = isEntireBattlefield; // alias for compatibility if needed, but 
 
 const exporting = ref(false);
 
+const getExportBackgroundColor = () => {
+  const candidates = [document.body, document.documentElement];
+
+  for (const node of candidates) {
+    if (!node) continue;
+    const color = getComputedStyle(node).backgroundColor;
+    if (color && color !== "rgba(0, 0, 0, 0)") {
+      return color;
+    }
+  }
+
+  return "rgba(0, 0, 0, 0)";
+};
+
 const exportImage = async () => {
   const element = document.querySelector(
     ".legion-war-map-card .main-content-layout",
@@ -222,8 +236,52 @@ const exportImage = async () => {
     const canvas = await captureDomCanvas(element, {
       useCORS: true,
       scale: 2, // Higher quality
-      backgroundColor: "#ffffff",
+      backgroundColor: getExportBackgroundColor(),
       ignoreElements: (el) => el.classList.contains("no-export"),
+      measureSelectors: [".side-info-panel", ".legion-list"],
+      onclone: (clonedDoc) => {
+        const clonedLayout = clonedDoc.querySelector(".main-content-layout");
+        const clonedWrapper = clonedDoc.querySelector(".map-container-wrapper");
+        const clonedPanel = clonedDoc.querySelector(".side-info-panel");
+        const clonedList = clonedDoc.querySelector(".legion-list");
+
+        [clonedLayout, clonedWrapper, clonedPanel, clonedList].forEach((el) => {
+          if (!el) return;
+          el.style.overflow = "visible";
+          el.style.overflowX = "visible";
+          el.style.overflowY = "visible";
+        });
+
+        if (clonedLayout) {
+          clonedLayout.style.height = "auto";
+          clonedLayout.style.minHeight = "0";
+          clonedLayout.style.maxHeight = "none";
+        }
+
+        if (clonedWrapper) {
+          clonedWrapper.style.height = "auto";
+          clonedWrapper.style.minHeight = "520px";
+        }
+
+        if (clonedPanel) {
+          clonedPanel.style.height = "auto";
+          clonedPanel.style.maxHeight = "none";
+        }
+
+        if (clonedList) {
+          clonedList.style.height = "auto";
+          clonedList.style.maxHeight = "none";
+          clonedList.style.overflow = "visible";
+        }
+
+        if (window.innerWidth <= 768 && clonedLayout && clonedPanel) {
+          clonedLayout.style.flexDirection = "column";
+          clonedPanel.style.width = "100%";
+          clonedPanel.style.borderLeft = "none";
+          clonedPanel.style.borderTop = "1px solid rgba(255, 255, 255, 0.08)";
+          clonedPanel.style.boxShadow = "none";
+        }
+      },
     });
 
     const filename = `盐场地图_${getCurrentTimeByFormat("yyyyMMdd_HHmmss")}.png`;
@@ -997,23 +1055,6 @@ onUnmounted(() => {
   }
 }
 
-// 响应式调整
-@media (max-width: 768px) {
-  .header-section {
-    flex-direction: column;
-    align-items: flex-start;
-
-    .stats-section {
-      width: 100%;
-      justify-content: space-between;
-    }
-  }
-
-  .map-container-wrapper {
-    height: 400px !important;
-  }
-}
-
 .legion-war-map-container {
   .legion-war-map-card {
     background: var(--card-surface);
@@ -1122,6 +1163,77 @@ onUnmounted(() => {
               .group-count {
                 color: var(--text-secondary);
               }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .legion-war-map-container {
+    padding: 6px;
+
+    .legion-war-map-card {
+      .header-section {
+        padding: 12px;
+        gap: 10px;
+
+        .header-left {
+          gap: 10px;
+
+          .header-icon {
+            width: 36px;
+            height: 36px;
+          }
+
+          .header-title {
+            h2 {
+              font-size: 16px;
+            }
+          }
+        }
+
+        .stats-section {
+          width: 100%;
+          flex-wrap: wrap;
+          gap: 8px;
+
+          .stat-item {
+            width: 100%;
+            justify-content: space-between;
+            flex-wrap: wrap;
+          }
+        }
+      }
+
+      .main-content-layout {
+        flex-direction: column;
+        height: auto;
+        overflow: visible;
+
+        .map-container-wrapper {
+          flex: none;
+          width: 100%;
+          height: clamp(360px, 48vh, 520px);
+          min-height: 360px;
+        }
+
+        .side-info-panel {
+          width: 100%;
+          height: auto;
+          border-left: none;
+          border-top: 1px solid var(--border-light);
+          box-shadow: none;
+
+          .legion-list {
+            max-height: min(38vh, 360px);
+            overflow-y: auto;
+
+            .legion-item {
+              height: auto;
+              min-height: 36px;
             }
           }
         }
