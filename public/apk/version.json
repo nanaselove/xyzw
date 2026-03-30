@@ -1,8 +1,8 @@
 {
-  "versionCode": 1,
-  "versionName": "1.0.0",
-  "apkUrl": "https://github.com/nanaselove/xyzw/releases/download/v1.0.0/app-release.apk",
-  "force": false,
+  "versionCode": 2,
+  "versionName": "1.0.1",
+  "apkUrl": "https://github.com/nanaselove/xyzw/releases/download/v1.0.1/app-release.apk",
+  "force": true,
   "notes": "初始正式版本，支持网页加载、Excel 导出、PNG 导出",
   "minSupportedVersionCode": 1
 }
