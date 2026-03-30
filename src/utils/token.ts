@@ -85,6 +85,8 @@ class RateLimiter {
 
 const authUserRateLimiter = new RateLimiter(25, 60000);
 
+const XXZ_HORTOR_BASE_URL = "https://xxz-xyzw.hortorgames.com";
+
 export const setAuthUserRateLimiterCallback = (
   callback: WaitCallback,
 ): void => {
@@ -100,7 +102,7 @@ export const scheduleAuthUserRequest = <T>(
 export const transformToken = async (arrayBuffer: ArrayBuffer) => {
   return authUserRateLimiter.schedule(async () => {
     const res = await axios.post(
-      "https://xxz-xyzw.hortorgames.com/login/authuser",
+      `${XXZ_HORTOR_BASE_URL}/login/authuser`,
       arrayBuffer,
       {
         params: {
@@ -131,7 +133,7 @@ export const transformToken = async (arrayBuffer: ArrayBuffer) => {
 export const getServerList = async (arrayBuffer: ArrayBuffer) => {
   // 如果是data URL格式，提取base64部分
   const res = await axios.post(
-    "https://xxz-xyzw.hortorgames.com/login/serverlist",
+    `${XXZ_HORTOR_BASE_URL}/login/serverlist`,
     arrayBuffer,
     {
       params: {

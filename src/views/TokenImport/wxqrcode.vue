@@ -68,7 +68,9 @@
 
     <a-list>
       <a-list-item v-for="(role, index) in roleList" :key="index">
-        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%">
+        <div
+          style="display: flex; justify-content: space-between; align-items: center; width: 100%; background-color: rgba(232, 236, 245, 0.92);"
+        >
           <div>
             <strong>角色名称:</strong> {{ role.name || "未命名角色" }}<br />
             <strong>Token:</strong>
@@ -156,6 +158,7 @@ const statusMessage = ref("点击获取微信登录二维码");
 const statusType = ref("info");
 const accountName = ref<string | null>(null);
 const isScanning = ref(false);
+const scanRequestInFlight = ref(false);
 const scanInterval = ref<any>(null);
 const timeout = 120000; // 120秒超时
 const startTime = ref<number | null>(null);
@@ -183,9 +186,65 @@ const getWeixinQrConnectUrl = () =>
     : `/api/weixin/connect/app/qrconnect?${WEIXIN_QR_QUERY}`;
 
 const getWeixinScanPollUrl = (uuid: string) =>
-  isAndroidWebView()
-    ? `https://long.open.weixin.qq.com/connect/l/qrconnect?uuid=${encodeURIComponent(uuid)}&f=url&_=${Date.now()}`
-    : `/api/weixin-long/connect/l/qrconnect?uuid=${encodeURIComponent(uuid)}&f=url&_=${Date.now()}`;
+  `https://long.open.weixin.qq.com/connect/l/qrconnect?uuid=${encodeURIComponent(uuid)}&f=url&_=${Date.now()}`;
+
+const escapeWeixinScriptString = (value: string) =>
+  value
+    .replace(/\\/g, "\\\\")
+    .replace(/'/g, "\\'")
+    .replace(/\r?\n/g, "\\n");
+
+// long.open.weixin.qq.com 不适合走本地 Node proxy，直接加载返回的脚本更稳。
+const loadWeixinScanPollResult = (uuid: string) => {
+  if (typeof document === "undefined") {
+    return Promise.reject(new Error("Document is not available"));
+  }
+
+  return new Promise<{ status: number; body: string }>((resolve, reject) => {
+    const script = document.createElement("script");
+    const cleanup = () => {
+      script.onload = null;
+      script.onerror = null;
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+    };
+
+    const timer = window.setTimeout(() => {
+      cleanup();
+      reject(new Error("Network request timed out"));
+    }, 8000);
+
+    script.async = true;
+    script.src = getWeixinScanPollUrl(uuid);
+
+    script.onload = () => {
+      window.clearTimeout(timer);
+
+      const wxErrcode = String((window as any).wx_errcode ?? 0);
+      const wxRedirectUrl = escapeWeixinScriptString(
+        String((window as any).wx_redirecturl ?? ""),
+      );
+      const wxNickname = escapeWeixinScriptString(
+        String((window as any).wx_nickname ?? ""),
+      );
+
+      cleanup();
+      resolve({
+        status: 200,
+        body: `window.wx_errcode=${wxErrcode};window.wx_redirecturl='${wxRedirectUrl}';window.wx_nickname='${wxNickname}';`,
+      });
+    };
+
+    script.onerror = () => {
+      window.clearTimeout(timer);
+      cleanup();
+      reject(new Error("Network request failed"));
+    };
+
+    document.head.appendChild(script);
+  });
+};
 
 const getHortorLoginUrl = () =>
   isAndroidWebView()
@@ -424,6 +483,8 @@ const startScanMonitoring = () => {
  * 检查扫码状态
  */
 const checkScanStatus = async () => {
+  if (scanRequestInFlight.value) return;
+
   try {
     if (!qrcodeUUID.value) return;
 
@@ -435,23 +496,16 @@ const checkScanStatus = async () => {
       return;
     }
 
-    // 使用微信官方推荐的扫码状态轮询路径
-    const res = await requestText(getWeixinScanPollUrl(qrcodeUUID.value), {
-      method: "GET",
-      headers: getWeixinHeaders("poll"),
-      timeoutMs: 5000,
-    });
+    scanRequestInFlight.value = true;
+    const res = await loadWeixinScanPollResult(qrcodeUUID.value);
 
     if (res.status === 200) {
       const text = res.body;
 
-      // 405 → 扫码确认
       if (text.includes("window.wx_errcode=405")) {
-        // 提取code
         const codeMatch = text.match(
           /wx_redirecturl='[^']*code=([a-zA-Z0-9]+)/,
         );
-        // 提取nickname
         const nicknameMatch = text.match(
           /window\.wx_nickname\s*=\s*['"]([^'"]+)['"]/,
         );
@@ -470,7 +524,6 @@ const checkScanStatus = async () => {
         }
       }
 
-      // 408 → 已过期
       if (text.includes("window.wx_errcode=408")) {
         updateStatus("二维码已过期，请重新生成", "error");
         stopScanMonitoring();
@@ -479,13 +532,14 @@ const checkScanStatus = async () => {
       }
     }
 
-    // 每30秒提醒一次
     const remain = Math.ceil((timeout - elapsed) / 1000);
     if (remain % 30 === 0) {
       updateStatus(`请扫码，剩余 ${remain} 秒`, "info");
     }
   } catch (err) {
     console.error("扫码状态检查失败:", err);
+  } finally {
+    scanRequestInFlight.value = false;
   }
 };
 

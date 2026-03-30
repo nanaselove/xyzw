@@ -1648,6 +1648,10 @@ const formatTime = (timestamp) => {
 };
 
 const goToDashboard = () => {
+  if (!tokenStore.hasTokens) {
+    message.warning("请先添加Token");
+    return;
+  }
   router.push("/admin/batch-daily-tasks");
 };
 
