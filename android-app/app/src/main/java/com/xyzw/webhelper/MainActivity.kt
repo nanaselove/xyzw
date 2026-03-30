@@ -3,22 +3,30 @@ package com.xyzw.webhelper
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.ApplicationInfo
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
-import android.webkit.WebResourceError
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
+import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.progressindicator.LinearProgressIndicator
 import java.io.File
 import java.io.InputStream
 import java.net.CookieHandler
@@ -38,11 +46,31 @@ class MainActivity : AppCompatActivity() {
   private var filePathCallback: ValueCallback<Array<Uri>>? = null
   private val apkUpdateManager by lazy { ApkUpdateManager(this) }
   private var activeUpdateDialog: AlertDialog? = null
-  private var activeLoadingDialog: AlertDialog? = null
+  private var updateDialogViews: UpdateDialogViews? = null
   private var isCheckingApkUpdate = false
   private var isDownloadingApkUpdate = false
   private var forceUpdatePending = false
   private var hasLoadedLocalFallback = false
+  private var hasLoadedPrimaryEntry = false
+  private var loadPrimaryEntryAfterUpdateDismiss = false
+  private var suppressUpdateDialogDismissAction = false
+
+  private data class UpdateDialogViews(
+    val titleView: TextView,
+    val versionView: TextView,
+    val badgeView: TextView,
+    val notesLabelView: TextView,
+    val notesView: TextView,
+    val progressLabelView: TextView,
+    val progressContainer: View,
+    val progressBar: LinearProgressIndicator,
+    val progressPercentView: TextView,
+    val progressDetailView: TextView,
+    val errorView: TextView,
+    val tipView: TextView,
+    val primaryButton: MaterialButton,
+    val secondaryButton: MaterialButton,
+  )
 
   private val fileChooserLauncher =
     registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -59,20 +87,17 @@ class MainActivity : AppCompatActivity() {
     setContentView(R.layout.activity_main)
 
     webView = findViewById(R.id.webView)
+    webView.visibility = View.INVISIBLE
     configureWebView()
 
     if (savedInstanceState == null) {
-      webView.loadUrl(REMOTE_WEB_ENTRY_URL)
+      checkStartupApkUpdate()
     }
   }
 
   override fun onBackPressed() {
     if (forceUpdatePending) {
       finishAffinity()
-      return
-    }
-
-    if (activeLoadingDialog?.isShowing == true) {
       return
     }
 
@@ -135,26 +160,19 @@ class MainActivity : AppCompatActivity() {
   }
 
   fun checkApkUpdate(showLatestToast: Boolean = true) {
-    if (isCheckingApkUpdate || isDownloadingApkUpdate) {
-      Toast.makeText(this, "正在检查更新，请稍候", Toast.LENGTH_SHORT).show()
-      return
-    }
-
-    isCheckingApkUpdate = true
-    apkUpdateManager.checkApkUpdate { result ->
-      isCheckingApkUpdate = false
+    runApkUpdateCheck { result ->
       when (result) {
         is ApkUpdateManager.UpdateCheckResult.ForceUpdate -> {
-          showUpdateDialog(result.info, force = true)
+          showUpdateDialog(result.info, force = true, loadEntryAfterDismiss = false)
         }
 
         is ApkUpdateManager.UpdateCheckResult.NormalUpdate -> {
-          showUpdateDialog(result.info, force = false)
+          showUpdateDialog(result.info, force = false, loadEntryAfterDismiss = false)
         }
 
         is ApkUpdateManager.UpdateCheckResult.Latest -> {
           if (showLatestToast) {
-            Toast.makeText(this, "当前已是最新版本", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "\u5f53\u524d\u5df2\u662f\u6700\u65b0\u7248\u672c", Toast.LENGTH_SHORT).show()
           }
         }
 
@@ -162,6 +180,40 @@ class MainActivity : AppCompatActivity() {
           Toast.makeText(this, result.message, Toast.LENGTH_SHORT).show()
         }
       }
+    }
+  }
+
+  private fun checkStartupApkUpdate() {
+    runApkUpdateCheck { result ->
+      when (result) {
+        is ApkUpdateManager.UpdateCheckResult.ForceUpdate -> {
+          showUpdateDialog(result.info, force = true, loadEntryAfterDismiss = false)
+        }
+
+        is ApkUpdateManager.UpdateCheckResult.NormalUpdate -> {
+          showUpdateDialog(result.info, force = false, loadEntryAfterDismiss = true)
+        }
+
+        is ApkUpdateManager.UpdateCheckResult.Latest,
+        is ApkUpdateManager.UpdateCheckResult.Error -> {
+          loadPrimaryEntry()
+        }
+      }
+    }
+  }
+
+  private fun runApkUpdateCheck(
+    onResult: (ApkUpdateManager.UpdateCheckResult) -> Unit,
+  ) {
+    if (isCheckingApkUpdate || isDownloadingApkUpdate) {
+      Toast.makeText(this, "\u6b63\u5728\u68c0\u67e5\u66f4\u65b0\uff0c\u8bf7\u7a0d\u5019", Toast.LENGTH_SHORT).show()
+      return
+    }
+
+    isCheckingApkUpdate = true
+    apkUpdateManager.checkApkUpdate { result ->
+      isCheckingApkUpdate = false
+      onResult(result)
     }
   }
 
@@ -180,37 +232,126 @@ class MainActivity : AppCompatActivity() {
     }
   }
 
-  private fun showUpdateDialog(info: ApkUpdateInfo, force: Boolean) {
+  private fun showUpdateDialog(
+    info: ApkUpdateInfo,
+    force: Boolean,
+    loadEntryAfterDismiss: Boolean,
+  ) {
     dismissUpdateDialogs()
 
+    val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_apk_update, null)
+    val views = bindUpdateDialogViews(dialogView)
+    updateDialogViews = views
+    loadPrimaryEntryAfterUpdateDismiss = loadEntryAfterDismiss
+    forceUpdatePending = force
+
+    bindUpdateDialogContent(views, info, force)
+
     val dialog =
-      AlertDialog.Builder(this)
-        .setTitle(if (force) "发现强制更新" else "发现新版本")
-        .setMessage(buildUpdateMessage(info, force))
+      MaterialAlertDialogBuilder(this)
+        .setView(dialogView)
         .setCancelable(!force)
-        .setPositiveButton("立即更新") { _, _ ->
-          startUpdateDownload(info, force)
-        }
-        .apply {
-          if (!force) {
-            setNegativeButton("稍后再说") { dialog, _ ->
-              dialog.dismiss()
-            }
-          }
-        }
         .create()
 
-    if (force) {
-      dialog.setOnDismissListener {
-        if (forceUpdatePending && !isDownloadingApkUpdate) {
-          finishAffinity()
-        }
+    dialog.setOnShowListener {
+      dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+    }
+
+    dialog.setOnDismissListener {
+      if (suppressUpdateDialogDismissAction) {
+        return@setOnDismissListener
+      }
+
+      activeUpdateDialog = null
+      updateDialogViews = null
+      isDownloadingApkUpdate = false
+      forceUpdatePending = false
+
+      if (force) {
+        finishAffinity()
+        return@setOnDismissListener
+      }
+
+      if (loadPrimaryEntryAfterUpdateDismiss) {
+        loadPrimaryEntry()
+      }
+    }
+
+    views.primaryButton.setOnClickListener {
+      startUpdateDownload(info, force)
+    }
+
+    views.secondaryButton.setOnClickListener {
+      closeUpdateDialogWithoutAction()
+      if (loadPrimaryEntryAfterUpdateDismiss && !force) {
+        loadPrimaryEntry()
       }
     }
 
     activeUpdateDialog = dialog
-    forceUpdatePending = force
     dialog.show()
+  }
+
+  private fun bindUpdateDialogViews(view: View): UpdateDialogViews {
+    return UpdateDialogViews(
+      titleView = view.findViewById(R.id.updateDialogTitle),
+      versionView = view.findViewById(R.id.updateDialogVersion),
+      badgeView = view.findViewById(R.id.updateDialogBadge),
+      notesLabelView = view.findViewById(R.id.updateDialogNotesLabel),
+      notesView = view.findViewById(R.id.updateDialogNotes),
+      progressLabelView = view.findViewById(R.id.updateDialogProgressLabel),
+      progressContainer = view.findViewById(R.id.updateDialogProgressContainer),
+      progressBar = view.findViewById(R.id.updateDialogProgressBar),
+      progressPercentView = view.findViewById(R.id.updateDialogProgressPercent),
+      progressDetailView = view.findViewById(R.id.updateDialogProgressDetail),
+      errorView = view.findViewById(R.id.updateDialogError),
+      tipView = view.findViewById(R.id.updateDialogTip),
+      primaryButton = view.findViewById(R.id.updateDialogPrimaryAction),
+      secondaryButton = view.findViewById(R.id.updateDialogSecondaryAction),
+    )
+  }
+
+  private fun bindUpdateDialogContent(
+    views: UpdateDialogViews,
+    info: ApkUpdateInfo,
+    force: Boolean,
+  ) {
+    views.titleView.text =
+      if (force) {
+        "\u53d1\u73b0\u5f3a\u5236\u66f4\u65b0"
+      } else {
+        "\u53d1\u73b0\u65b0\u7248\u672c"
+      }
+    views.versionView.text = "\u6700\u65b0\u7248\u672c\uff1a${info.versionName} (${info.versionCode})"
+    views.badgeView.text =
+      if (force) {
+        "\u5f3a\u5236\u66f4\u65b0"
+      } else {
+        "\u5efa\u8bae\u66f4\u65b0"
+      }
+    views.badgeView.setBackgroundResource(
+      if (force) {
+        R.drawable.bg_update_badge_force
+      } else {
+        R.drawable.bg_update_badge_optional
+      },
+    )
+    views.notesLabelView.text = "\u66f4\u65b0\u8bf4\u660e"
+    views.notesView.text = info.notes.ifBlank { "\u672c\u6b21\u66f4\u65b0\u672a\u63d0\u4f9b\u8be6\u7ec6\u8bf4\u660e" }
+    views.progressLabelView.text = "\u4e0b\u8f7d\u8fdb\u5ea6"
+    views.tipView.text =
+      if (force) {
+        "\u5f53\u524d\u7248\u672c\u5df2\u65e0\u6cd5\u7ee7\u7eed\u4f7f\u7528\uff0c\u8bf7\u7acb\u5373\u66f4\u65b0"
+      } else {
+        "\u5efa\u8bae\u5728\u7a33\u5b9a\u7f51\u7edc\u73af\u5883\u4e0b\u5b8c\u6210\u66f4\u65b0"
+      }
+
+    views.progressContainer.visibility = View.GONE
+    views.errorView.visibility = View.GONE
+    views.primaryButton.text = "\u7acb\u5373\u66f4\u65b0"
+    views.primaryButton.isEnabled = true
+    views.secondaryButton.visibility = if (force) View.GONE else View.VISIBLE
+    views.secondaryButton.text = "\u7a0d\u540e\u518d\u8bf4"
   }
 
   private fun startUpdateDownload(info: ApkUpdateInfo, force: Boolean) {
@@ -219,91 +360,135 @@ class MainActivity : AppCompatActivity() {
     }
 
     isDownloadingApkUpdate = true
+    forceUpdatePending = force
+    setUpdateDialogDownloadingState(true, force)
+    activeUpdateDialog?.setCancelable(false)
+    activeUpdateDialog?.setCanceledOnTouchOutside(false)
+
     apkUpdateManager.downloadApk(
       info = info,
-      onLoadingChanged = { loading ->
-        if (loading) {
-          showLoadingDialog("正在下载更新，请稍候...")
-        } else {
-          dismissLoadingDialog()
-        }
+      onProgress = { downloadedBytes, totalBytes ->
+        updateDownloadProgress(downloadedBytes, totalBytes)
       },
       onSuccess = { apkFile ->
         isDownloadingApkUpdate = false
-        dismissLoadingDialog()
+        closeUpdateDialogWithoutAction()
         try {
+          if (!force) {
+            loadPrimaryEntry()
+          }
           apkUpdateManager.installApk(apkFile, force)
         } catch (error: Exception) {
           Toast.makeText(
             this,
-            error.message ?: "安装更新失败",
+            error.message ?: "\u5b89\u88c5\u66f4\u65b0\u5931\u8d25",
             Toast.LENGTH_SHORT,
           ).show()
           if (force) {
             finishAffinity()
           }
-        } finally {
-          if (!force) {
-            forceUpdatePending = false
-          }
         }
       },
       onError = { errorMessage ->
         isDownloadingApkUpdate = false
-        dismissLoadingDialog()
-        Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
-        if (force) {
-          finishAffinity()
-        } else {
-          forceUpdatePending = false
-        }
+        setUpdateDialogErrorState(errorMessage, force)
       },
     )
   }
 
-  private fun showLoadingDialog(message: String) {
-    if (activeLoadingDialog?.isShowing == true) {
-      activeLoadingDialog?.setMessage(message)
+  private fun setUpdateDialogDownloadingState(
+    downloading: Boolean,
+    force: Boolean,
+  ) {
+    val views = updateDialogViews ?: return
+
+    if (downloading) {
+      views.progressContainer.visibility = View.VISIBLE
+      views.errorView.visibility = View.GONE
+      views.primaryButton.text = "\u6b63\u5728\u4e0b\u8f7d..."
+      views.primaryButton.isEnabled = false
+      if (!force) {
+        views.secondaryButton.visibility = View.GONE
+      }
+    } else {
+      views.primaryButton.text = "\u7acb\u5373\u66f4\u65b0"
+      views.primaryButton.isEnabled = true
+      views.secondaryButton.visibility = if (force) View.GONE else View.VISIBLE
+    }
+  }
+
+  private fun updateDownloadProgress(downloadedBytes: Long, totalBytes: Long?) {
+    val views = updateDialogViews ?: return
+
+    views.progressContainer.visibility = View.VISIBLE
+    views.errorView.visibility = View.GONE
+
+    if (totalBytes == null || totalBytes <= 0L) {
+      views.progressBar.isIndeterminate = true
+      views.progressPercentView.text = "--"
+      views.progressDetailView.text = "\u5df2\u4e0b\u8f7d ${formatSize(downloadedBytes)}"
       return
     }
 
-    activeLoadingDialog =
-      AlertDialog.Builder(this)
-        .setMessage(message)
-        .setCancelable(false)
-        .create()
-        .also { it.show() }
+    val progress = ((downloadedBytes * 100L) / totalBytes).toInt().coerceIn(0, 100)
+    views.progressBar.isIndeterminate = false
+    views.progressBar.setProgressCompat(progress, true)
+    views.progressPercentView.text = "$progress%"
+    views.progressDetailView.text =
+      "\u5df2\u4e0b\u8f7d ${formatSize(downloadedBytes)} / ${formatSize(totalBytes)}"
   }
 
-  private fun dismissLoadingDialog() {
-    activeLoadingDialog?.dismiss()
-    activeLoadingDialog = null
+  private fun setUpdateDialogErrorState(errorMessage: String, force: Boolean) {
+    val views = updateDialogViews ?: return
+
+    views.progressContainer.visibility = View.VISIBLE
+    views.progressBar.isIndeterminate = false
+    views.progressBar.setProgressCompat(0, false)
+    views.progressPercentView.text = "\u5931\u8d25"
+    views.progressDetailView.text = "\u4e0b\u8f7d\u5931\u8d25\uff0c\u8bf7\u91cd\u8bd5"
+    views.errorView.visibility = View.VISIBLE
+    views.errorView.text = "\u4e0b\u8f7d\u5931\u8d25\uff1a$errorMessage"
+    views.primaryButton.text = "\u91cd\u65b0\u66f4\u65b0"
+    views.primaryButton.isEnabled = true
+    views.secondaryButton.visibility = if (force) View.GONE else View.VISIBLE
+    activeUpdateDialog?.setCancelable(!force)
+    activeUpdateDialog?.setCanceledOnTouchOutside(false)
+  }
+
+  private fun formatSize(bytes: Long): String {
+    val safeBytes = bytes.coerceAtLeast(0L)
+    return android.text.format.Formatter.formatFileSize(this, safeBytes)
+  }
+
+  private fun closeUpdateDialogWithoutAction() {
+    if (activeUpdateDialog == null) {
+      return
+    }
+
+    suppressUpdateDialogDismissAction = true
+    activeUpdateDialog?.dismiss()
+    suppressUpdateDialogDismissAction = false
+    activeUpdateDialog = null
+    updateDialogViews = null
+    isDownloadingApkUpdate = false
+    forceUpdatePending = false
   }
 
   private fun dismissUpdateDialogs() {
-    dismissLoadingDialog()
-    activeUpdateDialog?.dismiss()
-    activeUpdateDialog = null
-    forceUpdatePending = false
-    isDownloadingApkUpdate = false
+    closeUpdateDialogWithoutAction()
+    loadPrimaryEntryAfterUpdateDismiss = false
   }
 
-  private fun buildUpdateMessage(info: ApkUpdateInfo, force: Boolean): String {
-    val lines = mutableListOf<String>()
-    lines += "最新版本：${info.versionName} (${info.versionCode})"
-    if (info.notes.isNotBlank()) {
-      lines += ""
-      lines += "更新说明："
-      lines += info.notes
+  private fun loadPrimaryEntry() {
+    if (hasLoadedPrimaryEntry) {
+      return
     }
-    if (force) {
-      lines += ""
-      lines += "当前版本低于最低支持版本，必须更新后才能继续使用。"
-    } else {
-      lines += ""
-      lines += "是否立即更新？"
+
+    hasLoadedPrimaryEntry = true
+    if (::webView.isInitialized) {
+      webView.visibility = View.INVISIBLE
+      webView.loadUrl(REMOTE_WEB_ENTRY_URL)
     }
-    return lines.joinToString("\n")
   }
 
   private fun configureWebView() {
@@ -373,6 +558,13 @@ class MainActivity : AppCompatActivity() {
 
   private fun createWebViewClient() =
     object : WebViewClient() {
+      override fun onPageFinished(view: WebView?, url: String?) {
+        super.onPageFinished(view, url)
+        if (view != null) {
+          view.visibility = View.VISIBLE
+        }
+      }
+
       override fun onReceivedError(
         view: WebView?,
         request: WebResourceRequest?,
@@ -510,15 +702,17 @@ class MainActivity : AppCompatActivity() {
     hasLoadedLocalFallback = true
     runOnUiThread {
       if (::webView.isInitialized) {
+        webView.visibility = View.INVISIBLE
         webView.loadUrl(LOCAL_WEB_ENTRY_URL)
       }
     }
   }
 
   private fun resolveMimeType(params: WebChromeClient.FileChooserParams?): String {
-    val acceptTypes = params?.acceptTypes.orEmpty()
-      .map { it.trim() }
-      .filter { it.isNotEmpty() }
+    val acceptTypes =
+      params?.acceptTypes.orEmpty()
+        .map { it.trim() }
+        .filter { it.isNotEmpty() }
 
     return acceptTypes.firstOrNull() ?: "*/*"
   }

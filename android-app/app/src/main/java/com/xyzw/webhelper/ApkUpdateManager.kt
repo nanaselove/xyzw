@@ -61,24 +61,18 @@ class ApkUpdateManager(private val activity: MainActivity) {
 
   fun downloadApk(
     info: ApkUpdateInfo,
-    onLoadingChanged: (Boolean) -> Unit,
+    onProgress: (downloadedBytes: Long, totalBytes: Long?) -> Unit,
     onSuccess: (File) -> Unit,
     onError: (String) -> Unit,
   ) {
-    activity.runOnUiThread {
-      onLoadingChanged(true)
-    }
-
     Thread {
       try {
-        val apkFile = downloadApkInternal(info)
+        val apkFile = downloadApkInternal(info, onProgress)
         activity.runOnUiThread {
-          onLoadingChanged(false)
           onSuccess(apkFile)
         }
       } catch (error: Exception) {
         activity.runOnUiThread {
-          onLoadingChanged(false)
           onError(error.message ?: "下载更新失败")
         }
       }
@@ -155,7 +149,10 @@ class ApkUpdateManager(private val activity: MainActivity) {
     }
   }
 
-  private fun downloadApkInternal(info: ApkUpdateInfo): File {
+  private fun downloadApkInternal(
+    info: ApkUpdateInfo,
+    onProgress: (downloadedBytes: Long, totalBytes: Long?) -> Unit,
+  ): File {
     val connection =
       (URL(info.apkUrl).openConnection() as HttpURLConnection).apply {
         instanceFollowRedirects = true
@@ -175,15 +172,48 @@ class ApkUpdateManager(private val activity: MainActivity) {
         throw IOException("APK 下载失败: HTTP $status")
       }
 
+      val totalBytes = connection.contentLengthLong.takeIf { it > 0L }
+      var downloadedBytes = 0L
+      var lastProgressDispatchAt = 0L
+      val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+
+      activity.runOnUiThread {
+        onProgress(0L, totalBytes)
+      }
+
       connection.inputStream.use { input ->
         FileOutputStream(apkFile).use { output ->
-          input.copyTo(output)
+          while (true) {
+            val readCount = input.read(buffer)
+            if (readCount < 0) {
+              break
+            }
+
+            output.write(buffer, 0, readCount)
+            downloadedBytes += readCount.toLong()
+
+            val now = System.currentTimeMillis()
+            if (
+              downloadedBytes == totalBytes ||
+              now - lastProgressDispatchAt >= PROGRESS_DISPATCH_INTERVAL_MS
+            ) {
+              lastProgressDispatchAt = now
+              val progressDownloadedBytes = downloadedBytes
+              activity.runOnUiThread {
+                onProgress(progressDownloadedBytes, totalBytes)
+              }
+            }
+          }
           output.flush()
         }
       }
 
       if (!apkFile.exists() || apkFile.length() <= 0) {
         throw IOException("APK 下载结果为空")
+      }
+
+      activity.runOnUiThread {
+        onProgress(apkFile.length(), totalBytes)
       }
 
       return apkFile
@@ -213,6 +243,7 @@ class ApkUpdateManager(private val activity: MainActivity) {
   companion object {
     const val DEFAULT_VERSION_URL = "https://xyzw-9bj.pages.dev/apk/version.json"
     private const val NETWORK_TIMEOUT_MS = 15_000
+    private const val PROGRESS_DISPATCH_INTERVAL_MS = 150L
     private const val UPDATE_CACHE_DIR = "apk-update"
     private const val APK_MIME_TYPE = "application/vnd.android.package-archive"
   }
