@@ -433,6 +433,7 @@ import { useMessage, useDialog, NInput } from "naive-ui";
 import { useTokenStore } from "@/stores/tokenStore";
 import MyCard from "../Common/MyCard.vue";
 import { HERO_DICT } from "@/utils/HeroList.js";
+import { saveBlob } from "@/utils/nativeExport";
 
 const tokenStore = useTokenStore();
 const message = useMessage();
@@ -920,7 +921,7 @@ const saveLineupsToStorage = () => {
   }
 };
 
-const exportSavedLineups = () => {
+const exportSavedLineups = async () => {
   try {
     const token = tokenStore.selectedToken;
     if (!token) {
@@ -958,16 +959,12 @@ const exportSavedLineups = () => {
     const blob = new Blob([JSON.stringify(exportData, null, 2)], {
       type: "application/json;charset=utf-8",
     });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `lineups_backup_${token.id}_${new Date().toISOString().slice(0, 10)}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    const fileName = `lineups_backup_${token.id}_${new Date().toISOString().slice(0, 10)}.json`;
+    await saveBlob(blob, fileName, "application/json;charset=utf-8");
 
-    message.success(`已导出 ${savedLineups.value.length} 个阵容`);
+    message.success(
+      `已导出 ${savedLineups.value.length} 个阵容，文件已保存到手机下载目录`,
+    );
   } catch (error) {
     console.error("导出阵容失败:", error);
     message.error(`导出失败: ${error.message}`);
