@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">咸鱼金手指</string>
+    <string name="app_name">咸鱼小助手</string>
     <string name="share_title">分享文件</string>
     <string name="select_file_title">选择文件</string>
     <string name="no_handler">没有可用的应用打开此链接</string>

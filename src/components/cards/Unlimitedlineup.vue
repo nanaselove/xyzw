@@ -17,15 +17,17 @@
       <div class="lineup-container">
         <div class="toolbar">
           <n-button
+            class="toolbar-btn"
+            :class="{ 'is-refreshing': loading }"
             type="primary"
             size="small"
             @click="refreshTeamInfo"
-            :loading="loading"
-            :disabled="!!activeLineupKey || state.isRunning"
+            :disabled="!!activeLineupKey || state.isRunning || loading"
           >
-            刷新数据
+            {{ loading ? "刷新中..." : "刷新数据" }}
           </n-button>
           <n-button
+            class="toolbar-btn"
             size="small"
             @click="saveCurrentLineup"
             :disabled="
@@ -35,6 +37,7 @@
             保存阵容
           </n-button>
           <n-button
+            class="toolbar-btn"
             type="success"
             size="small"
             @click="openAddHeroModal"
@@ -45,6 +48,7 @@
             上阵英雄
           </n-button>
           <n-button
+            class="toolbar-btn"
             type="info"
             size="small"
             @click="savedLineupsModalVisible = true"
@@ -56,8 +60,14 @@
 
         <div class="quick-switch-section">
           <h4>阵容槽位</h4>
-          <div class="team-selector">
+          <div
+            class="team-selector"
+            :style="{
+              gridTemplateColumns: `repeat(${teamSelectorColumns}, minmax(0, 1fr))`,
+            }"
+          >
             <n-button
+              class="team-slot-btn"
               v-for="teamId in availableTeams"
               :key="teamId"
               :type="currentTeamId === teamId ? 'primary' : 'default'"
@@ -565,6 +575,10 @@ const heroCountries = computed(() => {
     if (hero.type) countries.add(hero.type);
   });
   return Array.from(countries);
+});
+
+const teamSelectorColumns = computed(() => {
+  return Math.max(1, availableTeams.value.length);
 });
 
 const getHeroQuality = (heroId) => {
@@ -1833,6 +1847,10 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .lineup-saver {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   min-height: 300px;
 }
 
@@ -1840,12 +1858,57 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
+  width: 100%;
+  min-width: 0;
 }
 
 .toolbar {
   display: flex;
   gap: var(--spacing-sm);
-  align-items: center;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+
+  :deep(.toolbar-btn) {
+    position: relative;
+    overflow: hidden;
+    flex: 1 1 0;
+    min-width: 0;
+    width: 0;
+    transition: transform 180ms ease, filter 180ms ease, opacity 180ms ease;
+  }
+
+  :deep(.toolbar-btn.is-refreshing) {
+    cursor: progress;
+    opacity: 0.94;
+    filter: saturate(1.08);
+  }
+
+  :deep(.toolbar-btn.is-refreshing::after) {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      120deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.08) 38%,
+      rgba(255, 255, 255, 0.22) 50%,
+      rgba(255, 255, 255, 0.08) 62%,
+      transparent 100%
+    );
+    transform: translateX(-120%);
+    animation: toolbarRefreshShine 1.1s ease-in-out infinite;
+    pointer-events: none;
+  }
+}
+
+@keyframes toolbarRefreshShine {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(120%);
+  }
 }
 
 .current-team-section {
@@ -2034,8 +2097,15 @@ onMounted(() => {
 }
 
 .team-selector {
-  display: flex;
+  display: grid;
   gap: var(--spacing-xs);
+  width: 100%;
+  min-width: 0;
+
+  :deep(.team-slot-btn) {
+    width: 100%;
+    min-width: 0;
+  }
 }
 
 .refine-modal-content {
