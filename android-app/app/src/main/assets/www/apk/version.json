@@ -1,8 +1,8 @@
 {
-  "versionCode": 2,
-  "versionName": "1.0.1",
-  "apkUrl": "https://github.com/nanaselove/xyzw/releases/download/v1.0.1/app-release.apk",
+  "versionCode": 3,
+  "versionName": "1.0.3",
+  "apkUrl": "https://github.com/nanaselove/xyzw/releases/download/v1.0.3/app-release.apk",
   "force": true,
-  "notes": "工具页面添加阵容助手、支持批量导入导出备份",
+  "notes": "新增阵容助手，支持保存阵容、快速切换\\n支持阵容备份导入/导出\\n导出备份会自动保存到手机下载目录，并在 App 内显示完整路径\\n优化阵容应用流程，减少重复报错与切换卡顿",
   "minSupportedVersionCode": 1
 }
