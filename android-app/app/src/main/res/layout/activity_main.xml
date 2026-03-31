@@ -11,4 +11,24 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <TextView
+        android:id="@+id/saveNoticeView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:layout_margin="12dp"
+        android:background="@drawable/bg_save_notice_banner"
+        android:elevation="10dp"
+        android:gravity="start"
+        android:includeFontPadding="false"
+        android:lineSpacingExtra="2dp"
+        android:paddingLeft="16dp"
+        android:paddingTop="14dp"
+        android:paddingRight="16dp"
+        android:paddingBottom="14dp"
+        android:textColor="#F6F8FF"
+        android:textSize="13sp"
+        android:visibility="gone"
+        tools:text="文件已保存：XYZW_阵容备份_七濑_20260331_202039.json\n保存路径：/storage/emulated/0/Download/XYZW/XYZW_阵容备份_七濑_20260331_202039.json" />
+
 </FrameLayout>

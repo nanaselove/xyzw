@@ -43,6 +43,7 @@ class MainActivity : AppCompatActivity() {
   }
 
   private lateinit var webView: WebView
+  private lateinit var saveNoticeView: TextView
   private var filePathCallback: ValueCallback<Array<Uri>>? = null
   private val apkUpdateManager by lazy { ApkUpdateManager(this) }
   private var activeUpdateDialog: AlertDialog? = null
@@ -54,6 +55,7 @@ class MainActivity : AppCompatActivity() {
   private var hasLoadedPrimaryEntry = false
   private var loadPrimaryEntryAfterUpdateDismiss = false
   private var suppressUpdateDialogDismissAction = false
+  private val hideSaveNoticeRunnable = Runnable { hideSaveNotice() }
 
   private data class UpdateDialogViews(
     val titleView: TextView,
@@ -87,6 +89,7 @@ class MainActivity : AppCompatActivity() {
     setContentView(R.layout.activity_main)
 
     webView = findViewById(R.id.webView)
+    saveNoticeView = findViewById(R.id.saveNoticeView)
     webView.visibility = View.INVISIBLE
     configureWebView()
 
@@ -110,6 +113,7 @@ class MainActivity : AppCompatActivity() {
 
   override fun onDestroy() {
     dismissUpdateDialogs()
+    hideSaveNotice()
     if (::webView.isInitialized) {
       webView.apply {
         stopLoading()
@@ -157,6 +161,20 @@ class MainActivity : AppCompatActivity() {
       }
 
     startActivity(Intent.createChooser(intent, title))
+  }
+
+  fun showSaveNotice(message: String, durationMs: Long = 4500L) {
+    if (!::saveNoticeView.isInitialized) {
+      return
+    }
+
+    runOnUiThread {
+      saveNoticeView.text = message
+      saveNoticeView.visibility = View.VISIBLE
+      saveNoticeView.bringToFront()
+      saveNoticeView.removeCallbacks(hideSaveNoticeRunnable)
+      saveNoticeView.postDelayed(hideSaveNoticeRunnable, durationMs)
+    }
   }
 
   fun checkApkUpdate(showLatestToast: Boolean = true) {
@@ -477,6 +495,15 @@ class MainActivity : AppCompatActivity() {
   private fun dismissUpdateDialogs() {
     closeUpdateDialogWithoutAction()
     loadPrimaryEntryAfterUpdateDismiss = false
+  }
+
+  private fun hideSaveNotice() {
+    if (!::saveNoticeView.isInitialized) {
+      return
+    }
+
+    saveNoticeView.removeCallbacks(hideSaveNoticeRunnable)
+    saveNoticeView.visibility = View.GONE
   }
 
   private fun loadPrimaryEntry() {

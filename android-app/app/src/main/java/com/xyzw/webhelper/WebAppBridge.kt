@@ -15,18 +15,20 @@ import java.net.URL
 import org.json.JSONObject
 
 class WebAppBridge(private val activity: MainActivity) {
+  private data class PersistedFile(
+    val file: File,
+    val displayPath: String,
+  )
+
   @JavascriptInterface
   fun saveBase64File(base64: String, fileName: String, mimeType: String) {
     Thread {
       try {
-        persistFile(base64, fileName, mimeType, shareable = false)
-        activity.runOnUiThread {
-          Toast.makeText(
-            activity,
-            activity.getString(R.string.file_saved, fileName),
-            Toast.LENGTH_SHORT,
-          ).show()
-        }
+        val cleanName = sanitizeFileName(fileName)
+        val saved = persistFile(base64, cleanName, mimeType, shareable = false)
+        activity.showSaveNotice(
+          activity.getString(R.string.file_saved, cleanName, saved.displayPath),
+        )
       } catch (error: Exception) {
         activity.runOnUiThread {
           Toast.makeText(
@@ -43,7 +45,7 @@ class WebAppBridge(private val activity: MainActivity) {
   fun shareBase64File(base64: String, fileName: String, mimeType: String) {
     Thread {
       try {
-        val file = persistFile(base64, fileName, mimeType, shareable = true)
+        val file = persistFile(base64, fileName, mimeType, shareable = true).file
         activity.runOnUiThread {
           activity.shareFile(file, mimeType, activity.getString(R.string.share_title))
         }
@@ -110,7 +112,7 @@ class WebAppBridge(private val activity: MainActivity) {
     fileName: String,
     mimeType: String,
     shareable: Boolean,
-  ): File {
+  ): PersistedFile {
     val cleanName = sanitizeFileName(fileName)
     val bytes = Base64.decode(stripDataPrefix(base64), Base64.DEFAULT)
 
@@ -125,7 +127,7 @@ class WebAppBridge(private val activity: MainActivity) {
     fileName: String,
     mimeType: String,
     bytes: ByteArray,
-  ): File {
+  ): PersistedFile {
     val resolver = activity.contentResolver
     val values =
       ContentValues().apply {
@@ -152,14 +154,17 @@ class WebAppBridge(private val activity: MainActivity) {
     values.put(MediaStore.MediaColumns.IS_PENDING, 0)
     resolver.update(uri, values, null, null)
 
-    return File(activity.cacheDir, fileName)
+    return PersistedFile(
+      file = File(activity.cacheDir, fileName),
+      displayPath = buildDownloadDisplayPath(fileName),
+    )
   }
 
   private fun saveToAppStorage(
     fileName: String,
     bytes: ByteArray,
     shareable: Boolean,
-  ): File {
+  ): PersistedFile {
     val directory =
       if (shareable) {
         File(activity.cacheDir, "share").apply { mkdirs() }
@@ -177,7 +182,10 @@ class WebAppBridge(private val activity: MainActivity) {
       output.write(bytes)
       output.flush()
     }
-    return file
+    return PersistedFile(
+      file = file,
+      displayPath = file.absolutePath,
+    )
   }
 
   private fun stripDataPrefix(base64: String): String {
@@ -188,6 +196,21 @@ class WebAppBridge(private val activity: MainActivity) {
 
   private fun sanitizeFileName(fileName: String): String {
     return fileName.replace(Regex("""[\\/:*?"<>|]"""), "_")
+  }
+
+  private fun buildDownloadDisplayPath(fileName: String): String {
+    val downloadDirectory =
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        File(
+          Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+          "XYZW",
+        )
+      } else {
+        activity.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+          ?: File(activity.filesDir, "downloads")
+      }
+
+    return File(downloadDirectory, fileName).absolutePath
   }
 
   private fun performTextRequest(
