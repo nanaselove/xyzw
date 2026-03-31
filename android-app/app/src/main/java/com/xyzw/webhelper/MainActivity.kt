@@ -6,7 +6,9 @@ import android.content.pm.ApplicationInfo
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.net.Uri
+import android.text.method.ScrollingMovementMethod
 import android.os.Bundle
+import android.view.MotionEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -316,7 +318,24 @@ class MainActivity : AppCompatActivity() {
       versionView = view.findViewById(R.id.updateDialogVersion),
       badgeView = view.findViewById(R.id.updateDialogBadge),
       notesLabelView = view.findViewById(R.id.updateDialogNotesLabel),
-      notesView = view.findViewById(R.id.updateDialogNotes),
+      notesView = view.findViewById<TextView>(R.id.updateDialogNotes).apply {
+        movementMethod = ScrollingMovementMethod.getInstance()
+        isVerticalScrollBarEnabled = true
+        setOnTouchListener { v, event ->
+          when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN,
+            MotionEvent.ACTION_MOVE,
+            MotionEvent.ACTION_SCROLL -> {
+              v.parent?.requestDisallowInterceptTouchEvent(true)
+            }
+            MotionEvent.ACTION_UP,
+            MotionEvent.ACTION_CANCEL -> {
+              v.parent?.requestDisallowInterceptTouchEvent(false)
+            }
+          }
+          false
+        }
+      },
       progressLabelView = view.findViewById(R.id.updateDialogProgressLabel),
       progressContainer = view.findViewById(R.id.updateDialogProgressContainer),
       progressBar = view.findViewById(R.id.updateDialogProgressBar),
