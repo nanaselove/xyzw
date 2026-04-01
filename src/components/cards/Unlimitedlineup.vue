@@ -1902,6 +1902,38 @@ onMounted(() => {
   }
 }
 
+@media (max-width: 520px) {
+  .toolbar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--spacing-xs);
+
+    :deep(.toolbar-btn) {
+      width: 100%;
+      flex: none;
+      min-height: 36px;
+      font-size: var(--font-size-xs);
+      padding-inline: 10px;
+    }
+  }
+
+  .saved-lineups-modal-toolbar {
+    align-items: flex-start;
+  }
+
+  .saved-lineups-modal-actions {
+    width: 100%;
+    margin-left: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .saved-lineups-modal-actions :deep(.n-button) {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
 @keyframes toolbarRefreshShine {
   0% {
     transform: translateX(-120%);
