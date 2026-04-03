@@ -1,6 +1,6 @@
 {
-  "versionCode": 3,
-  "versionName": "1.0.3",
+  "versionCode": 4,
+  "versionName": "1.0.4",
   "apkUrl": "https://gitee.com/xQilai/xyzw/releases/download/v1.0.0/app-release.apk",
   "force": true,
   "notes": "新增阵容助手，支持保存阵容、快速切换\n支持阵容备份导入/导出\n导出备份会自动保存到手机下载目录，并在 App 内显示完整路径\n优化阵容应用流程，减少重复报错与切换卡顿",
