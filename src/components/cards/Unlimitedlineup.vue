@@ -19,13 +19,16 @@
           <n-button
             type="primary"
             size="small"
+            round
             @click="refreshTeamInfo"
-            :loading="loading"
+            :disabled="refreshing"
+            :class="{ 'is-refreshing': refreshing }"
           >
-            刷新数据
+            {{ refreshing ? "刷新中..." : "刷新数据" }}
           </n-button>
           <n-button
             size="small"
+            round
             @click="saveCurrentLineup"
             :disabled="editingHeroes.length === 0"
           >
@@ -34,6 +37,7 @@
           <n-button
             type="success"
             size="small"
+            round
             @click="openAddHeroModal"
             :disabled="editingHeroes.length >= 5"
           >
@@ -42,6 +46,7 @@
           <n-button
             type="info"
             size="small"
+            round
             @click="savedLineupsModalVisible = true"
           >
             已保存阵容 ({{ savedLineups.length }})
@@ -56,6 +61,7 @@
               :key="teamId"
               :type="currentTeamId === teamId ? 'primary' : 'default'"
               size="small"
+              round
               @click="switchTeam(teamId)"
               :loading="switchingTeamId === teamId"
             >
@@ -182,6 +188,25 @@
           暂无保存的阵容，点击"保存阵容"开始使用
         </div>
         <div v-else class="saved-lineups-modal-content">
+          <div v-if="applyProgressVisible" class="saved-lineups-progress">
+            <div class="saved-lineups-progress-head">
+              <div class="saved-lineups-progress-title">
+                {{ applyProgress.title || "正在应用阵容" }}
+              </div>
+              <div class="saved-lineups-progress-percent">
+                {{ Math.round(applyProgress.percent) }}%
+              </div>
+            </div>
+            <div class="saved-lineups-progress-track">
+              <div
+                class="saved-lineups-progress-bar"
+                :style="{ width: `${applyProgress.percent}%` }"
+              ></div>
+            </div>
+            <div class="saved-lineups-progress-text">
+              {{ applyProgress.detail || "同步当前阵容数据" }}
+            </div>
+          </div>
           <div class="team-tabs">
             <div class="team-tabs-left">
               <div
@@ -198,13 +223,23 @@
               </div>
             </div>
             <div class="team-tabs-right">
-              <n-button size="tiny" @click="exportLineups"> 导出 </n-button>
+              <n-button
+                class="lineup-import-export-btn"
+                size="tiny"
+                round
+                @click="exportLineups"
+              >
+                导出
+              </n-button>
               <n-upload
+                class="lineup-import-export-upload"
                 :show-file-list="false"
                 :custom-request="importLineups"
                 accept=".json"
               >
-                <n-button size="tiny">导入</n-button>
+                <n-button class="lineup-import-export-btn" size="tiny" round>
+                  导入
+                </n-button>
               </n-upload>
             </div>
           </div>
@@ -259,10 +294,7 @@
                   <n-button
                     type="primary"
                     size="tiny"
-                    @click.stop="
-                      applyLineup(lineup);
-                      savedLineupsModalVisible = false;
-                    "
+                    @click.stop="applySavedLineup(lineup)"
                     :loading="lineup.applying"
                     :disabled="lineup.teamId !== currentTeamId"
                   >
@@ -587,17 +619,33 @@ const message = useMessage();
 const dialog = useDialog();
 
 const loading = ref(false);
+const refreshing = ref(false);
 const switchingTeamId = ref(null);
 const currentTeamId = ref(1);
 const availableTeams = ref([1, 2, 3, 4, 5, 6]);
 const currentTeamInfo = ref(null);
 const presetTeamData = ref(null);
 const savedLineups = ref([]);
+const applyProgressVisible = ref(false);
+const applyProgress = ref({
+  title: "",
+  percent: 0,
+  detail: "",
+});
 const allHeroesData = ref({});
 const roleHeroesData = ref({});
 const editingTeamHeroes = ref({});
 const artifactBooks = ref({});
 const pearlMap = ref({});
+
+const setApplyProgress = (title, percent, detail = "") => {
+  applyProgress.value = {
+    title,
+    percent: Math.max(0, Math.min(100, Number(percent) || 0)),
+    detail,
+  };
+};
+
 let lastRefreshTime = 0;
 const REFRESH_DEBOUNCE = 3000;
 const COMMAND_DELAY = 500;
@@ -1336,7 +1384,7 @@ const refreshTeamInfo = async () => {
     return;
   }
 
-  loading.value = true;
+  refreshing.value = true;
   try {
     let presetTeamResult = await tokenStore.sendMessageWithPromise(
       tokenId,
@@ -1424,7 +1472,7 @@ const refreshTeamInfo = async () => {
   } catch (error) {
     message.error(`获取数据失败: ${error.message}`);
   } finally {
-    loading.value = false;
+    refreshing.value = false;
   }
 };
 
@@ -1732,6 +1780,8 @@ const applyLineup = async (lineup) => {
   lineup.applying = true;
   state.value.isRunning = true;
   const errors = [];
+  let applySucceeded = false;
+  setApplyProgress("正在应用阵容", 5, lineup.name || "同步当前阵容");
 
   const getTeamHeroes = (teamInfo) => {
     if (!teamInfo) return [];
@@ -1786,6 +1836,7 @@ const applyLineup = async (lineup) => {
 
     let { heroes, teamInfo } = await fetchLatestData();
     let currentHeroes = getTeamHeroes(teamInfo);
+    setApplyProgress("正在整理当前阵容", 12, "同步战斗信息");
 
     const attachmentToHero = {};
     for (const [id, hero] of Object.entries(heroes)) {
@@ -1858,6 +1909,7 @@ const applyLineup = async (lineup) => {
     currentHeroes = getTeamHeroes(data1.teamInfo);
     currentHeroIds.clear();
     currentHeroes.forEach((h) => currentHeroIds.add(h.heroId));
+    setApplyProgress("正在清理多余武将", 32, "同步下阵后的阵容");
 
     for (const hero of [...currentHeroes]) {
       if (!targetHeroIds.has(hero.heroId)) {
@@ -1878,6 +1930,7 @@ const applyLineup = async (lineup) => {
     const data2 = await fetchLatestData();
     await delay(COMMAND_DELAY);
     currentHeroes = getTeamHeroes(data2.teamInfo);
+    setApplyProgress("正在上阵目标武将", 52, "同步上阵后的阵容");
 
     for (const targetHero of targetHeroes) {
       const currentHero = currentHeroes.find(
@@ -1923,6 +1976,7 @@ const applyLineup = async (lineup) => {
 
     const hasLevelData = lineup.heroes.some((h) => h.level && h.level > 0);
     if (hasLevelData) {
+      setApplyProgress("正在同步武将等级", 68, "同步强化信息");
       const levelData = await fetchLatestData();
       const currentHeroesData = levelData.heroes;
 
@@ -1964,6 +2018,7 @@ const applyLineup = async (lineup) => {
 
     const hasFishData = lineup.heroes.some((h) => h.pearlId || h.fishId);
     if (hasFishData) {
+      setApplyProgress("正在同步鱼灵", 78, "处理鱼灵和技能");
       const fishData = await fetchLatestData();
       const currentHeroes = fishData.heroes;
       const pearlMap = fishData.pearlMap || {};
@@ -2123,6 +2178,7 @@ const applyLineup = async (lineup) => {
       lineup.legionResearch &&
       Object.keys(lineup.legionResearch).length > 0
     ) {
+      setApplyProgress("正在同步科技", 90, "同步军团科技");
       const syncResult = await syncLegionResearch(
         tokenId,
         lineup.legionResearch,
@@ -2136,6 +2192,7 @@ const applyLineup = async (lineup) => {
     }
 
     if (lineup.weaponId !== undefined && lineup.weaponId !== null) {
+      setApplyProgress("正在同步默认武器", 96, "应用预设武器");
       const currentPresetTeam = await tokenStore.sendMessageWithPromise(
         tokenId,
         "presetteam_getinfo",
@@ -2168,13 +2225,28 @@ const applyLineup = async (lineup) => {
     }
 
     lastRefreshTime = 0;
-    await refreshTeamInfo();
+    setApplyProgress("正在刷新阵容", 98, "等待界面同步");
+    await refreshTeamInfo({ preserveCurrentTeamId: true, force: true });
+    setApplyProgress("阵容已应用", 100, "已完成同步");
+    applySucceeded = true;
   } catch (error) {
     message.error(`应用阵容失败: ${error.message}`);
   } finally {
     lineup.applying = false;
     state.value.isRunning = false;
   }
+
+  return applySucceeded;
+};
+
+const applySavedLineup = async (lineup) => {
+  applyProgressVisible.value = true;
+  const success = await applyLineup(lineup);
+  if (success) {
+    await delay(300);
+    savedLineupsModalVisible.value = false;
+  }
+  applyProgressVisible.value = false;
 };
 
 const showTechModal = (lineup) => {
@@ -2484,9 +2556,27 @@ onMounted(() => {
 }
 
 .toolbar {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--spacing-sm);
-  align-items: center;
+  align-items: stretch;
+}
+
+.toolbar :deep(.n-button) {
+  width: 100%;
+  min-width: 0;
+  height: 42px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.toolbar :deep(.n-button.is-refreshing) {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 0 0 1px rgba(125, 211, 252, 0.18);
+}
+
+.toolbar :deep(.n-button.is-refreshing .n-button__content) {
+  letter-spacing: 0.04em;
 }
 
 .current-team-section {
@@ -3001,8 +3091,17 @@ onMounted(() => {
 }
 
 .team-selector {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
   gap: var(--spacing-xs);
+}
+
+.team-selector :deep(.n-button) {
+  width: 100%;
+  min-width: 0;
+  height: 40px;
+  border-radius: 999px;
+  font-weight: 600;
 }
 
 .refine-modal-content {
@@ -3293,20 +3392,75 @@ onMounted(() => {
 }
 
 .team-tabs-right {
-  display: flex;
-  gap: var(--spacing-xs);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  min-width: 0;
+  align-items: stretch;
+}
+
+.lineup-import-export-btn {
+  width: 100%;
+  min-width: 0;
+  height: 42px;
+  border-radius: 999px;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: linear-gradient(
+    180deg,
+    rgba(94, 100, 124, 0.72) 0%,
+    rgba(52, 56, 84, 0.72) 100%
+  );
+  border: 1px solid rgba(141, 169, 255, 0.34);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  justify-content: center;
+}
+
+.lineup-import-export-upload {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.lineup-import-export-upload :deep(.n-upload-trigger) {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: 42px;
+}
+
+.lineup-import-export-upload :deep(.n-button) {
+  width: 100%;
+  min-width: 0;
+  height: 42px;
+  border-radius: 999px;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: linear-gradient(
+    180deg,
+    rgba(94, 100, 124, 0.72) 0%,
+    rgba(52, 56, 84, 0.72) 100%
+  );
+  border: 1px solid rgba(141, 169, 255, 0.34);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .team-tab {
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--border-radius-medium);
+  padding: 10px 16px;
+  border-radius: 999px;
   cursor: pointer;
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
   transition: all 0.2s;
+  background: rgba(118, 129, 206, 0.14);
+  border: 1px solid rgba(141, 169, 255, 0.26);
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   &:hover {
-    background: var(--bg-tertiary);
+    background: rgba(118, 129, 206, 0.22);
     color: var(--text-primary);
   }
 
@@ -3506,5 +3660,185 @@ onMounted(() => {
   font-size: var(--font-size-sm);
   text-align: center;
   padding: var(--spacing-lg);
+}
+
+.saved-lineups-progress {
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-medium);
+  background: linear-gradient(
+    180deg,
+    rgba(64, 53, 124, 0.98) 0%,
+    rgba(28, 33, 72, 0.98) 100%
+  );
+  border: 1px solid rgba(126, 157, 255, 0.28);
+  box-shadow: 0 10px 28px rgba(14, 20, 48, 0.26);
+}
+
+.saved-lineups-progress-head {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  align-items: center;
+  margin-bottom: var(--spacing-xs);
+}
+
+.saved-lineups-progress-title {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.saved-lineups-progress-percent {
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.saved-lineups-progress-track {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.saved-lineups-progress-bar {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #7dd3fc 0%, #60a5fa 50%, #8b5cf6 100%);
+  transition: width 180ms ease;
+}
+
+.saved-lineups-progress-text {
+  margin-top: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+@media (max-width: 520px) {
+  .saved-lineups-modal-content {
+    gap: var(--spacing-sm);
+  }
+
+  .lineup-detail {
+    padding: var(--spacing-xs);
+    padding-top: 0;
+  }
+
+  .saved-lineups-progress {
+    padding: var(--spacing-xs);
+  }
+
+  .team-tabs {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .team-tabs-left,
+  .team-tabs-right {
+    width: 100%;
+  }
+
+  .team-tabs-right {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .team-tab {
+    flex: 1 1 0;
+    text-align: center;
+  }
+
+  .lineup-title-bar {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+
+  .lineup-title-left {
+    flex-wrap: wrap;
+    min-width: 0;
+    row-gap: 4px;
+  }
+
+  .lineup-quick-actions {
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .lineup-heroes-row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    justify-content: stretch;
+  }
+
+  .lineup-hero-card {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr);
+    align-items: center;
+    column-gap: var(--spacing-sm);
+    min-width: 0;
+    width: 100%;
+    padding: 10px;
+    border-radius: 18px;
+    overflow: hidden;
+  }
+
+  .hero-avatar,
+  .hero-avatar-placeholder {
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+  }
+
+  .hero-info-small {
+    width: 100%;
+    min-width: 0;
+    align-items: flex-start;
+    flex: 1;
+    gap: 4px;
+  }
+
+  .hero-header-small {
+    width: 100%;
+    align-items: center;
+    flex-direction: row;
+    gap: 6px;
+    margin-bottom: 2px;
+    flex-wrap: wrap;
+  }
+
+  .hero-name-small {
+    max-width: 100%;
+    font-size: 13px;
+  }
+
+  .hero-fish-info {
+    width: 100%;
+    padding: 4px 8px;
+    align-items: stretch;
+  }
+
+  .hero-fish-row {
+    gap: 4px;
+    justify-content: flex-start;
+    align-items: flex-start;
+  }
+
+  .hero-stats-small {
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .hero-stats-small .stat-row-small {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .hero-stats-small span {
+    min-width: 0;
+    width: auto;
+  }
 }
 </style>
