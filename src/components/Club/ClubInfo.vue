@@ -148,12 +148,12 @@
                         />
                       </template>
                       <template #header>
-                        <span style="font-size: 18px; font-weight: bold;">{{ club.name }}</span>
+                        <span style="font-size: 18px; font-weight: bold;">{{ clubDisplayName }}</span>
                       </template>
                       <template #description>
                         <n-space size="small" style="margin-top: 4px;">
                           <n-tag size="small" :bordered="false" type="warning">ID: {{ club.id }}</n-tag>
-                          <n-tag size="small" :bordered="false" type="info">服务器: {{ club.serverId - 27 }}</n-tag>
+                          <n-tag size="small" :bordered="false" type="info">服务器: {{ clubServerDisplay }}</n-tag>
                           <n-tag size="small" :bordered="false" type="success">成员: {{ memberCount }}</n-tag>
                         </n-space>
                       </template>
@@ -622,6 +622,11 @@ const dialog = useDialog();
 
 const info = computed(() => tokenStore.gameData?.legionInfo || null);
 const club = computed(() => info.value?.info || null);
+const clubDisplayName = computed(() => club.value?.name?.trim() || "俱乐部");
+const clubServerDisplay = computed(() => {
+  const serverId = Number(club.value?.serverId || 0);
+  return serverId > 27 ? serverId - 27 : serverId || "未知";
+});
 
 const membersObj = computed(() => club.value?.members || {});
 const members = computed(() => Object.values(membersObj.value || {}));

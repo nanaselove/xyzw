@@ -2,7 +2,7 @@ import { createRouter, createWebHistory, createWebHashHistory } from 'vue-router
 import * as autoRoutes from "vue-router/auto-routes";
 import { useTokenStore } from '@/stores/tokenStore'
 import { isNowInLegionWarTime } from "@/utils/clubBattleUtils"
-import { buildPageTitle } from '@/constants/appMeta'
+import { buildPageTitle, getClubTitle } from '@/constants/appMeta'
 import { isAndroidWebView } from "@/utils/env"
 
 const generatedRoutes = autoRoutes.routes ?? [];
@@ -160,7 +160,7 @@ router.beforeEach((to, from, next) => {
   const tokenStore = useTokenStore()
 
   // 设置页面标题
-  document.title = buildPageTitle(to.meta?.title)
+  document.title = buildPageTitle(to.meta?.title, getClubTitle(tokenStore.gameData))
   if (to.path === '/' && !tokenStore.hasTokens) {
     next('/tokens')
     return

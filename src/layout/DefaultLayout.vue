@@ -9,7 +9,7 @@
             <n-icon>
               <Menu />
             </n-icon>
-            <span class="brand-text">{{ APP_NAME }}</span>
+            <span class="brand-text">{{ clubHeaderText }}</span>
           </div>
         </div>
 
@@ -201,7 +201,7 @@ import {
 
 import { useRouter } from 'vue-router'
 import { useMessage } from 'naive-ui'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { isNowInLegionWarTime } from '@/utils/clubBattleUtils'
 import { APP_NAME } from '@/constants/appMeta'
 
@@ -210,6 +210,19 @@ const router = useRouter();
 const message = useMessage();
 
 const isMobileMenuOpen = ref(false);
+const clubDisplayName = computed(
+  () => tokenStore.gameData?.legionInfo?.info?.name?.trim() || APP_NAME
+);
+const clubServerDisplay = computed(() => {
+  const serverId = Number(tokenStore.gameData?.legionInfo?.info?.serverId || 0);
+  if (!serverId) return "";
+  return String(serverId > 27 ? serverId - 27 : serverId);
+});
+const clubHeaderText = computed(() =>
+  clubServerDisplay.value
+    ? `✨${clubServerDisplay.value} ${clubDisplayName.value}✨`
+    : clubDisplayName.value
+);
 
 const userMenuOptions = [
   {

@@ -11,10 +11,27 @@ const inferredAppName =
 
 export const APP_NAME = inferredAppName || DEFAULT_APP_NAME;
 
-export function buildPageTitle(pageTitle) {
+export function getClubTitle(gameData) {
+  const clubName = gameData?.legionInfo?.info?.name?.trim();
+  if (!clubName) {
+    return APP_NAME;
+  }
+
+  const serverId = Number(gameData?.legionInfo?.info?.serverId || 0);
+  if (!serverId) {
+    return clubName;
+  }
+
+  const displayServerId = serverId > 27 ? serverId - 27 : serverId;
+  return `✨${displayServerId} ${clubName}✨`;
+}
+
+export function buildPageTitle(pageTitle, suffix = APP_NAME) {
   const normalizedPageTitle =
     typeof pageTitle === "string" ? pageTitle.trim() : "";
+  const normalizedSuffix =
+    typeof suffix === "string" && suffix.trim() ? suffix.trim() : APP_NAME;
   return normalizedPageTitle
-    ? `${normalizedPageTitle}${TITLE_SEPARATOR}${APP_NAME}`
-    : APP_NAME;
+    ? `${normalizedPageTitle}${TITLE_SEPARATOR}${normalizedSuffix}`
+    : normalizedSuffix;
 }

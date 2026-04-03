@@ -15,16 +15,35 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted } from "vue";
+import { computed, onMounted, onUnmounted, watchEffect } from "vue";
+import { useRoute } from "vue-router";
 import { darkTheme } from "naive-ui";
+import { useTokenStore } from "@/stores/tokenStore";
+import { buildPageTitle, getClubTitle } from "@/constants/appMeta";
 import { useTheme } from "@/composables/useTheme";
 
 const { isDark, initTheme, setupSystemThemeListener, updateReactiveState } =
   useTheme();
+const route = useRoute();
+const tokenStore = useTokenStore();
 
 // Naive UI theme
 const naiveTheme = computed(() => {
   return isDark.value ? darkTheme : null;
+});
+
+const pageTitle = computed(() =>
+  typeof route.meta?.title === "string" ? route.meta.title.trim() : "",
+);
+const documentTitle = computed(() =>
+  buildPageTitle(pageTitle.value, getClubTitle(tokenStore.gameData)),
+);
+
+watchEffect(() => {
+  if (typeof document === "undefined") {
+    return;
+  }
+  document.title = documentTitle.value;
 });
 
 // Listen for theme change event
